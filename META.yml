@@ -1,0 +1,28 @@
+---
+abstract: 'Hexadecial Range Dumper'
+author:
+  - 'Nadim ibn hamouda el Khemir. <nkh@cpan.org>'
+build_requires:
+  Test::Block: 0
+  Test::Exception: 0
+  Test::NoWarnings: 0
+  Test::Warn: 0
+  Text::Diff: 0
+configure_requires:
+  Module::Build: 0.36
+generated_by: 'Module::Build version 0.3603'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Data-HexDump-Range
+provides:
+  Data::HexDump::Range:
+    file: lib/Data/HexDump/Range.pm
+    version: 0.01_1
+requires:
+  Readonly: 0
+  Sub::Exporter: 0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.01_1

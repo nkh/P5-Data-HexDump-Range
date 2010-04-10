@@ -1,0 +1,125 @@
+#!/usr/bin/perl -w
+
+use strict ;
+use warnings ;
+use Carp ;
+
+=head1 NAME 
+
+ $> hdr - hexdump range
+
+=head1 USAGE
+
+ $> hdr -r range_definitions file_to_dump
+
+
+=head1 OPTIONS
+
+	range_description|r         file name to a perl file returning a description
+	orientation|o=s             'horizontal' or 'vertical'
+	format|f=s                  'ANSI' or 'ASCII' or 'HTML' 
+	data_width=i                the number of bytes dumped per line
+	
+	offset_format=s             'hex' or 'dec' 
+	show_offset=i               set to 0 if you do not want to see the offset
+	show_cumulative_offset=i    set to 0 if you do not want to see the offset perl range
+
+	show_range_name=i           controls the display of the range name
+	show_hex_dump=i             controls the display of the hexadecimal dump
+	show_dec_dump=i             controls the display of the decimal dump
+	show_ascii_dump=i           controls the display of the ASCII dump
+	
+	h|help					display this scripts help page
+
+=head1 EXIT STATUS
+
+
+=head1 AUTHOR
+
+  Nadim ibn hamouda el Khemir
+  CPAN ID: NKH
+  mailto: nkh@cpan.org
+
+=cut
+
+#------------------------------------------------------------------------------------------------------------------------
+
+use Getopt::Long ;
+use English qw( -no_match_vars ) ;
+
+use Data::HexDump::Range  qw() ;
+
+our $VERSION = '0.01' ;
+
+#------------------------------------------------------------------------------------------------------------------------
+
+display_help() unless 
+	GetOptions
+		(
+		'range_description|r=s' => \ my $range_description,
+		'orientation|o=s' => \my $orientation,
+		'format|f=s' => \my $format,
+		'data_width=i' =>  \my $data_width,
+		
+		'offset_format=s' => \my $offset_format,
+		'show_offset=i' => \my $show_offset,
+		'show_cumulative_offset=i' => \my $show_cumulative_offset,
+
+		'show_range_name=i' => \my $show_range_name,
+		'show_hex_dump=i' => \my $show_hex_dump,
+		'show_dec_dump=i' => \my $show_dec_dump,
+		'show_ascii_dump=i' => \my $show_ascii_dump,
+		
+		'h|help' => \&display_help, 
+		) ;
+
+display_help() unless @ARGV ;
+$range_description ||= 'dumping all file' ;
+
+my $file_to_dump = shift @ARGV ;
+
+my $hdr = Data::HexDump::Range->new
+			(
+			DISPLAY_ORIENTATION => $orientation || 'horizontal',
+			FORMAT => $format || 'ANSI',
+			COLOR => 'random',
+			
+			OFFSET_FORMAT => $offset_format || 'hex',
+			DATA_WIDTH => $data_width || 16,
+			DISPLAY_RANGE_NAME => defined $show_range_name ? $show_range_name : 1 ,
+			DISPLAY_OFFSET  => defined $show_offset ? $show_offset : 1 ,
+			DISPLAY_CUMULATIVE_OFFSET  => defined $show_cumulative_offset ? $show_cumulative_offset : 1 ,
+			DISPLAY_HEX_DUMP => defined $show_hex_dump ? $show_hex_dump : 1,
+			DISPLAY_DEC_DUMP => defined $show_dec_dump ? $show_dec_dump : 0,
+			DISPLAY_ASCII_DUMP => defined $show_ascii_dump ? $show_ascii_dump :  1 ,
+			) ;
+
+use File::Slurp ;
+my $data = read_file $file_to_dump ;
+
+my $range  = do $range_description || ['no range defined', length($data) ] ;
+
+print $hdr->dump( $range, $data ) ;
+
+
+
+#------------------------------------------------------------------------------------------------------------------------
+
+sub display_help
+{
+
+#~ =head2 display_help()
+
+#~ I<Arguments> - None
+
+#~ I<Returns> - Nothing
+
+#~ I<Exceptions> - exits with status code B<1>
+
+#~ =cut
+
+my ($this_script) = ($PROGRAM_NAME =~m/(.*)/sxm ) ;
+
+print {*STDERR} `perldoc $this_script`  or croak 'Error: Can\'t display help!' ; ## no critic (InputOutput::ProhibitBacktickOperators)
+exit(1) ;
+}
