@@ -18,6 +18,7 @@ use Carp ;
 	range_description|r         file name to a perl file returning a description
 	orientation|o=s             'horizontal' or 'vertical'
 	format|f=s                  'ANSI' or 'ASCII' or 'HTML' 
+	color=s                     'bw' or 'cycle',
 	data_width=i                the number of bytes dumped per line
 	
 	offset_format=s             'hex' or 'dec' 
@@ -59,6 +60,7 @@ display_help() unless
 		'range_description|r=s' => \ my $range_description,
 		'orientation|o=s' => \my $orientation,
 		'format|f=s' => \my $format,
+		'color=s' => \my $color,
 		'data_width=i' =>  \my $data_width,
 		
 		'offset_format=s' => \my $offset_format,
@@ -80,9 +82,9 @@ my $file_to_dump = shift @ARGV ;
 
 my $hdr = Data::HexDump::Range->new
 			(
-			DISPLAY_ORIENTATION => $orientation || 'horizontal',
+			ORIENTATION => $orientation || 'horizontal',
 			FORMAT => $format || 'ANSI',
-			COLOR => 'random',
+			COLOR => defined $color ? $color : 'cycle',
 			
 			OFFSET_FORMAT => $offset_format || 'hex',
 			DATA_WIDTH => $data_width || 16,
