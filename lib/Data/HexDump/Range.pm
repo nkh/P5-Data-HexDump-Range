@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.01_1';
+$VERSION     = '0.02_1';
 }
 
 #-------------------------------------------------------------------------------
@@ -846,10 +846,6 @@ my $ranges = $self->create_ranges($range_description) ;
 
 my $used_data = $offset || 0 ;
 
-#~ use Data::TreeDumper ;
-#~ print DumpTree $range_description ;
-#~ print DumpTree $ranges ;
-
 my $skip_ranges = 0 ;
 
 for my $range (@{$ranges})
@@ -1113,6 +1109,19 @@ for my $data (@{$collected_data})
 		my $dumped_data = 0 ;
 		my $current_range = '' ;
 		
+		if(0 == length($data->{DATA}) && $self->{DISPLAY_ZERO_SIZE_RANGE})
+			{
+			push @{$line->{RANGE_NAME}},
+				{
+				'RANGE_NAME_COLOR' => $data->{COLOR},
+				'RANGE_NAME' => "<$data->{NAME}>",
+				} ;
+				
+			$line->{NEW_LINE} ++ ;
+			push @lines, $line ;
+			$line = {};
+			}
+			
 		while ($dumped_data < length($data->{DATA}))
 			{
 			my $size_to_dump = min($self->{DATA_WIDTH}, length($data->{DATA}) - $dumped_data) ;

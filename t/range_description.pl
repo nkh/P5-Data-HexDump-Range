@@ -10,6 +10,7 @@ my $data_range = # definition to re-use
 
 my $structured_range = 
 	[
+	    ['zero size', 0],
 	  [
 	    ['magic cookie', 12, 'red'],
 	    ['padding', 32, 'yellow'],
