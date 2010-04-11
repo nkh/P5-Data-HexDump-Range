@@ -353,6 +353,8 @@ Readonly my $NEW_ARGUMENTS =>
 	OFFSET_FORMAT 
 	DATA_WIDTH 
 	DISPLAY_OFFSET DISPLAY_CUMULATIVE_OFFSET
+	DISPLAY_ZERO_SIZE_RANGE_WARNING
+	DISPLAY_ZERO_SIZE_RANGE 
 	DISPLAY_RANGE_NAME
 	DISPLAY_ASCII_DUMP
 	DISPLAY_HEX_DUMP
@@ -379,6 +381,8 @@ Create a Data::HexDump::Range object.
 		DISPLAY_RANGE_NAME => 1 ,
 		DISPLAY_OFFSET  => 1 ,
 		DISPLAY_CUMULATIVE_OFFSET  => 1 ,
+		DISPLAY_ZERO_SIZE_RANGE_WARNING => 1,
+		DISPLAY_ZERO_SIZE_RANGE => 1,
 		DISPLAY_ASCII_DUMP => 1 ,
 		DISPLAY_HEX_DUMP => 1,
 		DISPLAY_DEC_DUMP => 1,
@@ -411,7 +415,7 @@ black and white or with a color picked from a cyclic color list. Default is 'bw'
 
 =item * OFFSET_FORMAT - String - 'hex' or 'dec'
 
-if set to 'hex', the offset will be displayed in base 16. When set to 'dec' the offset is displayed
+If set to 'hex', the offset will be displayed in base 16. When set to 'dec' the offset is displayed
 in base 10. Default is 'hex'.
 
 =item * DATA_WIDTH - Integer - Number of elements displayed per line. Default is 16.
@@ -421,6 +425,10 @@ in base 10. Default is 'hex'.
 =item * DISPLAY_OFFSET - Boolean - If set, the offset columnis displayed in the dump.
 
 =item * DISPLAY_CUMULATIVE_OFFSET - Boolean - If set, the cumulative offset column is displayed in 'vertical' rendering mode
+
+=item * DISPLAY_ZERO_SIZE_RANGE - Boolean - if set, ranges that do not consume data are displayed. default is I<true> 
+
+=item * DISPLAY_ZERO_SIZE_RANGE_WARNING - Boolean - if set, a warning is emitted if ranges that do not consume data. default is I<true> 
 
 =item * DISPLAY_ASCII_DUMP - Boolean - If set, the ASCII representation of the binary data is displayed
 
@@ -514,7 +522,10 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 		
 	OFFSET_FORMAT => 'hex',
 	DATA_WIDTH => 16,
-
+	
+	DISPLAY_ZERO_SIZE_RANGE_WARNING => 1,
+	DISPLAY_ZERO_SIZE_RANGE => 1,
+	
 	DISPLAY_RANGE_NAME => 1,
 	DISPLAY_OFFSET => 1,
 	DISPLAY_CUMULATIVE_OFFSET => 1,
@@ -843,8 +854,19 @@ my $skip_ranges = 0 ;
 
 for my $range (@{$ranges})
 	{
-	my ($range_name, $range_size, $range_color) = @{$range} ;
+	my ($name, $size, $color) = @{$range} ;
 	
+	my @sub_or_scalar ;
+	
+	push @sub_or_scalar, ref($name) eq 'CODE' ? $name->()  : $name ;
+	push @sub_or_scalar, ref($size) eq 'CODE' ? $size->()  : $size ;
+	push @sub_or_scalar, ref($color) eq 'CODE' ? $color->()  : $color;
+	
+	my ($range_name, $range_size, $range_color) = @sub_or_scalar ;
+	
+	$self->{INTERACTION}{WARN}("Warning: range '$range_name' requires zero bytes.\n")
+		if($range_size == 0 && $self->{DISPLAY_ZERO_SIZE_RANGE_WARNING}) ;
+		
 	if($used_data + $range_size > length $data)
 		{
 		my $available = length($data) - $used_data ;
@@ -866,7 +888,6 @@ for my $range (@{$ranges})
 	$used_data += $range_size ;
 	last if $skip_ranges ;
 	}
-
 
 return $collected_data, $used_data ;
 }
@@ -941,25 +962,37 @@ map
 	
 	if(ref($description) eq 'ARRAY')
 		{
-		if(all {'' eq ref($_)} @{$description} ) # todo: handle code refs
+		if(all {'' eq ref($_) || 'CODE' eq ref($_) } @{$description} ) # todo: handle code refs
 			{			
 			# a simple  range description, color is  optional
-			if(@{$description} == 1 || @{$description} == 0)
+			if(@{$description} == 0)
 				{
 				$self->{INTERACTION}{DIE}->("Error: too few elements in range description [" . join(', ', map {defined $_ ? $_ : 'undef'} @{$description})  . "]." ) ;
 				}
+			elsif(@{$description} == 1)
+				{
+				if('' eq ref($description->[0]))
+					{
+					$self->{INTERACTION}{DIE}->("Error: too few elements in range description [" . join(', ', map {defined $_ ? $_ : 'undef'} @{$description})  . "]." ) ;
+					}
+				else
+					{
+					@{$description} = $description->[0]() ;
+					
+					$self->{INTERACTION}{DIE}->("Error: single sub range definition returned [" . join(', ', map {defined $_ ? $_ : 'undef'}@{$description})  . "]." ) 
+						unless (@{$description} == 3) ;
+					}
+				}
 			elsif(@{$description}  == 2)
 				{
-				(@{$description}, undef) ;
+				push @{$description}, undef ;
 				}
-			elsif(@{$description}  == 3)
-				{
-				@{$description} ;
-				}
-			else
+			elsif(@{$description} > 3)
 				{
 				$self->{INTERACTION}{DIE}->("Error: too many elements in range description [" . join(', ', map {defined $_ ? $_ : 'undef'} @{$description}) . "]." ) ;
 				}
+				
+			@{$description} ;
 			}
 		else
 			{
@@ -1012,6 +1045,19 @@ for my $data (@{$collected_data})
 		{
 		my $last_data = $data == $collected_data->[-1] ? 1 : 0 ;
 		my $dumped_data = 0 ;
+		
+		if(0 == length($data->{DATA}) && $self->{DISPLAY_ZERO_SIZE_RANGE})
+			{
+			push @{$line->{RANGE_NAME}},
+				{
+				'RANGE_NAME_COLOR' => $data->{COLOR},
+				'RANGE_NAME' => "<$data->{NAME}>",
+				},
+				{
+				'RANGE_NAME_COLOR' => undef,
+				'RANGE_NAME' => ', ',
+				} ;
+			}
 		
 		while ($dumped_data < length($data->{DATA}))
 			{
