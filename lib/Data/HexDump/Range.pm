@@ -32,7 +32,9 @@ use Carp qw(carp croak confess) ;
 
 #use Graphics::ColorNames
 use List::Util qw(min) ;
- 
+use List::MoreUtils qw(all) ;
+use Scalar::Util qw(looks_like_number) ;
+
 #-------------------------------------------------------------------------------
 
 =head1 NAME
@@ -263,12 +265,6 @@ Meta range names start witht the '<<' sequence.
 	  ],
 	] ;
 
-todo: add horizontal example
-
-=head3 Keeping range definitions in external files
-
-todo: add example
-
 =head3 Dynamic range definition
 
 The whole range can be replaced by a subroutine reference or elements of the range can be replaced by
@@ -285,10 +281,8 @@ a subroutine definition.
 
   sub cloth_size
   {
-  my $data = shift ; #parsed data
-  
+  my ($data, $offset, $size) = @_ ;
   my %types = (O => 'S', 1 => 'M', 2 => 'L',) ;
-  
   return 'size:' . ($types{$data} // '?') ;
   }
   
@@ -298,7 +292,7 @@ a subroutine definition.
 
   sub cloth_size
   {
-  my $data = shift ; #remaining data
+  my ($data, $offset, $size) = @_ ;
   return unpack "a", $data ;
   }
   
@@ -311,14 +305,7 @@ a subroutine definition.
   
   sub alternate_color {$flip_flop ^= 1 ; return $colors[$flip_flop] }
   
-  $hdr->dump
-	(
-	[
-	  ['data', 100, \&alternate_color],
-	  ['other_data', 100, \&alternate_color],
-	]
-	$data
-	) ;
+  $hdr->dump(['data', 100, \&alternate_color], $data) ;
 
 =head4 whole range definition as a subroutine reference
 
@@ -650,6 +637,8 @@ I<Arguments>
 
 =back
 
+=back
+
 I<Returns> - An integer - the number of processed bytes
 
 I<Exceptions> - See L<_gather>
@@ -702,29 +691,7 @@ Dump the data, up to $size, according to the description
 
 I<Arguments> - See L<gather>
 
-I<Returns> - 
-
-=over 2
-
-=item * Scalar context
-
-=over 2
-
-=item * A string -  the formated dump
-
-=back 
-
-=item * List context
-
-=over 2
-
-=item *  A string -  the formated dump
-
-=item * An integer - the number of bytes consumed by the range specification
-
-=back 
-
-=back 
+I<Returns> - A string -  the formated dump
 
 I<Exceptions> - dies if the range description is invalid
 
@@ -804,7 +771,7 @@ return ;
 sub _gather
 {
 
-=head2 [P] _gather($range_description, $data, $size)
+=head2 [P] _gather($range_description, $data, $offset, $size)
 
 Creates an internal data structure from the data to dump.
 
@@ -846,30 +813,41 @@ my $ranges = $self->create_ranges($range_description) ;
 
 my $used_data = $offset || 0 ;
 
+if($used_data < 0)
+	{
+	my $location = "$self->{FILE}:$self->{LINE}" ;
+	$self->{INTERACTION}{DIE}("Warning: Invalid negative offset at '$location'.\n")
+	}
+
+$size = defined $size ? min($size, length($data) - $used_data) : length($data) - $used_data ;
+
+my $location = "$self->{FILE}:$self->{LINE}" ;
 my $skip_ranges = 0 ;
 
 for my $range (@{$ranges})
 	{
-	my ($name, $size, $color) = @{$range} ;
+	my ($range_name, $range_size, $range_color) = @{$range} ;
 	
+	$self->{INTERACTION}{DIE}("Error: size doesn't look like a number in range '$range_name' at '$location'.\n")
+		if('' eq ref($range_size) && ! looks_like_number($range_size)) ;
+		
 	my @sub_or_scalar ;
 	
-	push @sub_or_scalar, ref($name) eq 'CODE' ? $name->()  : $name ;
-	push @sub_or_scalar, ref($size) eq 'CODE' ? $size->()  : $size ;
-	push @sub_or_scalar, ref($color) eq 'CODE' ? $color->()  : $color;
+	push @sub_or_scalar, ref($range_name) eq 'CODE' ? $range_name->($data, $used_data, $size)  : $range_name ;
+	push @sub_or_scalar, ref($range_size) eq 'CODE' ? $range_size->($data, $used_data, $size)  : $range_size ;
+	push @sub_or_scalar, ref($range_color) eq 'CODE' ? $range_color->($data, $used_data, $size)  : $range_color;
 	
-	my ($range_name, $range_size, $range_color) = @sub_or_scalar ;
+	($range_name, $range_size, $range_color) = @sub_or_scalar ;
 	
 	$self->{INTERACTION}{WARN}("Warning: range '$range_name' requires zero bytes.\n")
 		if($range_size == 0 && $self->{DISPLAY_ZERO_SIZE_RANGE_WARNING}) ;
 		
-	if($used_data + $range_size > length $data)
+	if($range_size > $size)
 		{
-		my $available = length($data) - $used_data ;
 		my $location = "$self->{FILE}:$self->{LINE}" ;
-		$self->{INTERACTION}{WARN}("Warning: not enough data for range '$range_name', $range_size needed but only $available available.\n") ;
+		$self->{INTERACTION}{WARN}("Warning: not enough data for range '$range_name', $range_size needed but only $size available.\n") ;
 		
-		$range_size = $available ;
+		$range_size = $size;
 		$skip_ranges++ ;
 		}
 			
@@ -882,6 +860,8 @@ for my $range (@{$ranges})
 		} ;
 	
 	$used_data += $range_size ;
+	$size -= $range_size ;
+	
 	last if $skip_ranges ;
 	}
 
@@ -902,6 +882,79 @@ I<Arguments> -
 =over 2 
 
 =item * $range_description - See L<gather> 
+
+=back
+
+I<Returns> - Nothing
+
+I<Exceptions> - Croaks with an error messge if the input data is invalid
+
+=cut
+
+my ($self, $range_description) = @_ ;
+
+return $self->create_ranges_from_array_ref($range_description) if 'ARRAY' eq ref($range_description) ;
+return $self->create_ranges_from_string($range_description) if '' eq ref($range_description) ;
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub create_ranges_from_string
+{
+
+=head2 [P] create_ranges_from_string($range_description)
+
+transforms the user supplied ranges into an internal format
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $range_description - A string - See L<gather> 
+
+=back
+
+I<Returns> - Nothing
+
+I<Exceptions> - Croaks with an error messge if the input data is invalid
+
+=cut
+
+my ($self, $range_description) = @_ ;
+
+# 'comment,#:name,size,color:name,size:name,size,color'
+
+my @ranges = 
+	map
+	{
+		[ map {s/^\s+// ; s/\s+$//; $_} split /,/ ] ;
+	} split /:/, $range_description ;
+
+my @flattened = $self->flatten(\@ranges) ;
+@ranges = () ;
+
+while(@flattened)
+	{
+	push @ranges, [splice(@flattened, 0, 3)] ;
+	}
+
+return \@ranges ;
+}
+
+
+sub create_ranges_from_array_ref
+{
+
+=head2 [P] create_ranges_from_array_ref($range_description)
+
+transforms the user supplied ranges into an internal format
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $range_description - An array reference - See L<gather> 
 
 =back
 
@@ -948,8 +1001,6 @@ I<Exceptions> - Croaks with an error messge if the input data is invalid
 
 =cut
 
-use List::MoreUtils qw(all) ;
-
 my $self = shift ;
 
 map 
@@ -959,23 +1010,40 @@ map
 	if(ref($description) eq 'ARRAY')
 		{
 		if(all {'' eq ref($_) || 'CODE' eq ref($_) } @{$description} ) # todo: handle code refs
-			{			
+			{
+			my $location = "$self->{FILE}:$self->{LINE}" ;
+			
 			# a simple  range description, color is  optional
 			if(@{$description} == 0)
 				{
-				$self->{INTERACTION}{DIE}->("Error: too few elements in range description [" . join(', ', map {defined $_ ? $_ : 'undef'} @{$description})  . "]." ) ;
+				$self->{INTERACTION}{DIE}->
+					(
+					"Error: too few elements in range description [" 
+					. join(', ', map {defined $_ ? $_ : 'undef'} @{$description})  
+					. "] at '$location'." 
+					) ;
 				}
 			elsif(@{$description} == 1)
 				{
 				if('' eq ref($description->[0]))
 					{
-					$self->{INTERACTION}{DIE}->("Error: too few elements in range description [" . join(', ', map {defined $_ ? $_ : 'undef'} @{$description})  . "]." ) ;
+				$self->{INTERACTION}{DIE}->
+					(
+					"Error: too few elements in range description [" 
+					. join(', ', map {defined $_ ? $_ : 'undef'} @{$description})  
+					. "] at '$location'." 
+					) ;
 					}
 				else
 					{
 					@{$description} = $description->[0]() ;
 					
-					$self->{INTERACTION}{DIE}->("Error: single sub range definition returned [" . join(', ', map {defined $_ ? $_ : 'undef'}@{$description})  . "]." ) 
+					$self->{INTERACTION}{DIE}->
+						(
+						"Error: single sub range definition returned ["
+						. join(', ', map {defined $_ ? $_ : 'undef'}@{$description})  
+						. "] at '$location'." 
+						) 
 						unless (@{$description} == 3) ;
 					}
 				}
@@ -985,7 +1053,12 @@ map
 				}
 			elsif(@{$description} > 3)
 				{
-				$self->{INTERACTION}{DIE}->("Error: too many elements in range description [" . join(', ', map {defined $_ ? $_ : 'undef'} @{$description}) . "]." ) ;
+				$self->{INTERACTION}{DIE}->
+					(
+					"Error: too many elements in range description [" 
+					. join(', ', map {defined $_ ? $_ : 'undef'} @{$description}) 
+					. "] at '$location'." 
+					) ;
 				}
 				
 			@{$description} ;
@@ -1006,6 +1079,7 @@ map
 
 sub split
 {
+
 =head2 [P] split($collected_data)
 
 Split the collected data into lines
@@ -1169,6 +1243,21 @@ my $current_color_index = 0 ;
 
 sub get_default_color
 {
+
+=head2 [P] get_default_color()
+
+Returns a color to use with a range that has none
+
+  my $default_color = $self->get_default_color() ;
+
+I<Arguments> - None
+
+I<Returns> - A string - a color according to the COLOR option and FORMAT
+
+I<Exceptions> - None
+
+=cut
+
 my ($self) = @_ ;
 
 my $default_color ;

@@ -7,19 +7,10 @@ use Data::TreeDumper ;
 
 use Data::HexDump::Range  qw() ;
  
-my $range = # definition to re-use
-	[
-	  [sub{'generated name'}, 5, 'blue on_cyan'],
-	  ['size_zero', sub {0}, 'green'],
-	  ['generated_color', 20, sub{'red'}],
-	  [sub{ 'generated', sub {5}, 'red on_yellow'}],
-	] ;
-			
-my $hdr = Data::HexDump::Range->new(DISPLAY_ZERO_SIZE_RANGE => 0, DISPLAY_ZERO_SIZE_RANGE_WARNING => 0) ;
+my $hdr = Data::HexDump::Range->new() ;
 
-my $data = 'A' . chr(5) . ('0123456789' x  100 ) ;
+my $range = [['field1', 10], ['field2', 10]] ;
 
-$hdr->gather($range, $data) ;
+print $hdr->dump([$range, $range, $range ], '0123456789' x 6) ;
 
-print $hdr->dump_gathered() ;
 

@@ -97,7 +97,7 @@ if($ENV{'Data_HexDump_Range_USE_GIT_VERSION_FOR_DIST'})
 	
 	if($have_git)
 		{
-		print `git status -a`;
+		print `git status`;
 		
 		if($self->do_system('git log  --decorate > git_Changes'))
 			{
@@ -148,6 +148,7 @@ my $build = $class->new
 		'Getopt::Long' => 0,
 		'List::Util' => 0,
 		'List::MoreUtils' => 0,
+		'Scalar::Util' => 0,
 		},
 		
 	pm_files     => \%all_modules,

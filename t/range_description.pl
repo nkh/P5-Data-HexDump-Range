@@ -16,9 +16,9 @@ my $structured_range =
 	    ['padding', 32, 'yellow'],
 	    $data_range, 
 	  ],
-		
+             ['other zero size', 0],		
 	  [
-	    ['extra data', 12, undef],
+	    ['extra data', 18, undef],
 	      [
 	      $data_range, 
 	      ['footer', 4, 'bright_yellow on_red'],

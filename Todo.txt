@@ -2,5 +2,52 @@
 # This is Todo.txt #
 #------------------#
 
-screen cast or images on web site
+html file, that is the web site, in the distribution
+	pod with embedded HTML dumps
+	embed the html in the module directly
+
+comment field size
+	vertical mode: no limit, allow \n
+	horizontal mode: truncate to max range name size, 
+	quote comment range name: ASCII data, "comment", footer
+
+in direct dump mode, use the offset passed by the user to set the starting offset point
+	000017 xx xx xx xx                    something starting at offset 17
+
+accept offset in hdr application
+
+accept data that is piped in
+
+option to not show comments
+
+field size option
+	field name > field size display truncted string
+
+display in range column information about missing data
+	ASCII data, padding(-16) 
+
+if single item range is sub and the returned data is an array ref, expand the ref
+
+iterator class => parser
+	sub my_parser 
+		{
+		my ($data, $offset) = @_ ;
+
+		$offset > length($data)
+			? unpack ("x$offset C", $data) 
+				? ['from odd', 5, 'blue']
+				: ['from even' 3, 'green'] ;
+			: undef
+		}
+
+	my $data = '01' x 50 ;
+	my $hdr = ...
+
+	print $hdr->dump(\&my_parser, $data) ;
+
+pack format
+	can we get the size of the data defined by pack?
+	use Scalar::Util qw(looks_like_number);
+
+	
 

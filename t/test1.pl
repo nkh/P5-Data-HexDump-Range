@@ -51,7 +51,7 @@ my $range = # definition to re-use
 	  #~ ],
 	#~ ] ;
 	
-my $hdr = Data::HexDump::Range->new(DISPLAY_ORIENTATION => 'vertical') ;
+my $hdr = Data::HexDump::Range->new(ORIENTATION => 'vertical') ;
 
 my $data = 'A' . chr(5) . '0123456789' x  128 ;
 

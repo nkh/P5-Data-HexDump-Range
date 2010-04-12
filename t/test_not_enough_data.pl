@@ -28,7 +28,7 @@ my $range = # definition to re-use
 	  ],
 	] ;
 	
-my $hdr = Data::HexDump::Range->new(DISPLAY_ORIENTATION => 'horizontal') ;
+my $hdr = Data::HexDump::Range->new(ORIENTATION => 'horizontal') ;
 
 my $data = 'A' . chr(5) . ('0123456789' x  10 ) ;
 my $offset  = 0 ;

@@ -30,7 +30,7 @@ my $structured_range =
 	  ],
 	] ;
 	
-my $hdr = Data::HexDump::Range->new(DISPLAY_ORIENTATION => 'vertical') ;
+my $hdr = Data::HexDump::Range->new(ORIENTATION => 'vertical') ;
 
 my $data = 'A' . chr(5) . '0123456789' x  128 ;
 

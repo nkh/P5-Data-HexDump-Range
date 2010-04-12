@@ -15,22 +15,25 @@ use Carp ;
 
 =head1 OPTIONS
 
- range_description|r           perl file returning a description
+ range_description|r           file name containing a description
+                               or a string description formated as:
+			                      'color:name,size:name,size,color:...'
+					      
  orientation|o                 'horizontal' or 'vertical'
  format|f                      'ANSI' or 'ASCII' or 'HTML' 
  color                         'bw' or 'cycle',
  data_width                    the number of bytes dumped per line
  
- offset_format=s               'hex' or 'dec' 
+ offset_format                 'hex' or 'dec' 
  show_offset                   0 to not see the offset
  show_cumulative_offset        0 to not see the offset per range
  show_zero_size_range          0 to not see range names with size 0
  show_zero_size_range_warning  0 to not see warnings about ranges with size 0
  
- show_range_name=i             controls the display of the range name
- show_hex_dump=i               controls the display of the hexadecimal dump
- show_dec_dump=i               controls the display of the decimal dump
- show_ascii_dump=i             controls the display of the ASCII dump
+ show_range_name               controls the display of the range name
+ show_hex_dump                 controls the display of the hexadecimal dump
+ show_dec_dump                 controls the display of the decimal dump
+ show_ascii_dump               controls the display of the ASCII dump
  
  h|help                        display this scripts help page
 
@@ -106,11 +109,19 @@ my $hdr = Data::HexDump::Range->new
 use File::Slurp ;
 my $data = read_file $file_to_dump ;
 
-my $range  = do $range_description || ['no range defined', length($data) ] ;
+my $range ;
+
+if($range_description =~ /,/)
+	{
+	$range = $range_description ;
+	}
+else
+	{
+	# a file
+	$range  = do $range_description || ['no range defined', length($data) ] ;
+	}
 
 print $hdr->dump( $range, $data ) ;
-
-
 
 #------------------------------------------------------------------------------------------------------------------------
 
