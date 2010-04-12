@@ -104,9 +104,10 @@ The examples below show the hypothetic ranges:
 		
 	  [
 	    ['extra data', 12, undef],
-	      [
-	      $data_range, 
-	      ['footer', 4, 'bright_yellow on_red'],
+	    
+	    [
+	    $data_range, 
+	    ['footer', 4, 'bright_yellow on_red'],
 	    ]
 	  ],
 	] ;
@@ -235,33 +236,27 @@ For simple data formats, your can put all the your range descriptions in a array
 		
 	  [
 	    ['extra data', 12, undef],
-	      [
+	    [
 	      $data_range, 
 	      ['footer', 4, 'yellow on_red'],
 	    ]
 	  ],
 	]
 	
-=head4 Meta Ranges
+=head4 Comment ranges
 
-Meta Ranges are defined by their sub ranges. They do not consume any data but describe their contants
+If the size of a range is the string '#', the whole range is considered a comment
 
-Meta range names start witht the '<<' sequence.
-
-  my $meta_range_defintion = 
+  my $range_defintion_with_comments = 
 	[
-	  [
-	  '<< header and data meta range', 'color for meta range'
-	  
-	    ['magic cookie', 12, 'red']
-	    ['padding', 88, 'yellow']
+	  ['comment text', '#', 'optional color for meta range'],
+	  ['magic cookie', 12, 'red'],
+	  ['padding', 88, 'yellow'],
 	    
-	      [
-	      '<< data', undef, # undef => module picks a color for the data meta range
-	      
-	        ['data header', 5, 'blue on_yellow']
-		['data', 100, 'blue']
-	      ]
+	  [
+	    ['another comment', '#'],
+	    ['data header', 5, 'blue on_yellow'],
+	    ['data', 100, 'blue'],
 	  ],
 	] ;
 
@@ -273,7 +268,6 @@ a subroutine definition.
   my $dynamic_range =
 	[
 	  [\&name, \&size, \&color ],
-	
 	  [\&define_range] # returns a sub range definition
 	] ;
 
@@ -307,17 +301,17 @@ a subroutine definition.
   
   $hdr->dump(['data', 100, \&alternate_color], $data) ;
 
-=head4 whole range definition as a subroutine reference
+=head4 Range definition defined by a subroutine reference
 
-This allows you to define a parser. 
-
-TODO: give an example
-
-TODO: give an alternative solution using L<gather>
+  my $hdr = Data::HexDump::Range->new() ;
+  
+  print $hdr->dump(\&parser, $data) ;
 
 =head1 OTHER IDEAS
 
 - allow pack format as range size
+	pack in array context returns the amount of fields processed
+	fixed format can be found with a length of unpack
 
 - hook with Convert::Binary::C to automatically create ranges
 
@@ -835,9 +829,23 @@ my $skip_ranges = 0 ;
 for my $range (@{$ranges})
 	{
 	my ($range_name, $range_size, $range_color) = @{$range} ;
+	my $is_comment = 0 ;
 	
-	$self->{INTERACTION}{DIE}("Error: size '$range_size' doesn't look like a number in range '$range_name' at '$location'.\n")
-		if('' eq ref($range_size) && ! looks_like_number($range_size)) ;
+	if('' eq ref($range_size))
+		{
+		if('#' eq  $range_size)
+			{
+			$is_comment++ ;
+			}
+		elsif(looks_like_number($range_size))
+			{
+			# OK
+			}
+		else
+			{
+			$self->{INTERACTION}{DIE}("Error: size '$range_size' doesn't look like a number in range '$range_name' at '$location'.\n")
+			}
+		}
 		
 	my @sub_or_scalar ;
 	
@@ -848,9 +856,9 @@ for my $range (@{$ranges})
 	($range_name, $range_size, $range_color) = @sub_or_scalar ;
 	
 	$self->{INTERACTION}{WARN}("Warning: range '$range_name' requires zero bytes.\n")
-		if($range_size == 0 && $self->{DISPLAY_ZERO_SIZE_RANGE_WARNING}) ;
+		if(!$is_comment && $range_size == 0 && $self->{DISPLAY_ZERO_SIZE_RANGE_WARNING}) ;
 		
-	if($range_size > $size)
+	if(!$is_comment && $range_size > $size)
 		{
 		my $location = "$self->{FILE}:$self->{LINE}" ;
 		$self->{INTERACTION}{WARN}("Warning: not enough data for range '$range_name', $range_size needed but only $size available.\n") ;
@@ -861,16 +869,21 @@ for my $range (@{$ranges})
 		$skip_ranges++ ;
 		}
 			
+	my $unpack_format 
+		= $is_comment
+			? '#' 
+			: "x$used_data a$range_size"  ;
+	
 	push @{$collected_data}, 		
 		{
 		NAME => $range_name, 
 		COLOR => $range_color,
 		OFFSET => $used_data,
-		DATA => unpack("x$used_data a$range_size", $data)
+		DATA => $is_comment ? undef : unpack($unpack_format, $data)
 		} ;
 	
-	$used_data += $range_size ;
-	$size -= $range_size ;
+	$used_data += $range_size unless $is_comment ;
+	$size -= $range_size unless $is_comment ;
 	
 	last if $skip_ranges ;
 	}
@@ -1122,20 +1135,25 @@ my $name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 
 for my $data (@{$collected_data})
 	{
+	my $data_length = defined $data->{DATA} ? length($data->{DATA}) : 0 ;
+	my $is_comment = ! defined $data->{DATA} ;
+	my ($start_quote, $end_quote) = $is_comment ? ('"', '"') : ('<', '>') ;
+	
 	if($self->{ORIENTATION} =~ /^hor/)
 		{
 		my $last_data = $data == $collected_data->[-1] ? 1 : 0 ;
 		my $dumped_data = 0 ;
+		my $data_length = defined $data->{DATA} ? length($data->{DATA}) : 0 ;
 		
-		if(0 == length($data->{DATA}) && $self->{DISPLAY_ZERO_SIZE_RANGE})
+		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE})
 			{
 			my $name_size_quoted = $name_size - 2 ;
-			$name_size_quoted =  2 if $name_size_quoted <= 2 ;
+			$name_size_quoted =  2 if $name_size_quoted < 2 ;
 			
 			push @{$line->{RANGE_NAME}},
 				{
 				'RANGE_NAME_COLOR' => $data->{COLOR},
-				'RANGE_NAME' => '<' . sprintf("%-${name_size_quoted}.${name_size_quoted}s", $data->{NAME}) . '>',
+				'RANGE_NAME' => $start_quote . sprintf("%.${name_size_quoted}s", $data->{NAME}) . $end_quote,
 				},
 				{
 				'RANGE_NAME_COLOR' => undef,
@@ -1143,7 +1161,7 @@ for my $data (@{$collected_data})
 				} ;
 			}
 		
-		while ($dumped_data < length($data->{DATA}))
+		while ($dumped_data < $data_length)
 			{
 			my $size_to_dump = min($room_left, length($data->{DATA}) - $dumped_data) ;
 			$room_left -= $size_to_dump ;
@@ -1197,12 +1215,12 @@ for my $data (@{$collected_data})
 		my $dumped_data = 0 ;
 		my $current_range = '' ;
 		
-		if(0 == length($data->{DATA}) && $self->{DISPLAY_ZERO_SIZE_RANGE})
+		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE})
 			{
 			push @{$line->{RANGE_NAME}},
 				{
 				'RANGE_NAME_COLOR' => $data->{COLOR},
-				'RANGE_NAME' => "<$data->{NAME}>",
+				'RANGE_NAME' => "$start_quote$data->{NAME}$end_quote",
 				} ;
 				
 			$line->{NEW_LINE} ++ ;
@@ -1210,7 +1228,7 @@ for my $data (@{$collected_data})
 			$line = {};
 			}
 			
-		while ($dumped_data < length($data->{DATA}))
+		while ($dumped_data < $data_length)
 			{
 			my $size_to_dump = min($self->{DATA_WIDTH}, length($data->{DATA}) - $dumped_data) ;
 			
