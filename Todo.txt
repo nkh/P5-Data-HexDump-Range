@@ -16,9 +16,6 @@ comment field size
 in direct dump mode, use the offset passed by the user to set the starting offset point
 	000017 xx xx xx xx                    something starting at offset 17
 
-
-accept data that is piped in
-
 if single item range is sub and the returned data is an array ref, expand the ref
 
 iterator class => parser

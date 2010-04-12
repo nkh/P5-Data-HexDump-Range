@@ -85,12 +85,8 @@ display_help() unless
 		'h|help' => \&display_help, 
 		) ;
 
-display_help() unless @ARGV ;
-
 $offset ||= 0 ;
 $range_description ||= 'dumping all file' ;
-
-my $file_to_dump = shift @ARGV ;
 
 my $hdr = Data::HexDump::Range->new
 			(
@@ -113,8 +109,23 @@ my $hdr = Data::HexDump::Range->new
 			DISPLAY_ZERO_SIZE_RANGE_WARNING => defined  $show_zero_size_range_warning ? $show_zero_size_range_warning : 1,
 			) ;
 
+
 use File::Slurp ;
-my $data = read_file $file_to_dump ;
+use IO::Select ;
+
+my $data ;
+
+my $io_select = IO::Select->new(\*STDIN) ;
+if($io_select->can_read(0))
+	{
+	$/ = undef ;
+	$data =  <STDIN> ; ## no critic (InputOutput::ProhibitExplicitStdin)
+	}
+else
+	{
+	display_help() unless @ARGV ;
+	$data = read_file shift @ARGV ;
+	}
 
 my $range ;
 
