@@ -855,6 +855,8 @@ for my $range (@{$ranges})
 		my $location = "$self->{FILE}:$self->{LINE}" ;
 		$self->{INTERACTION}{WARN}("Warning: not enough data for range '$range_name', $range_size needed but only $size available.\n") ;
 		
+		$range_name = '-' . ($range_size - $size)  . ':' . $range_name ;
+		
 		$range_size = $size;
 		$skip_ranges++ ;
 		}

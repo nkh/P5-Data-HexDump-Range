@@ -19,9 +19,6 @@ in direct dump mode, use the offset passed by the user to set the starting offse
 
 accept data that is piped in
 
-display in range column information about missing data
-	ASCII data, padding(-16) 
-
 if single item range is sub and the returned data is an array ref, expand the ref
 
 iterator class => parser
