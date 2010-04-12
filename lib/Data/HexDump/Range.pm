@@ -343,6 +343,7 @@ Readonly my $NEW_ARGUMENTS =>
 	DISPLAY_ZERO_SIZE_RANGE_WARNING
 	DISPLAY_ZERO_SIZE_RANGE 
 	DISPLAY_RANGE_NAME
+	MAXIMUM_RANGE_NAME_SIZE
 	DISPLAY_ASCII_DUMP
 	DISPLAY_HEX_DUMP
 	DISPLAY_DEC_DUMP 
@@ -366,6 +367,7 @@ Create a Data::HexDump::Range object.
 		OFFSET_FORMAT => 'hex' | 'dec',
 		DATA_WIDTH => 16 | 20 | ... ,
 		DISPLAY_RANGE_NAME => 1 ,
+		MAXIMUM_RANGE_NAME_SIZE => 16,
 		DISPLAY_OFFSET  => 1 ,
 		DISPLAY_CUMULATIVE_OFFSET  => 1 ,
 		DISPLAY_ZERO_SIZE_RANGE_WARNING => 1,
@@ -408,6 +410,10 @@ in base 10. Default is 'hex'.
 =item * DATA_WIDTH - Integer - Number of elements displayed per line. Default is 16.
 
 =item * DISPLAY_RANGE_NAME - Boolean - If set, range names are displayed in the dump.
+
+=item * MAXIMUM_RANGE_NAME_SIZE - Integer - maximum size of a range name (in horizontal mode)
+
+Default size is 16.
 
 =item * DISPLAY_OFFSET - Boolean - If set, the offset columnis displayed in the dump.
 
@@ -514,6 +520,7 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DISPLAY_ZERO_SIZE_RANGE => 1,
 	
 	DISPLAY_RANGE_NAME => 1,
+	MAXIMUM_RANGE_NAME_SIZE => 16,
 	DISPLAY_OFFSET => 1,
 	DISPLAY_CUMULATIVE_OFFSET => 1,
 	DISPLAY_HEX_DUMP => 1,
@@ -536,6 +543,7 @@ if($self->{VERBOSE})
 	}
 
 $self->{OFFSET_FORMAT} = $self->{OFFSET_FORMAT} =~ /^hex/ ? "%08x" : "%010d" ;
+$self->{MAXIMUM_RANGE_NAME_SIZE} = 2 if$self->{MAXIMUM_RANGE_NAME_SIZE} <= 2 ;
 
 #todo: check all the options values
 
@@ -828,7 +836,7 @@ for my $range (@{$ranges})
 	{
 	my ($range_name, $range_size, $range_color) = @{$range} ;
 	
-	$self->{INTERACTION}{DIE}("Error: size doesn't look like a number in range '$range_name' at '$location'.\n")
+	$self->{INTERACTION}{DIE}("Error: size '$range_size' doesn't look like a number in range '$range_name' at '$location'.\n")
 		if('' eq ref($range_size) && ! looks_like_number($range_size)) ;
 		
 	my @sub_or_scalar ;
@@ -1108,6 +1116,7 @@ my $line = {} ;
 
 my $room_left = $self->{DATA_WIDTH} ;
 my $total_dumped_data = 0 ;
+my $name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 
 for my $data (@{$collected_data})
 	{
@@ -1118,10 +1127,13 @@ for my $data (@{$collected_data})
 		
 		if(0 == length($data->{DATA}) && $self->{DISPLAY_ZERO_SIZE_RANGE})
 			{
+			my $name_size_quoted = $name_size - 2 ;
+			$name_size_quoted =  2 if $name_size_quoted <= 2 ;
+			
 			push @{$line->{RANGE_NAME}},
 				{
 				'RANGE_NAME_COLOR' => $data->{COLOR},
-				'RANGE_NAME' => "<$data->{NAME}>",
+				'RANGE_NAME' => '<' . sprintf("%-${name_size_quoted}.${name_size_quoted}s", $data->{NAME}) . '>',
 				},
 				{
 				'RANGE_NAME_COLOR' => undef,
@@ -1140,7 +1152,7 @@ for my $data (@{$collected_data})
 				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $data->{COLOR}, 3],
 				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $data->{COLOR}, 4],
 				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $data->{COLOR}, 1],
-				['RANGE_NAME', sub {$data->{NAME} }, $data->{COLOR}],
+				['RANGE_NAME',sub {sprintf "%.${name_size}s", $data->{NAME} ; }, $data->{COLOR}],
 				['RANGE_NAME', sub {', '}],
 				)
 				{
@@ -1202,7 +1214,7 @@ for my $data (@{$collected_data})
 			
 			for my  $field_type 
 				(
-				['RANGE_NAME',  sub {sprintf "%-16s", $data->{NAME} ; }, $data->{COLOR}] ,
+				['RANGE_NAME',  sub {sprintf "%-${name_size}.${name_size}s", $data->{NAME} ; }, $data->{COLOR}] ,
 				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data ;}, undef],
 				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}, undef],
 				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $data->{COLOR}, 3],

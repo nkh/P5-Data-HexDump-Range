@@ -6,6 +6,8 @@ html file, that is the web site, in the distribution
 	pod with embedded HTML dumps
 	embed the html in the module directly
 
+option to not show comments
+
 comment field size
 	vertical mode: no limit, allow \n
 	horizontal mode: truncate to max range name size, 
@@ -14,14 +16,8 @@ comment field size
 in direct dump mode, use the offset passed by the user to set the starting offset point
 	000017 xx xx xx xx                    something starting at offset 17
 
-accept offset in hdr application
 
 accept data that is piped in
-
-option to not show comments
-
-field size option
-	field name > field size display truncted string
 
 display in range column information about missing data
 	ASCII data, padding(-16) 

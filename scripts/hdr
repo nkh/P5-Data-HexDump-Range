@@ -31,6 +31,7 @@ use Carp ;
  show_zero_size_range_warning  0 to not see warnings about ranges with size 0
  
  show_range_name               controls the display of the range name
+ maximum_range_name_size       truncate range name if longer (horizontal mode)
  show_hex_dump                 controls the display of the hexadecimal dump
  show_dec_dump                 controls the display of the decimal dump
  show_ascii_dump               controls the display of the ASCII dump
@@ -63,6 +64,7 @@ display_help() unless
 	GetOptions
 		(
 		'range_description|r=s' => \ my $range_description,
+		'offset=i' =>  \my $offset,
 		'orientation|o=s' => \my $orientation,
 		'format|f=s' => \my $format,
 		'color=s' => \my $color,
@@ -75,6 +77,7 @@ display_help() unless
 		'show_zero_size_range_warning=i' => \my $show_zero_size_range_warning,
 
 		'show_range_name=i' => \my $show_range_name,
+		'maximum_range_name_size=i' => \my$maximum_range_name_size,
 		'show_hex_dump=i' => \my $show_hex_dump,
 		'show_dec_dump=i' => \my $show_dec_dump,
 		'show_ascii_dump=i' => \my $show_ascii_dump,
@@ -83,6 +86,8 @@ display_help() unless
 		) ;
 
 display_help() unless @ARGV ;
+
+$offset ||= 0 ;
 $range_description ||= 'dumping all file' ;
 
 my $file_to_dump = shift @ARGV ;
@@ -96,6 +101,8 @@ my $hdr = Data::HexDump::Range->new
 			OFFSET_FORMAT => $offset_format || 'hex',
 			DATA_WIDTH => $data_width || 16,
 			DISPLAY_RANGE_NAME => defined $show_range_name ? $show_range_name : 1 ,
+			MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : 16,
+			
 			DISPLAY_OFFSET  => defined $show_offset ? $show_offset : 1 ,
 			DISPLAY_CUMULATIVE_OFFSET  => defined $show_cumulative_offset ? $show_cumulative_offset : 1 ,
 			DISPLAY_HEX_DUMP => defined $show_hex_dump ? $show_hex_dump : 1,
@@ -121,7 +128,7 @@ else
 	$range  = do $range_description || ['no range defined', length($data) ] ;
 	}
 
-print $hdr->dump( $range, $data ) ;
+print $hdr->dump( $range, $data, $offset ) ;
 
 #------------------------------------------------------------------------------------------------------------------------
 
