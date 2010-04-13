@@ -15,7 +15,7 @@ my $range = # definition to re-use
 	  [sub{ 'generated', sub {5}, 'red on_yellow'}],
 	] ;
 			
-my $hdr = Data::HexDump::Range->new(DISPLAY_ZERO_SIZE_RANGE => 0, DISPLAY_ZERO_SIZE_RANGE_WARNING => 0) ;
+my $hdr = Data::HexDump::Range->new(DISPLAY_ZERO_SIZE_RANGE => 10, DISPLAY_ZERO_SIZE_RANGE_WARNING => 10) ;
 
 my $data = 'A' . chr(5) . ('0123456789' x  100 ) ;
 

@@ -19,13 +19,14 @@ name: Data-HexDump-Range
 provides:
   Data::HexDump::Range:
     file: lib/Data/HexDump/Range.pm
-    version: 0.02_1
+    version: 0.03
 requires:
   Getopt::Long: 0
   List::MoreUtils: 0
   List::Util: 0
   Readonly: 0
+  Scalar::Util: 0
   Sub::Exporter: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.02_1.5
+version: v0.03.10

@@ -11,30 +11,33 @@ use Carp ;
 =head1 USAGE
 
  $> hdr -r range_definitions file_to_dump
+ 
+ $> hdr file_to_dump -r 'header,40, yellow:padding,24:magic,16,red:size,4:data,100:footer,16' -o ver
 
-
-=head1 OPTIONS
+head1 OPTIONS
 
  range_description|r           file name containing a description
                                or a string description formated as:
-			                      'color:name,size:name,size,color:...'
+			          'color:name,size:name,size,color:...'
 					      
  orientation|o                 'horizontal' or 'vertical'
  format|f                      'ANSI' or 'ASCII' or 'HTML' 
  color                         'bw' or 'cycle',
- data_width                    the number of bytes dumped per line
+ data_width                    number of bytes per dump line
  
  offset_format                 'hex' or 'dec' 
- show_offset                   0 to not see the offset
- show_cumulative_offset        0 to not see the offset per range
- show_zero_size_range          0 to not see range names with size 0
- show_zero_size_range_warning  0 to not see warnings about ranges with size 0
+ show_offset                   0 == no the offset display
+ show_cumulative_offset        0 == no cumulative offset display
+ show_zero_size_range          0 == no display of range with size 0
+ show_zero_size_range_warning  0 == no warnings about ranges with size 0
  
- show_range_name               controls the display of the range name
- maximum_range_name_size       truncate range name if longer (horizontal mode)
- show_hex_dump                 controls the display of the hexadecimal dump
- show_dec_dump                 controls the display of the decimal dump
- show_ascii_dump               controls the display of the ASCII dump
+ show_range_name               1 == display of the range name
+ maximum_range_name_size       truncate range name if longer
+ display_range_size            1 == prepend the range size to the name
+ 
+ show_hex_dump                 1 == display of the hexadecimal dump
+ show_dec_dump                 1 == display of the decimal dump
+ show_ascii_dump               1 == display of the ASCII dump
  
  h|help                        display this scripts help page
 
@@ -78,6 +81,8 @@ display_help() unless
 
 		'show_range_name=i' => \my $show_range_name,
 		'maximum_range_name_size=i' => \my$maximum_range_name_size,
+		'display_range_size=i' => \my $display_range_size,
+		
 		'show_hex_dump=i' => \my $show_hex_dump,
 		'show_dec_dump=i' => \my $show_dec_dump,
 		'show_ascii_dump=i' => \my $show_ascii_dump,
@@ -98,6 +103,7 @@ my $hdr = Data::HexDump::Range->new
 			DATA_WIDTH => $data_width || 16,
 			DISPLAY_RANGE_NAME => defined $show_range_name ? $show_range_name : 1 ,
 			MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : 16,
+			DISPLAY_RANGE_SIZE => defined $display_range_size ? $display_range_size : 0,
 			
 			DISPLAY_OFFSET  => defined $show_offset ? $show_offset : 1 ,
 			DISPLAY_CUMULATIVE_OFFSET  => defined $show_cumulative_offset ? $show_cumulative_offset : 1 ,

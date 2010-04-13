@@ -2,23 +2,50 @@
 # This is Todo.txt #
 #------------------#
 
+error
+	in horizontal format cycle colors should not change before range is changed
+
 html file, that is the web site, in the distribution
 	pod with embedded HTML dumps
 	embed the html in the module directly
+	many examples of module and hdr usage
+		http://en.wikipedia.org/wiki/S-record
 
-option to not show comments
+support bitfields
+	http://en.wikipedia.org/wiki/IPv4_Header#Header
+	maybe a hexdump that dumps in table format is a good idea
 
-comment field size
-	vertical mode: no limit, allow \n
-	horizontal mode: truncate to max range name size, 
-	quote comment range name: ASCII data, "comment", footer
+handle stdin via <> magic
+
+
+option 
+	show ranges legend before dump
+		sub to only return the legend is public (see S-record above))
+		how does it work with gather?
+	show colmns legends + interval for showing
+	show ruler above dumps + interval for showing
+	display the ranges as data structure (DTD, DD)
+	to not show comments
+		=> zero size works right now
+	allow user to define colors in a file that is passed as argument to hdr
+	max dump size for hdr
+	dump as source for copying in C source code
 
 in direct dump mode, use the offset passed by the user to set the starting offset point
 	000017 xx xx xx xx                    something starting at offset 17
 
 if single item range is sub and the returned data is an array ref, expand the ref
 
+in vertical and horizontal examples
+	show the name of the columns
+	use asciio for some examples
+
+simple hdr example in module documentation
+
 iterator class => parser
+
+	name Data::ParseBinary 
+
 	sub my_parser 
 		{
 		my ($data, $offset) = @_ ;
@@ -38,6 +65,19 @@ iterator class => parser
 pack format
 	can we get the size of the data defined by pack?
 	use Scalar::Util qw(looks_like_number);
+	variable format
 
-	
+Test::Hexdump::Range
+	alway use ANSI or ascii. or direct to file and accept any format
+	not user settable color (we cycle)
+	different bytes are displayed with red background
+		how do we tell DHR to change the color of only a few bytes within a range
+			./Build ; perl -Mblib scripts/hdr Todo.txt  -r 'header,40, yellow:padding,16:magic,16,red:size,4:data,10:data_got,10,on_red:data,80:footer,16'
+			./Build ; perl -Mblib scripts/hdr Todo.txt  -r 'header,40, yellow:padding,16:magic,16,red:size,4:data,10:data_exp,10,black on_green:data,80:footer,16'
+
+	cyclic colors must contain OK and error colors
+	user settable number of ranges to dispay after and before the diff in the binary data
+	side by side comparizon in vertical mode
+
+
 

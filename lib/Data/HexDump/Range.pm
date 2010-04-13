@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.02_1';
+$VERSION     = '0.03';
 }
 
 #-------------------------------------------------------------------------------
@@ -55,13 +55,6 @@ Data::HexDump::Range - Hexadecial Range Dumper
   
   $hdr->reset() ;
 
-=head1 HEADS UP!
-
-This is the first release . The API is unlikely to change but you never know. 
-The documentation shows more what I want the module to do than what is implemented.
-
-Still, this is module as well as the I<hdr> script are functional enough to be useful.
-
 =head1 DESCRIPTION
 
 Creates a dump from binary data and user defined I<range> descriptions. The goal of this modules is
@@ -79,14 +72,18 @@ to create an easy to understand dump of binary data. This achieved through:
 
 =head1 DOCUMENTATION
 
-This module was inspired by the B<hexd> command from libma L<http://www.ioplex.com/~miallen/libmba/>.
+The shortest perl dumper is C<perl -ne 'BEGIN{$/=\16} printf "%07x0: @{[unpack q{(H2)*}]}\n", $.-1'>, coutesy of a golfing session 
+with Andrew Rodland <arodland@cpan.org> aka I<hobbs> on #perl.
 
-Binary data is split according to user defined I<ranges> and rendered as a B<hex> or/and B<decimal> data dump.
+B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to writr this module. It may be a better 
+alternative If you need speed when generating dumps.
+
+B<Data::HexDump::Range> splits binary data according to user defined I<ranges> and rendered as a B<hex> or/and B<decimal> data dump.
 The data dump can be rendered in ANSI, ASCII or HTML.
 
 =head2 Orientation
 
-The examples below show the hypothetic ranges:
+The examples below show the hypothetic ranges below applied to the source code of this module:
 
   my $data_range = # definition to re-use
 	[
@@ -112,8 +109,6 @@ The examples below show the hypothetic ranges:
 	  ],
 	] ;
 	
-Applied to the source code of this module.
-
 =head3 Vertical
 
 In this orientation mode, each range displayed separately starting with the range name
@@ -202,7 +197,7 @@ The color definition is one of:
  
 =item * An RGB color definition - eg: todo: add example
 
-=item * undef - will be repaced by a white color or pickec from a cyclic color list (see B<COLOR> in L<new>).
+=item * undef - will be repaced by a white color or picked from a cyclic color list (see B<COLOR> in L<new>).
 
 =back
 
@@ -268,7 +263,7 @@ a subroutine definition.
   my $dynamic_range =
 	[
 	  [\&name, \&size, \&color ],
-	  [\&define_range] # returns a sub range definition
+	  [\&define_range] # returns a range definition
 	] ;
 
 =head4 'name' sub ref
@@ -307,6 +302,10 @@ a subroutine definition.
   
   print $hdr->dump(\&parser, $data) ;
 
+=head1 EXAMPLES
+
+See L<HDR.html>
+
 =head1 OTHER IDEAS
 
 - allow pack format as range size
@@ -338,6 +337,7 @@ Readonly my $NEW_ARGUMENTS =>
 	DISPLAY_ZERO_SIZE_RANGE 
 	DISPLAY_RANGE_NAME
 	MAXIMUM_RANGE_NAME_SIZE
+	DISPLAY_RANGE_SIZE
 	DISPLAY_ASCII_DUMP
 	DISPLAY_HEX_DUMP
 	DISPLAY_DEC_DUMP 
@@ -366,6 +366,7 @@ Create a Data::HexDump::Range object.
 		DISPLAY_CUMULATIVE_OFFSET  => 1 ,
 		DISPLAY_ZERO_SIZE_RANGE_WARNING => 1,
 		DISPLAY_ZERO_SIZE_RANGE => 1,
+		DISPLAY_RANGE_SIZE => 1,
 		DISPLAY_ASCII_DUMP => 1 ,
 		DISPLAY_HEX_DUMP => 1,
 		DISPLAY_DEC_DUMP => 1,
@@ -373,9 +374,7 @@ Create a Data::HexDump::Range object.
 		ORIENTATION => 'horizontal',
 		) ;
 
-I<Arguments> - A list of named arguments
-
-All arguments are optional. Settings get a default value if not passed by user. Default values are listed below.
+I<Arguments> - All arguments are optional. Default values are listed below.
 
 =over 2 
 
@@ -405,23 +404,23 @@ in base 10. Default is 'hex'.
 
 =item * DISPLAY_RANGE_NAME - Boolean - If set, range names are displayed in the dump.
 
-=item * MAXIMUM_RANGE_NAME_SIZE - Integer - maximum size of a range name (in horizontal mode)
-
-Default size is 16.
+=item * MAXIMUM_RANGE_NAME_SIZE - Integer - maximum size of a range name (horizontal mode). Default size is 16.
 
 =item * DISPLAY_OFFSET - Boolean - If set, the offset columnis displayed in the dump.
 
-=item * DISPLAY_CUMULATIVE_OFFSET - Boolean - If set, the cumulative offset column is displayed in 'vertical' rendering mode
+=item * DISPLAY_CUMULATIVE_OFFSET - Boolean - If set, the cumulative offset column is displayed in 'vertical' rendering mode. Default is I<true>
 
 =item * DISPLAY_ZERO_SIZE_RANGE - Boolean - if set, ranges that do not consume data are displayed. default is I<true> 
 
-=item * DISPLAY_ZERO_SIZE_RANGE_WARNING - Boolean - if set, a warning is emitted if ranges that do not consume data. default is I<true> 
+=item * DISPLAY_ZERO_SIZE_RANGE_WARNING - Boolean - if set, a warning is emitted if ranges that do not consume data. Default is I<true> 
 
-=item * DISPLAY_ASCII_DUMP - Boolean - If set, the ASCII representation of the binary data is displayed
+=item * DISPLAY_RANGE_SIZE - Bolean - if set the range size is prepended to the name. Default I<false>
 
-=item * DISPLAY_HEX_DUMP - Boolean - If set, the hexadecimal dump column is displayed
+=item * DISPLAY_ASCII_DUMP - Boolean - If set, the ASCII representation of the binary data is displayed. Default is I<true>
 
-=item * DISPLAY_DEC_DUMP - Boolean - If set, the decimall dump column is displayed
+=item * DISPLAY_HEX_DUMP - Boolean - If set, the hexadecimal dump column is displayed. Default is I<true>
+
+=item * DISPLAY_DEC_DUMP - Boolean - If set, the decimall dump column is displayed. Default is I<false>
 
 =item * COLOR_NAMES - A hash reference
 
@@ -515,6 +514,8 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	
 	DISPLAY_RANGE_NAME => 1,
 	MAXIMUM_RANGE_NAME_SIZE => 16,
+	DISPLAY_RANGE_SIZE => 1,
+	
 	DISPLAY_OFFSET => 1,
 	DISPLAY_CUMULATIVE_OFFSET => 1,
 	DISPLAY_HEX_DUMP => 1,
@@ -617,7 +618,7 @@ I<Arguments>
 
 =over 2 
 
-=item * $range_description - See L<Range definiton>
+=item * $range_description - See L<Range definition>
   
 =item * $data - A string - binary data to dump
 
@@ -854,6 +855,11 @@ for my $range (@{$ranges})
 	push @sub_or_scalar, ref($range_color) eq 'CODE' ? $range_color->($data, $used_data, $size)  : $range_color;
 	
 	($range_name, $range_size, $range_color) = @sub_or_scalar ;
+	
+	if(!$is_comment && $self->{DISPLAY_RANGE_SIZE})
+		{
+		$range_name = $range_size . ':' . $range_name ;
+		}
 	
 	$self->{INTERACTION}{WARN}("Warning: range '$range_name' requires zero bytes.\n")
 		if(!$is_comment && $range_size == 0 && $self->{DISPLAY_ZERO_SIZE_RANGE_WARNING}) ;
