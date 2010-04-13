@@ -21,8 +21,7 @@ sub my_parser
 	}
 
 my $data = '01' x 50 ;
-#~ my $hdr = Data::HexDump::Range->new(ORIENTATION => 'vertical') ;
-my $hdr = Data::HexDump::Range->new() ;
+my $hdr = Data::HexDump::Range->new(ORIENTATION => 'vertical') ;
 
 print $hdr->dump(\&my_parser, $data) ;
 

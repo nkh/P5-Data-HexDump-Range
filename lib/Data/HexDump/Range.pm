@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.03';
+$VERSION     = '0.04';
 }
 
 #-------------------------------------------------------------------------------
@@ -296,11 +296,54 @@ a subroutine definition.
   
   $hdr->dump(['data', 100, \&alternate_color], $data) ;
 
-=head4 Range definition defined by a subroutine reference
+=head4  User defined range generator
 
-  my $hdr = Data::HexDump::Range->new() ;
+A subroutine reference can be passed as a range definition. The cubroutine will be called repetitively
+till the data is exhausted or the subroutine returns I<undef>.
+
+  sub my_parser 
+  	{
+  	my ($data, $offset) = @_ ;
+  	
+  	my $first_byte = unpack ("x$offset C", $data) ;
+  	
+  	$offset < length($data)
+  		?  $first_byte == ord(0)
+  			? ['from odd', 5, 'blue on_yellow']
+  			: ['from even', 3, 'green']
+  		: undef ;
+  	}
   
-  print $hdr->dump(\&parser, $data) ;
+  my $hdr = Data::HexDump::Range->new() ;
+  print $hdr->dump(\&my_parser, '01' x 50) ;
+
+=head2 user_defined_parser($data, $offset)
+
+Add information, according to the options passed to the constructor, to the internal data.
+
+I<Arguments> - See L<gather>
+
+=over 2
+
+=item * $data - Binary string - the data passed to the I<dump> method
+
+=item * $offset - Integer - current offset in $data
+
+=back
+
+I<Returns> - 
+
+=over 2
+
+=item * $range - An array reference containing a name, size and color
+
+OR
+
+=item * undef - Done parsing
+
+=back
+
+=cut
 
 =head1 EXAMPLES
 
@@ -687,13 +730,14 @@ I<Exceptions> - None
 
 my ($self) = @_ ;
 
-#todo: DISPLAY_COLUMN_NAMES
+my $split_data = $self->split($self->{GATHERED}) ;
 
-return $self->format($self->split($self->{GATHERED})) ;
+$self->add_information($split_data) ;
+
+return $self->format($split_data) ;
 }
 
 #-------------------------------------------------------------------------------
-
 
 sub dump
 {
@@ -710,16 +754,43 @@ I<Exceptions> - dies if the range description is invalid
 
 =cut
 
-my ($self) = shift ;
+my ($self, $range_description, $data, $offset, $size) = @_ ;
 
 return unless defined wantarray ;
 
-my ($gathered_data, $used_data) = $self->_gather(undef, @_) ;
+my ($gathered_data, $used_data) = $self->_gather(undef, $range_description, $data, $offset, $size) ;
 
 my $split_data = $self->split($gathered_data) ;
 
-#~ use Data::TreeDumper ;
-#~ print DumpTree $split_data ;
+$self->add_information($split_data) ;
+
+return $self->format($split_data) ;
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_information
+{
+
+=head2 [P] add_information($split_data)
+
+Add information, according to the options passed to the constructor, to the internal data.
+
+I<Arguments> - See L<gather>
+
+=over 2
+
+=item * $split_data - data returned by _gather()
+
+=back
+
+I<Returns> - Nothing
+
+I<Exceptions> - None
+
+=cut
+
+my ($self, $split_data) = @_ ;
 
 if($self->{DISPLAY_COLUMN_NAMES})
 	{
@@ -750,8 +821,6 @@ if($self->{DISPLAY_COLUMN_NAMES})
 		NEW_LINE => 1,
 		} ;
 	}
-	
-return $self->format($split_data) ;
 }
 
 #-------------------------------------------------------------------------------
@@ -857,7 +926,25 @@ I<Exceptions> dies if passed invalid parameters
 
 my ($self, $collected_data, $range_description, $data, $offset, $size) = @_ ;
 
-my $ranges = $self->create_ranges($range_description) ;
+my $range_provider ;
+
+if('CODE' eq ref($range_description))
+	{
+	$range_provider = $range_description ;
+	}
+else
+	{
+	my $ranges = $self->create_ranges($range_description) ;
+	
+	$range_provider = 
+		sub
+		{
+		while(@{$ranges})
+			{
+			return shift @{$ranges} ;
+			}
+		}
+	}
 
 my $used_data = $offset || 0 ;
 
@@ -872,10 +959,13 @@ $size = defined $size ? min($size, length($data) - $used_data) : length($data) -
 my $location = "$self->{FILE}:$self->{LINE}" ;
 my $skip_ranges = 0 ;
 
-for my $range (@{$ranges})
+while(my $range  = $range_provider->($data, $used_data))
 	{
 	my ($range_name, $range_size, $range_color) = @{$range} ;
 	my $is_comment = 0 ;
+	
+	#~ use Data::TreeDumper ;
+	#~ print DumpTree $range ;
 	
 	if('' eq ref($range_size))
 		{
@@ -1491,6 +1581,6 @@ L<http://search.cpan.org/dist/Data-HexDump-Range>
 
 =head1 SEE ALSO
 
-L<Data::Hexdumper>
+L<Data::Hexdumper>, L<Data::ParseBinary>, L<Convert::Binary::C>, L<Parse::Binary>
 
 =cut

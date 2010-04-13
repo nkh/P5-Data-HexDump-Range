@@ -44,26 +44,6 @@ in vertical and horizontal examples
 
 simple hdr example in module documentation
 
-iterator class => parser
-
-	name Data::ParseBinary 
-
-	sub my_parser 
-		{
-		my ($data, $offset) = @_ ;
-
-		$offset > length($data)
-			? unpack ("x$offset C", $data) 
-				? ['from odd', 5, 'blue']
-				: ['from even' 3, 'green'] ;
-			: undef
-		}
-
-	my $data = '01' x 50 ;
-	my $hdr = ...
-
-	print $hdr->dump(\&my_parser, $data) ;
-
 pack format
 	can we get the size of the data defined by pack?
 	use Scalar::Util qw(looks_like_number);
