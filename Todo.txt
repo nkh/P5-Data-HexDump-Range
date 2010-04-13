@@ -5,6 +5,8 @@
 error
 	in horizontal format cycle colors should not change before range is changed
 
+	comment and zero size  show when -show_range_name 0
+	
 html file, that is the web site, in the distribution
 	pod with embedded HTML dumps
 	embed the html in the module directly
@@ -17,13 +19,13 @@ support bitfields
 
 handle stdin via <> magic
 
-
 option 
 	show ranges legend before dump
 		sub to only return the legend is public (see S-record above))
 		how does it work with gather?
-	show colmns legends + interval for showing
-	show ruler above dumps + interval for showing
+	show ruler above dumps
+	interval for showing
+		columns and rulers
 	display the ranges as data structure (DTD, DD)
 	to not show comments
 		=> zero size works right now

@@ -332,6 +332,7 @@ Readonly my $NEW_ARGUMENTS =>
 	COLOR 
 	OFFSET_FORMAT 
 	DATA_WIDTH 
+	DISPLAY_COLUMN_NAMES
 	DISPLAY_OFFSET DISPLAY_CUMULATIVE_OFFSET
 	DISPLAY_ZERO_SIZE_RANGE_WARNING
 	DISPLAY_ZERO_SIZE_RANGE 
@@ -362,6 +363,7 @@ Create a Data::HexDump::Range object.
 		DATA_WIDTH => 16 | 20 | ... ,
 		DISPLAY_RANGE_NAME => 1 ,
 		MAXIMUM_RANGE_NAME_SIZE => 16,
+		DISPLAY_COLUMN_NAMES => 0,
 		DISPLAY_OFFSET  => 1 ,
 		DISPLAY_CUMULATIVE_OFFSET  => 1 ,
 		DISPLAY_ZERO_SIZE_RANGE_WARNING => 1,
@@ -406,7 +408,9 @@ in base 10. Default is 'hex'.
 
 =item * MAXIMUM_RANGE_NAME_SIZE - Integer - maximum size of a range name (horizontal mode). Default size is 16.
 
-=item * DISPLAY_OFFSET - Boolean - If set, the offset columnis displayed in the dump.
+=item * DISPLAY_COLUMN_NAMES - Boolean -  If set, the column names are displayed. Default I<false>
+
+=item * DISPLAY_OFFSET - Boolean - If set, the offset column is displayed. Default I<true>
 
 =item * DISPLAY_CUMULATIVE_OFFSET - Boolean - If set, the cumulative offset column is displayed in 'vertical' rendering mode. Default is I<true>
 
@@ -516,6 +520,7 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	MAXIMUM_RANGE_NAME_SIZE => 16,
 	DISPLAY_RANGE_SIZE => 1,
 	
+	DISPLAY_COLUMN_NAMES  => 0 ,
 	DISPLAY_OFFSET => 1,
 	DISPLAY_CUMULATIVE_OFFSET => 1,
 	DISPLAY_HEX_DUMP => 1,
@@ -540,7 +545,10 @@ if($self->{VERBOSE})
 $self->{OFFSET_FORMAT} = $self->{OFFSET_FORMAT} =~ /^hex/ ? "%08x" : "%010d" ;
 $self->{MAXIMUM_RANGE_NAME_SIZE} = 2 if$self->{MAXIMUM_RANGE_NAME_SIZE} <= 2 ;
 
-#todo: check all the options values
+$self->{FIELDS_TO_DISPLAY} =  $self->{ORIENTATION} =~ /^hor/
+	? [qw(OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME)]
+	: [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP)] ;
+
 
 return(1) ;
 }
@@ -679,6 +687,8 @@ I<Exceptions> - None
 
 my ($self) = @_ ;
 
+#todo: DISPLAY_COLUMN_NAMES
+
 return $self->format($self->split($self->{GATHERED})) ;
 }
 
@@ -706,7 +716,42 @@ return unless defined wantarray ;
 
 my ($gathered_data, $used_data) = $self->_gather(undef, @_) ;
 
-return $self->format($self->split($gathered_data)) ;
+my $split_data = $self->split($gathered_data) ;
+
+#~ use Data::TreeDumper ;
+#~ print DumpTree $split_data ;
+
+if($self->{DISPLAY_COLUMN_NAMES})
+	{
+	my $information = '' ;
+	
+	for my $field_name (@{$self->{FIELDS_TO_DISPLAY}})
+		{
+		if(exists $split_data->[0]{$field_name})
+			{
+			my $length = 0 ;
+			
+			for (@{$split_data->[0]{$field_name}})
+				{
+				$length += length($_->{$field_name}) ;
+				}
+				
+			$information .= sprintf "%-${length}.${length}s ", $field_name
+			}
+		else
+			{
+			$information .= ' ' ;
+			}
+		}
+		
+	unshift @{$split_data},
+		{
+		INFORMATION => [ {INFORMATION => ' ' . $information} ], 
+		NEW_LINE => 1,
+		} ;
+	}
+	
+return $self->format($split_data) ;
 }
 
 #-------------------------------------------------------------------------------
@@ -1349,10 +1394,8 @@ for ($self->{FORMAT})
 	
 		my $colorizer = /ASCII/ ? sub {$_[0]} : \&colored ;
 		
-		my @fields = 
-			$self->{ORIENTATION} =~ /^hor/
-				? qw(OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME)
-				: qw( RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP) ;
+		my @fields = @{$self->{FIELDS_TO_DISPLAY}} ;
+		unshift @fields, 'INFORMATION' ;
 
 		for my $line (@{$line_data})
 			{

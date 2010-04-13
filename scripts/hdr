@@ -21,6 +21,7 @@ head1 OPTIONS
 			          'color:name,size:name,size,color:...'
 					      
  orientation|o                 'horizontal' or 'vertical'
+ display_column_names          1 == display columns names
  format|f                      'ANSI' or 'ASCII' or 'HTML' 
  color                         'bw' or 'cycle',
  data_width                    number of bytes per dump line
@@ -69,6 +70,7 @@ display_help() unless
 		'range_description|r=s' => \ my $range_description,
 		'offset=i' =>  \my $offset,
 		'orientation|o=s' => \my $orientation,
+		'display_column_names' => \my $display_column_names,
 		'format|f=s' => \my $format,
 		'color=s' => \my $color,
 		'data_width=i' =>  \my $data_width,
@@ -96,11 +98,13 @@ $range_description ||= 'dumping all file' ;
 my $hdr = Data::HexDump::Range->new
 			(
 			ORIENTATION => $orientation || 'horizontal',
+			DISPLAY_COLUMN_NAMES => defined $display_column_names ? $display_column_names : 0,
 			FORMAT => $format || 'ANSI',
 			COLOR => defined $color ? $color : 'cycle',
 			
 			OFFSET_FORMAT => $offset_format || 'hex',
 			DATA_WIDTH => $data_width || 16,
+			
 			DISPLAY_RANGE_NAME => defined $show_range_name ? $show_range_name : 1 ,
 			MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : 16,
 			DISPLAY_RANGE_SIZE => defined $display_range_size ? $display_range_size : 0,
