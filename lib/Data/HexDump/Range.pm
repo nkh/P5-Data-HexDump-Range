@@ -356,6 +356,7 @@ Readonly my $NEW_ARGUMENTS =>
 	OFFSET_FORMAT 
 	DATA_WIDTH 
 	DISPLAY_COLUMN_NAMES
+	DISPLAY_RULER
 	DISPLAY_OFFSET DISPLAY_CUMULATIVE_OFFSET
 	DISPLAY_ZERO_SIZE_RANGE_WARNING
 	DISPLAY_ZERO_SIZE_RANGE 
@@ -387,6 +388,7 @@ Create a Data::HexDump::Range object.
 		DISPLAY_RANGE_NAME => 1 ,
 		MAXIMUM_RANGE_NAME_SIZE => 16,
 		DISPLAY_COLUMN_NAMES => 0,
+		DISPLAY_RULER => 0,
 		DISPLAY_OFFSET  => 1 ,
 		DISPLAY_CUMULATIVE_OFFSET  => 1 ,
 		DISPLAY_ZERO_SIZE_RANGE_WARNING => 1,
@@ -432,6 +434,8 @@ in base 10. Default is 'hex'.
 =item * MAXIMUM_RANGE_NAME_SIZE - Integer - maximum size of a range name (horizontal mode). Default size is 16.
 
 =item * DISPLAY_COLUMN_NAMES - Boolean -  If set, the column names are displayed. Default I<false>
+
+=item * DISPLAY_RULER - Boolean - if set, a ruler is displayed above the dump, Default is I<false>
 
 =item * DISPLAY_OFFSET - Boolean - If set, the offset column is displayed. Default I<true>
 
@@ -544,6 +548,8 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DISPLAY_RANGE_SIZE => 1,
 	
 	DISPLAY_COLUMN_NAMES  => 0 ,
+	DISPLAY_RULER => 0,
+	
 	DISPLAY_OFFSET => 1,
 	DISPLAY_CUMULATIVE_OFFSET => 1,
 	DISPLAY_HEX_DUMP => 1,
@@ -772,6 +778,8 @@ I<Exceptions> - None
 
 my ($self, $split_data) = @_ ;
 
+my @information ;
+
 if($self->{DISPLAY_COLUMN_NAMES})
 	{
 	my $information = '' ;
@@ -789,18 +797,67 @@ if($self->{DISPLAY_COLUMN_NAMES})
 				
 			$information .= sprintf "%-${length}.${length}s ", $field_name
 			}
-		else
-			{
-			$information .= ' ' ;
-			}
 		}
 		
-	unshift @{$split_data},
+	push @information,
 		{
-		INFORMATION => [ {INFORMATION => ' ' . $information} ], 
+		INFORMATION => [ {INFORMATION => $information} ], 
 		NEW_LINE => 1,
 		} ;
 	}
+
+if($self->{DISPLAY_RULER})
+	{
+	my $information = '' ;
+	
+	for my $field_name (@{$self->{FIELDS_TO_DISPLAY}})
+		{
+		if(exists $split_data->[0]{$field_name})
+			{
+			my $length = 0 ;
+			
+			for (@{$split_data->[0]{$field_name}})
+				{
+				$length += length($_->{$field_name}) ;
+				}
+				
+			for ($field_name)
+				{
+				/HEX_DUMP/ and do
+					{
+					$information .= join '', map {sprintf '%x  ' , $ _ % 16} (0 .. $self->{DATA_WIDTH} - 1) ;
+					$information .= ' ' ;
+					last ;
+					} ;
+					
+				/DEC_DUMP/ and do
+					{
+					$information .= join '', map {sprintf '%d   ' , $ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
+					$information .= ' ' ;
+					last ;
+					} ;
+					
+				/ASCII_DUMP/ and do
+					{
+					$information .= join '', map {$ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
+					$information .= ' ' ;
+					last ;
+					} ;
+					
+				$information .= ' ' x $length  . ' ' ;
+				}
+			}
+		}
+		
+	push @information,
+		{
+		RULER => [ {RULER=> $information} ], 
+		NEW_LINE => 1,
+		} ;
+	}
+	
+unshift @{$split_data}, @information ;
+
 }
 
 #-------------------------------------------------------------------------------
@@ -1467,7 +1524,7 @@ for ($self->{FORMAT})
 		my $colorizer = /ASCII/ ? sub {$_[0]} : \&colored ;
 		
 		my @fields = @{$self->{FIELDS_TO_DISPLAY}} ;
-		unshift @fields, 'INFORMATION' ;
+		unshift @fields, 'INFORMATION', 'RULER' ;
 
 		for my $line (@{$line_data})
 			{
@@ -1490,9 +1547,9 @@ for ($self->{FORMAT})
 							$formated .= $range->{$field} ;
 							}
 						}
+						
+					$formated .= ' '
 					}
-					
-				$formated .= ' '
 				}
 				
 			$formated .= "\n" if $line->{NEW_LINE} ;

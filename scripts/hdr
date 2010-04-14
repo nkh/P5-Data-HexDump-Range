@@ -18,10 +18,14 @@ head1 OPTIONS
 
  range_description|r           file name containing a description
                                or a string description formated as:
-			          'color:name,size:name,size,color:...'
-					      
+			                   'color:name,size:name,size,...'
+					    
+ offset                        position in the data where to start dumping
+ max_size                      amount of data to dump
+ 
  orientation|o                 'horizontal' or 'vertical'
- display_column_names|col      1 == display columns names
+ display_column_names|col      display columns names
+ display_ruler                 display horizontal ruler
  format|f                      'ANSI' or 'ASCII' or 'HTML' 
  color                         'bw' or 'cycle',
  data_width                    number of bytes per dump line
@@ -69,8 +73,11 @@ display_help() unless
 		(
 		'range_description|r=s' => \ my $range_description,
 		'offset=i' =>  \my $offset,
+		'max_size=i' =>  \my $max_size,
 		'orientation|o=s' => \my $orientation,
 		'display_column_names|col' => \my $display_column_names,
+		'display_ruler' => \my $display_ruler,
+		
 		'format|f=s' => \my $format,
 		'color=s' => \my $color,
 		'data_width=i' =>  \my $data_width,
@@ -99,6 +106,8 @@ my $hdr = Data::HexDump::Range->new
 			(
 			ORIENTATION => $orientation || 'horizontal',
 			DISPLAY_COLUMN_NAMES => defined $display_column_names ? $display_column_names : 0,
+			DISPLAY_RULER => defined $display_ruler ? $display_ruler : 0,
+			
 			FORMAT => $format || 'ANSI',
 			COLOR => defined $color ? $color : 'cycle',
 			
@@ -149,7 +158,7 @@ else
 	$range  = do $range_description || ['no range defined', length($data) ] ;
 	}
 
-print $hdr->dump( $range, $data, $offset ) ;
+print $hdr->dump( $range, $data, $offset, $max_size) ;
 
 #------------------------------------------------------------------------------------------------------------------------
 

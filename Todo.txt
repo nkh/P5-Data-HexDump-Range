@@ -2,8 +2,6 @@
 # This is Todo.txt #
 #------------------#
 
-
-	
 html file, that is the web site, in the distribution
 	pod with embedded HTML dumps
 	embed the html in the module directly
@@ -20,7 +18,7 @@ option
 	show ranges legend before dump
 		sub to only return the legend is public (see S-record above))
 		how does it work with gather?
-	show ruler above dumps
+	
 	interval for showing
 		columns and rulers
 	display the ranges as data structure (DTD, DD)
