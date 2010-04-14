@@ -72,43 +72,17 @@ to create an easy to understand dump of binary data. This achieved through:
 
 =head1 DOCUMENTATION
 
-The shortest perl dumper is C<perl -ne 'BEGIN{$/=\16} printf "%07x0: @{[unpack q{(H2)*}]}\n", $.-1'>, coutesy of a golfing session 
+The shortest perl dumper is C<perl -ne 'BEGIN{$/=\16} printf "%07x0: @{[unpack q{(H2)*}]}\n", $.-1'>, courtesy of a golfing session 
 with Andrew Rodland <arodland@cpan.org> aka I<hobbs> on #perl.
 
-B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to writr this module. It may be a better 
-alternative If you need speed when generating dumps.
+B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to write this module. It may be a better 
+alternative If you need very fast dump generation.
 
 B<Data::HexDump::Range> splits binary data according to user defined I<ranges> and rendered as a B<hex> or/and B<decimal> data dump.
 The data dump can be rendered in ANSI, ASCII or HTML.
 
 =head2 Orientation
 
-The examples below show the hypothetic ranges below applied to the source code of this module:
-
-  my $data_range = # definition to re-use
-	[
-	  ['data header', 5, 'blue on_cyan'],
-	  ['data', 20, 'blue on_bright_yellow'],
-	] ;
-
-  my $structured_range = 
-	[
-	  [
-	    ['magic cookie', 12, 'red'],
-	    ['padding', 32, 'yellow'],
-	    $data_range, 
-	  ],
-		
-	  [
-	    ['extra data', 12, undef],
-	    
-	    [
-	    $data_range, 
-	    ['footer', 4, 'bright_yellow on_red'],
-	    ]
-	  ],
-	] ;
-	
 =head3 Vertical
 
 In this orientation mode, each range displayed separately starting with the range name
@@ -296,7 +270,13 @@ a subroutine definition.
   
   $hdr->dump(['data', 100, \&alternate_color], $data) ;
 
-=head4  User defined range generator
+=head4 'range' sub ref
+
+  sub whole_range(['whole range', 5, 'on_yellow']}
+  
+  $hdr->dump([\&whole_range], $data) ; #note this is very different from L<User defined range generator>
+
+=head3  User defined range generator
 
 A subroutine reference can be passed as a range definition. The cubroutine will be called repetitively
 till the data is exhausted or the subroutine returns I<undef>.
@@ -317,9 +297,9 @@ till the data is exhausted or the subroutine returns I<undef>.
   my $hdr = Data::HexDump::Range->new() ;
   print $hdr->dump(\&my_parser, '01' x 50) ;
 
-=head2 user_defined_parser($data, $offset)
+=head2 my_parser($data, $offset)
 
-Add information, according to the options passed to the constructor, to the internal data.
+Returns a range description for the next range to dump
 
 I<Arguments> - See L<gather>
 
@@ -1280,21 +1260,23 @@ for my $data (@{$collected_data})
 	my $is_comment = ! defined $data->{DATA} ;
 	my ($start_quote, $end_quote) = $is_comment ? ('"', '"') : ('<', '>') ;
 	
+	$data->{COLOR} = $self->get_default_color()  unless defined $data->{COLOR} ;
+	
 	if($self->{ORIENTATION} =~ /^hor/)
 		{
 		my $last_data = $data == $collected_data->[-1] ? 1 : 0 ;
 		my $dumped_data = 0 ;
 		my $data_length = defined $data->{DATA} ? length($data->{DATA}) : 0 ;
 		
-		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE})
+		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE} && $self->{DISPLAY_RANGE_NAME})
 			{
 			my $name_size_quoted = $name_size - 2 ;
 			$name_size_quoted =  2 if $name_size_quoted < 2 ;
 			
 			push @{$line->{RANGE_NAME}},
 				{
-				'RANGE_NAME_COLOR' => $data->{COLOR},
 				'RANGE_NAME' => $start_quote . sprintf("%.${name_size_quoted}s", $data->{NAME}) . $end_quote,
+				'RANGE_NAME_COLOR' => $data->{COLOR},
 				},
 				{
 				'RANGE_NAME_COLOR' => undef,
@@ -1309,11 +1291,11 @@ for my $data (@{$collected_data})
 			
 			for my  $field_type 
 				(
-				['OFFSET', sub {@{$line->{OFFSET}} ? '' : sprintf $self->{OFFSET_FORMAT}, $self->{DATA_WIDTH} * @lines}, undef],
+				['OFFSET', sub {@{$line->{OFFSET}} ? '' : sprintf $self->{OFFSET_FORMAT}, $self->{DATA_WIDTH} * @lines}],
 				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $data->{COLOR}, 3],
 				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $data->{COLOR}, 4],
 				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $data->{COLOR}, 1],
-				['RANGE_NAME',sub {sprintf "%.${name_size}s", $data->{NAME} ; }, $data->{COLOR}],
+				['RANGE_NAME',sub {sprintf "%.${name_size}s", $data->{NAME}}, $data->{COLOR}],
 				['RANGE_NAME', sub {', '}],
 				)
 				{
@@ -1356,7 +1338,7 @@ for my $data (@{$collected_data})
 		my $dumped_data = 0 ;
 		my $current_range = '' ;
 		
-		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE})
+		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE} && $self->{DISPLAY_RANGE_NAME})
 			{
 			push @{$line->{RANGE_NAME}},
 				{
@@ -1376,8 +1358,8 @@ for my $data (@{$collected_data})
 			for my  $field_type 
 				(
 				['RANGE_NAME',  sub {sprintf "%-${name_size}.${name_size}s", $data->{NAME} ; }, $data->{COLOR}] ,
-				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data ;}, undef],
-				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}, undef],
+				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data ;}],
+				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}],
 				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $data->{COLOR}, 3],
 				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $data->{COLOR}, 4],
 				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $data->{COLOR}, 1],
@@ -1489,19 +1471,24 @@ for ($self->{FORMAT})
 
 		for my $line (@{$line_data})
 			{
-			my $default_color = $self->get_default_color() ;
-			
 			for my $field (@fields)
 				{
 				if(exists $line->{$field})
 					{
 					for my $range (@{$line->{$field}})
 						{
-						my $user_color = defined $self->{COLOR_NAMES} &&  defined $range->{"${field}_COLOR"}
+						my $user_color = (defined $self->{COLOR_NAMES} &&  defined $range->{"${field}_COLOR"})
 										? $self->{COLOR_NAMES} {$self->{FORMAT}}{$range->{"${field}_COLOR"}}  ||  $range->{"${field}_COLOR"}
 										: $range->{"${field}_COLOR"} ;
 						
-						$formated .= $colorizer->($range->{$field}, $user_color || $default_color) ;
+						if(defined $user_color )
+							{
+							$formated .= $colorizer->($range->{$field}, $user_color) ;
+							}
+						else
+							{
+							$formated .= $range->{$field} ;
+							}
 						}
 					}
 					

@@ -2,10 +2,7 @@
 # This is Todo.txt #
 #------------------#
 
-error
-	in horizontal format cycle colors should not change before range is changed
 
-	comment and zero size  show when -show_range_name 0
 	
 html file, that is the web site, in the distribution
 	pod with embedded HTML dumps

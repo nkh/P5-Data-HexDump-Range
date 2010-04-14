@@ -21,7 +21,7 @@ head1 OPTIONS
 			          'color:name,size:name,size,color:...'
 					      
  orientation|o                 'horizontal' or 'vertical'
- display_column_names          1 == display columns names
+ display_column_names|col      1 == display columns names
  format|f                      'ANSI' or 'ASCII' or 'HTML' 
  color                         'bw' or 'cycle',
  data_width                    number of bytes per dump line
@@ -70,7 +70,7 @@ display_help() unless
 		'range_description|r=s' => \ my $range_description,
 		'offset=i' =>  \my $offset,
 		'orientation|o=s' => \my $orientation,
-		'display_column_names' => \my $display_column_names,
+		'display_column_names|col' => \my $display_column_names,
 		'format|f=s' => \my $format,
 		'color=s' => \my $color,
 		'data_width=i' =>  \my $data_width,
