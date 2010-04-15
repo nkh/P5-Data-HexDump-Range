@@ -25,7 +25,6 @@ option
 	to not show comments
 		=> zero size works right now
 	allow user to define colors in a file that is passed as argument to hdr
-	max dump size for hdr
 	dump as source for copying in C source code
 
 in direct dump mode, use the offset passed by the user to set the starting offset point

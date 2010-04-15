@@ -34,6 +34,7 @@ use Carp qw(carp croak confess) ;
 use List::Util qw(min) ;
 use List::MoreUtils qw(all) ;
 use Scalar::Util qw(looks_like_number) ;
+use Term::ANSIColor ;
 
 #-------------------------------------------------------------------------------
 
@@ -78,6 +79,9 @@ with Andrew Rodland <arodland@cpan.org> aka I<hobbs> on #perl.
 B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to write this module. It may be a better 
 alternative If you need very fast dump generation.
 
+priodev, tm604, Khisanth and other helped with the html output.
+
+
 B<Data::HexDump::Range> splits binary data according to user defined I<ranges> and rendered as a B<hex> or/and B<decimal> data dump.
 The data dump can be rendered in ANSI, ASCII or HTML.
 
@@ -99,6 +103,27 @@ followed by the binary data dump.
   data             00000056 00000000 53 75 62 3a 3a 45 78 70 6f 72 74 65 72 20 2d 73   Sub::Exporter -s
   data             00000066 00000010 65 74 75 70                                       etup
   footer           0000006a 00000000 20 3d 3e 20                                        =>
+
+
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #222 ;">
+
+<span style='color:#fff;'>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span> 
+<span style='color:#fff;'>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span> 
+<span style='color:#0f0;'>12:header       </span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>63 6f 6d 6d 69 74 20 37 34 39 30 39             </span> <span style='color:#0f0;'>commit 74909    </span> 
+<span style='color:#f00;'>"comment"</span> 
+<span style='color:#ff0;'><0:zero></span> 
+<span style='color:#ff0;'>10:name         </span> <span style='color:#fff;'>0000000c</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>63 37 36 35 37 65 64 62 38 39                   </span> <span style='color:#ff0;'>c7657edb89      </span> 
+<span style='color:#f0f;'>5:offset        </span> <span style='color:#fff;'>00000016</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>34 65 66 61 65                                  </span> <span style='color:#f0f;'>4efae           </span> 
+<span style='color:#f00;'>17:footer       </span> <span style='color:#fff;'>0000001b</span> <span style='color:#fff;'>00000000</span> <span style='color:#f00;'>65 34 63 64 37 39 34 33 63 65 37 38 37 35 66 62 </span> <span style='color:#f00;'>e4cd7943ce7875fb</span> 
+<span style='color:#f00;'>17:footer       </span> <span style='color:#fff;'>0000002b</span> <span style='color:#fff;'>00000010</span> <span style='color:#f00;'>32                                              </span> <span style='color:#f00;'>2               </span> 
+<span style='color:#fff;'>5:something     </span> <span style='color:#fff;'>0000002c</span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>36 31 39 20 28                                  </span> <span style='color:#fff;'>619 (           </span> 
+
+</pre>
+
+=end
 
 =head3 Horizontal
 
@@ -167,10 +192,8 @@ The color definition is one of:
 
 =item * An ansi color definition - 'blue on_yellow'
 
-=item * A html color definition - eg todo: add example
+=item * A html color definition - eg 'background-color: #ffffcc; color: red'
  
-=item * An RGB color definition - eg: todo: add example
-
 =item * undef - will be repaced by a white color or picked from a cyclic color list (see B<COLOR> in L<new>).
 
 =back
@@ -533,8 +556,8 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => ['white', 'green'],
-		HTML => ['?', '?'],
+		ANSI => ['white', 'green', 'bright_yellow','cyan', 'red' ],
+		HTML => ['white', 'green', 'bright_yellow','cyan', 'red' ],
 		},
 		
 	OFFSET_FORMAT => 'hex',
@@ -556,7 +579,18 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DISPLAY_DEC_DUMP => 0,
 	DISPLAY_ASCII_DUMP => 1,
 	
-	COLOR_NAMES => undef,
+	COLOR_NAMES => 
+		{
+		HTML =>
+			{
+			white => "style='color:#fff;'",
+			green => "style='color:#0f0;'",
+			bright_yellow => "style='color:#ff0;'",
+			yellow => "style='color:#ff0;'",
+			cyan => "style='color:#f0f;'",
+			red => "style='color:#f00;'",
+			},
+		},
 
 	ORIENTATION => 'horizontal',
 	
@@ -1515,17 +1549,16 @@ my ($self, $line_data) = @_ ;
 
 my $formated = '' ;
 
+my @fields = @{$self->{FIELDS_TO_DISPLAY}} ;
+unshift @fields, 'INFORMATION', 'RULER' ;
+
+
 for ($self->{FORMAT})
 	{
 	/ASCII/ || /ANSI/ and do
 		{
-		use Term::ANSIColor ;
-	
 		my $colorizer = /ASCII/ ? sub {$_[0]} : \&colored ;
 		
-		my @fields = @{$self->{FIELDS_TO_DISPLAY}} ;
-		unshift @fields, 'INFORMATION', 'RULER' ;
-
 		for my $line (@{$line_data})
 			{
 			for my $field (@fields)
@@ -1558,8 +1591,35 @@ for ($self->{FORMAT})
 		
 	/HTML/ and do
 		{
-		} ;
+		$formated = <<'EOH' ;
+<pre style ="font-family: monospace; background-color: #222 ;">
+
+EOH
+		for my $line (@{$line_data})
+			{
+			for my $field (@fields)
+				{
+				if(exists $line->{$field})
+					{
+					for my $range (@{$line->{$field}})
+						{
+						my $user_color = (defined $self->{COLOR_NAMES} &&  defined $range->{"${field}_COLOR"})
+										? $self->{COLOR_NAMES} {$self->{FORMAT}}{$range->{"${field}_COLOR"}}  ||  $range->{"${field}_COLOR"}
+										: $range->{"${field}_COLOR"} ;
+						
+						$user_color = "style='color:#fff;'" unless defined $user_color ;
+						$formated .= "<span $user_color>" . $range->{$field} . "</span>" ;
+						}
+						
+					$formated .= ' ' ;
+					}
+				}
+				
+			$formated .= "\n" if $line->{NEW_LINE} ;
+			}
 		
+		$formated .= "\n</pre>\n" ;
+		} ;
 	}
 	
 return $formated ;
