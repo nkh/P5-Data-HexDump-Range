@@ -2,15 +2,46 @@
 # This is Todo.txt #
 #------------------#
 
+handle indianness
+
 html file, that is the web site, in the distribution
 	pod with embedded HTML dumps
+		man page ?
 	embed the html in the module directly
 	many examples of module and hdr usage
 		http://en.wikipedia.org/wiki/S-record
+		IPV4 header
+
+format can use the same code is colorizer is specialized for the html
+
+	mail pod people to get an ansi color tag A<blue on yellow> this text A<reset>
+
+	ANSIColor::ToHTML 
+		See also L<HTML::FromANSI first>
+			terminal emualtion not color conversion
+
+	$c = ANSIColor::ToHTML->new(Format => '' | 'ANSI' | 'HTML') ;
+
+	$c->get_colors() ;
+	$c->set_colors()
+	$c->color(color, text | [text], text, ...) ;
+	$c->color_all(color, text | [text, text], color, text, ...) ;
+	$c->xmas_tree(text | [text], text, ...) ;
+	$c->color({colors}, color ...) ;
+
+  black  red  green  yellow  blue  magenta  cyan  white
+  bright_black  bright_red      bright_green  bright_yellow
+  bright_blue   bright_magenta  bright_cyan   bright_white
+
+  on_black  on_red      on_green  on yellow
+  on_blue   on_magenta  on_cyan   on_white
+  on_bright_black  on_bright_red      on_bright_green  on_bright_yellow
+  on_bright_blue   on_bright_magenta  on_bright_cyan   on_bright_white
 
 support bitfields
-	http://en.wikipedia.org/wiki/IPv4_Header#Header
-	maybe a hexdump that dumps in table format is a good idea
+
+Add a comment element to the range description
+	dump it last
 
 handle stdin via <> magic
 
@@ -25,7 +56,6 @@ option
 	to not show comments
 		=> zero size works right now
 	allow user to define colors in a file that is passed as argument to hdr
-	dump as source for copying in C source code
 
 in direct dump mode, use the offset passed by the user to set the starting offset point
 	000017 xx xx xx xx                    something starting at offset 17
@@ -43,6 +73,9 @@ pack format
 	use Scalar::Util qw(looks_like_number);
 	variable format
 
+Data::hexDump::Table
+	see IPV4 example on wikipedia
+
 Test::Hexdump::Range
 	alway use ANSI or ascii. or direct to file and accept any format
 	not user settable color (we cycle)
@@ -56,4 +89,29 @@ Test::Hexdump::Range
 	side by side comparizon in vertical mode
 
 
-
+# --------------------------------------------------------
+# IPV4_header:
+# BF: Version 4, Header length 4, Differentiated Services 2, Total Length 30
+# BF: Identification 16, Flags 2,	Fragment Offset 30
+# BF: Time to Live 8, Protocol 8, Header Checksum 16
+# BF: source Address 32
+# BF: Destination Address 32
+#
+# if Header Length > 5 
+# 	data 192+
+# 	else
+# 		data 160
+# 			
+#
+# 			display extra info about the bit fields(done through a
+# 			range sub) (this could also be done for any range)
+# 			 
+# 			 Differentiated Services (DS) 
+# 			 # bit 3: 0 = Normal Delay, 1 = Low Delay
+# 			 # bit 4: 0 = Normal Throughput, 1 = High Throughput
+# 			 # bit 5: 0 = Normal Reliability, 1 = High Reliability
+# 			 # bit 6: 0 = Normal Cost, 1 = Minimize Monetary Cost
+# 			 (defined by RFC 1349)
+# 			 # bit 7: never defined
+#
+#
