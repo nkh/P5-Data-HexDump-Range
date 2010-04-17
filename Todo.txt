@@ -3,6 +3,14 @@
 #------------------#
 
 handle indianness
+There is no reason to unpack the data in gather
+	pass reference and offset
+
+Error splice() offset past end of array at /devel/perl_modules/Data/HexDump/Range/blib/lib/Data/HexDump/Range.pm line 1579.
+	due to bitfield offset after the data it works on
+
+
+rename show_* options to display_* 
 
 html file, that is the web site, in the distribution
 	pod with embedded HTML dumps
@@ -16,27 +24,6 @@ format can use the same code is colorizer is specialized for the html
 
 	mail pod people to get an ansi color tag A<blue on yellow> this text A<reset>
 
-	ANSIColor::ToHTML 
-		See also L<HTML::FromANSI first>
-			terminal emualtion not color conversion
-
-	$c = ANSIColor::ToHTML->new(Format => '' | 'ANSI' | 'HTML') ;
-
-	$c->get_colors() ;
-	$c->set_colors()
-	$c->color(color, text | [text], text, ...) ;
-	$c->color_all(color, text | [text, text], color, text, ...) ;
-	$c->xmas_tree(text | [text], text, ...) ;
-	$c->color({colors}, color ...) ;
-
-  black  red  green  yellow  blue  magenta  cyan  white
-  bright_black  bright_red      bright_green  bright_yellow
-  bright_blue   bright_magenta  bright_cyan   bright_white
-
-  on_black  on_red      on_green  on yellow
-  on_blue   on_magenta  on_cyan   on_white
-  on_bright_black  on_bright_red      on_bright_green  on_bright_yellow
-  on_bright_blue   on_bright_magenta  on_bright_cyan   on_bright_white
 
 support bitfields
 

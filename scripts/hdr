@@ -40,9 +40,10 @@ head1 OPTIONS
  maximum_range_name_size       truncate range name if longer
  display_range_size            1 == prepend the range size to the name
  
- show_hex_dump                 1 == display of the hexadecimal dump
- show_dec_dump                 1 == display of the decimal dump
- show_ascii_dump               1 == display of the ASCII dump
+ show_hex_dump                 1 == display hexadecimal dump column
+ show_dec_dump                 1 == display decimal dump column
+ show_ascii_dump               1 == display ASCII dump column
+ show_user_information         1 == display user information columns
  
  h|help                        display this scripts help page
 
@@ -95,6 +96,7 @@ display_help() unless
 		'show_hex_dump=i' => \my $show_hex_dump,
 		'show_dec_dump=i' => \my $show_dec_dump,
 		'show_ascii_dump=i' => \my $show_ascii_dump,
+		'show_user_information=i' => \my $show_user_information,
 		
 		'h|help' => \&display_help, 
 		) ;
@@ -123,7 +125,7 @@ my $hdr = Data::HexDump::Range->new
 			DISPLAY_HEX_DUMP => defined $show_hex_dump ? $show_hex_dump : 1,
 			DISPLAY_DEC_DUMP => defined $show_dec_dump ? $show_dec_dump : 0,
 			DISPLAY_ASCII_DUMP => defined $show_ascii_dump ? $show_ascii_dump :  1 ,
-			
+			DISPLAY_USER_INFORMATION => defined $show_user_information ? $show_user_information :  0 ,
 			DISPLAY_ZERO_SIZE_RANGE => defined $show_zero_size_range ? $show_zero_size_range : 1,
 			DISPLAY_ZERO_SIZE_RANGE_WARNING => defined  $show_zero_size_range_warning ? $show_zero_size_range_warning : 1,
 			) ;
