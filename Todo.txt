@@ -26,6 +26,9 @@ format can use the same code is colorizer is specialized for the html
 
 
 support bitfields
+	#parse
+	#display
+	handle definiton errors
 
 Add a comment element to the range description
 	dump it last
@@ -51,9 +54,6 @@ if single item range is sub and the returned data is an array ref, expand the re
 
 in vertical and horizontal examples
 	show the name of the columns
-	use asciio for some examples
-
-simple hdr example in module documentation
 
 pack format
 	can we get the size of the data defined by pack?

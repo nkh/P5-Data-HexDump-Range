@@ -35,6 +35,7 @@ use List::Util qw(min) ;
 use List::MoreUtils qw(all) ;
 use Scalar::Util qw(looks_like_number) ;
 use Term::ANSIColor ;
+use Data::TreeDumper ;
 
 #-------------------------------------------------------------------------------
 
@@ -50,10 +51,8 @@ Data::HexDump::Range - Hexadecial Range Dumper
   
   $hdr->gather(['magic cookie', 12, 'red'], $data) ; 
   $hdr->gather(['image type', 2, 'green'], $other_data) ;
-  $hdr->gather(['image data ...', 100, 'yellow'], $more_data, 0, CONSUME_ALL_DATA) ;
   
   print $hdr->dump_gathered() ;
-  
   $hdr->reset() ;
 
 =head1 DESCRIPTION
@@ -67,6 +66,8 @@ to create an easy to understand dump of binary data. This achieved through:
 
 =item * Multiple rendering modes with different output formats
 
+=item * Bitfield rendering
+
 =item * The possibility to describe complex structures
 
 =back
@@ -74,73 +75,18 @@ to create an easy to understand dump of binary data. This achieved through:
 =head1 DOCUMENTATION
 
 The shortest perl dumper is C<perl -ne 'BEGIN{$/=\16} printf "%07x0: @{[unpack q{(H2)*}]}\n", $.-1'>, courtesy of a golfing session 
-with Andrew Rodland <arodland@cpan.org> aka I<hobbs> on #perl.
+with Andrew Rodland <arodland@cpan.org> aka I<hobbs>. I<priodev>, I<tm604>, I<Khisanth> and other helped with the html output.
 
 B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to write this module. It may be a better 
 alternative If you need very fast dump generation.
 
-priodev, tm604, Khisanth and other helped with the html output.
-
-
 B<Data::HexDump::Range> splits binary data according to user defined I<ranges> and rendered as a B<hex> or/and B<decimal> data dump.
 The data dump can be rendered in ANSI, ASCII or HTML.
 
-=head2 Orientation
+=head2 Rendered Columns
 
-=head3 Vertical
-
-In this orientation mode, each range displayed separately starting with the range name
-followed by the binary data dump. 
-
-  magic cookie     00000000 00000000 0a 70 61 63 6b 61 67 65 20 44 61 74               .package Dat
-  padding          0000000c 00000000 61 3a 3a 48 65 78 44 75 6d 70 3a 3a 52 61 6e 67   a::HexDump::Rang
-  padding          0000001c 00000010 65 20 3b 0a 0a 75 73 65 20 73 74 72 69 63 74 3b   e ;..use strict;
-  data header      0000002c 00000000 0a 75 73 65 20                                    .use
-  data             00000031 00000000 77 61 72 6e 69 6e 67 73 20 3b 0a 75 73 65 20 43   warnings ;.use C
-  data             00000041 00000010 61 72 70 20                                       arp
-  extra data       00000045 00000000 3b 0a 0a 42 45 47 49 4e 20 0a 7b 0a               ;..BEGIN .{.
-  data header      00000051 00000000 0a 75 73 65 20                                    .use
-  data             00000056 00000000 53 75 62 3a 3a 45 78 70 6f 72 74 65 72 20 2d 73   Sub::Exporter -s
-  data             00000066 00000010 65 74 75 70                                       etup
-  footer           0000006a 00000000 20 3d 3e 20                                        =>
-
-
-
-=begin html
-
-<pre style ="font-family: monospace; background-color: #222 ;">
-
-<span style='color:#fff;'>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span> 
-<span style='color:#fff;'>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span> 
-<span style='color:#0f0;'>12:header       </span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>63 6f 6d 6d 69 74 20 37 34 39 30 39             </span> <span style='color:#0f0;'>commit 74909    </span> 
-<span style='color:#f00;'>"comment"</span> 
-<span style='color:#ff0;'><0:zero></span> 
-<span style='color:#ff0;'>10:name         </span> <span style='color:#fff;'>0000000c</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>63 37 36 35 37 65 64 62 38 39                   </span> <span style='color:#ff0;'>c7657edb89      </span> 
-<span style='color:#f0f;'>5:offset        </span> <span style='color:#fff;'>00000016</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>34 65 66 61 65                                  </span> <span style='color:#f0f;'>4efae           </span> 
-<span style='color:#f00;'>17:footer       </span> <span style='color:#fff;'>0000001b</span> <span style='color:#fff;'>00000000</span> <span style='color:#f00;'>65 34 63 64 37 39 34 33 63 65 37 38 37 35 66 62 </span> <span style='color:#f00;'>e4cd7943ce7875fb</span> 
-<span style='color:#f00;'>17:footer       </span> <span style='color:#fff;'>0000002b</span> <span style='color:#fff;'>00000010</span> <span style='color:#f00;'>32                                              </span> <span style='color:#f00;'>2               </span> 
-<span style='color:#fff;'>5:something     </span> <span style='color:#fff;'>0000002c</span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>36 31 39 20 28                                  </span> <span style='color:#fff;'>619 (           </span> 
-
-</pre>
-
-=end html
-
-=head3 Horizontal
-
-In this mode, the data are packed together in the dump
-
-  00000000 0a 70 61 63 6b 61 67 65 20 44 61 74 61 3a 3a 48   .package Data::H magic cookie, padding,
-  00000010 65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a   exDump::Range ;. padding,
-  00000020 0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65   .use strict;.use padding, data header,
-  00000030 20 77 61 72 6e 69 6e 67 73 20 3b 0a 75 73 65 20    warnings ;.use  data header, data,
-  00000040 43 61 72 70 20 3b 0a 0a 42 45 47 49 4e 20 0a 7b   Carp ;..BEGIN .{ data, extra data,
-  00000050 0a 0a 75 73 65 20 53 75 62 3a 3a 45 78 70 6f 72   ..use Sub::Expor extra data, data header, data,
-  00000060 74 65 72 20 2d 73 65 74 75 70 20 3d 3e 20         ter -setup =>    data, footer,
-
-=head2 Rendered fields
-
-You can choose which fields are rendered by setting options when creating a Data::HexDump::Range object.
-The default rendering corresponds to the following object construction:
+You can choose which columns are rendered by setting options when creating a Data::HexDump::Range object.
+The default rendering corresponds to the object below:
 
   Data::HexDump::Range->new
 	(
@@ -160,7 +106,93 @@ The default rendering corresponds to the following object construction:
 	DATA_WIDTH => 16,
 	) ;
 
-See L<new>.
+If you decided that you wanted the binary data to be showed in decimal instead for hexadecimal, you' set B<DISPLAY_HEX_DUMP => 0> and B<DISPLAY_DEC_DUMP => 1>.
+See L<new> for all the possible options. Most option are also available from the command line utility I<hdr>.
+
+=head2 Orientation
+
+Command I<hdr -r 'magic cookie,12:padding, 32:header,5:data, 20:extra data,#:header,5:data,40:footer,4' -col -o ver -display_ruler 1 lib/Data/HexDump/Range.pm>
+
+=head3 Vertical
+
+In this orientation mode, each range displayed on a separate line.
+
+ RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP
+                                    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345
+ magic cookie     00000000 00000000 0a 70 61 63 6b 61 67 65 20 44 61 74              .package Dat
+ padding          0000000c 00000000 61 3a 3a 48 65 78 44 75 6d 70 3a 3a 52 61 6e 67  a::HexDump::Rang
+ padding          0000001c 00000010 65 20 3b 0a 0a 75 73 65 20 73 74 72 69 63 74 3b  e ;..use strict;
+ header           0000002c 00000000 0a 75 73 65 20                                   .use
+ data             00000031 00000000 77 61 72 6e 69 6e 67 73 20 3b 0a 75 73 65 20 43  warnings ;.use C
+ data             00000041 00000010 61 72 70 20                                      arp
+ "extra data"
+ header           00000045 00000000 3b 0a 0a 42 45                                   ;..BE
+ data             0000004a 00000000 47 49 4e 20 0a 7b 0a 0a 75 73 65 20 53 75 62 3a  GIN .{..use Sub:
+ data             0000005a 00000010 3a 45 78 70 6f 72 74 65 72 20 2d 73 65 74 75 70  :Exporter -setup
+ data             0000006a 00000020 20 3d 3e 20 0a 09 7b 0a                           => ..{.
+ footer           00000072 00000000 09 65 78 70                                      .exp
+
+In colors:
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+
+<span style='color:#fff;'>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span> 
+<span style='color:#fff;'>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span> 
+<span style='color:#0f0;'>magic cookie    </span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>0a 70 61 63 6b 61 67 65 20 44 61 74             </span> <span style='color:#0f0;'>.package Dat    </span> 
+<span style='color:#ff0;'>padding         </span> <span style='color:#fff;'>0000000c</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>61 3a 3a 48 65 78 44 75 6d 70 3a 3a 52 61 6e 67 </span> <span style='color:#ff0;'>a::HexDump::Rang</span> 
+<span style='color:#ff0;'>padding         </span> <span style='color:#fff;'>0000001c</span> <span style='color:#fff;'>00000010</span> <span style='color:#ff0;'>65 20 3b 0a 0a 75 73 65 20 73 74 72 69 63 74 3b </span> <span style='color:#ff0;'>e ;..use strict;</span> 
+<span style='color:#f0f;'>header          </span> <span style='color:#fff;'>0000002c</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>0a 75 73 65 20                                  </span> <span style='color:#f0f;'>.use            </span> 
+<span style='color:#f00;'>data            </span> <span style='color:#fff;'>00000031</span> <span style='color:#fff;'>00000000</span> <span style='color:#f00;'>77 61 72 6e 69 6e 67 73 20 3b 0a 75 73 65 20 43 </span> <span style='color:#f00;'>warnings ;.use C</span> 
+<span style='color:#f00;'>data            </span> <span style='color:#fff;'>00000041</span> <span style='color:#fff;'>00000010</span> <span style='color:#f00;'>61 72 70 20                                     </span> <span style='color:#f00;'>arp             </span> 
+<span style='color:#fff;'>"extra data"</span> 
+<span style='color:#0f0;'>header          </span> <span style='color:#fff;'>00000045</span> <span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>3b 0a 0a 42 45                                  </span> <span style='color:#0f0;'>;..BE           </span> 
+<span style='color:#ff0;'>data            </span> <span style='color:#fff;'>0000004a</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>47 49 4e 20 0a 7b 0a 0a 75 73 65 20 53 75 62 3a </span> <span style='color:#ff0;'>GIN .{..use Sub:</span> 
+<span style='color:#ff0;'>data            </span> <span style='color:#fff;'>0000005a</span> <span style='color:#fff;'>00000010</span> <span style='color:#ff0;'>3a 45 78 70 6f 72 74 65 72 20 2d 73 65 74 75 70 </span> <span style='color:#ff0;'>:Exporter -setup</span> 
+<span style='color:#ff0;'>data            </span> <span style='color:#fff;'>0000006a</span> <span style='color:#fff;'>00000020</span> <span style='color:#ff0;'>20 3d 3e 20 0a 09 7b 0a                         </span> <span style='color:#ff0;'> => ..{.        </span> 
+<span style='color:#f0f;'>footer          </span> <span style='color:#fff;'>00000072</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>09 65 78 70                                     </span> <span style='color:#f0f;'>.exp            </span> 
+
+</pre>
+
+=end html
+
+=head3 Horizontal
+
+In this mode, the data are packed together in the dump
+
+ OFFSET   HEX_DUMP                                         ASCII_DUMP       RANGE_NAME
+          0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345
+ 00000000 0a 70 61 63 6b 61 67 65 20 44 61 74 61 3a 3a 48  .package Data::H magic cookie, padding,
+ 00000020 65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a  exDump::Range ;. padding,
+ 00000030 0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65  .use strict;.use padding, header,
+ 00000050 20 77 61 72 6e 69 6e 67 73 20 3b 0a 75 73 65 20   warnings ;.use  header, data,
+ 00000070 43 61 72 70 20 3b 0a 0a 42 45 47 49 4e 20 0a 7b  Carp ;..BEGIN .{ data, "extra data", header, data,
+ 000000a0 0a 0a 75 73 65 20 53 75 62 3a 3a 45 78 70 6f 72  ..use Sub::Expor data,
+ 000000b0 74 65 72 20 2d 73 65 74 75 70 20 3d 3e 20 0a 09  ter -setup => .. data,
+ 000000c0 7b 0a 09 65 78 70                                {..exp           data, footer,
+
+In colors:
+
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+
+<span style='color:#fff;'>OFFSET   HEX_DUMP                                         ASCII_DUMP       RANGE_NAME              </span> 
+<span style='color:#fff;'>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                         </span> 
+<span style='color:#fff;'>00000000</span><span style='color:#fff;'></span> <span style='color:#0f0;'>0a 70 61 63 6b 61 67 65 20 44 61 74 </span><span style='color:#ff0;'>61 3a 3a 48 </span> <span style='color:#0f0;'>.package Dat</span><span style='color:#ff0;'>a::H</span> <span style='color:#0f0;'>magic cookie</span><span style='color:#fff;'>, </span><span style='color:#ff0;'>padding</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000020</span> <span style='color:#ff0;'>65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a </span> <span style='color:#ff0;'>exDump::Range ;.</span> <span style='color:#ff0;'>padding</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000030</span><span style='color:#fff;'></span> <span style='color:#ff0;'>0a 75 73 65 20 73 74 72 69 63 74 3b </span><span style='color:#f0f;'>0a 75 73 65 </span> <span style='color:#ff0;'>.use strict;</span><span style='color:#f0f;'>.use</span> <span style='color:#ff0;'>padding</span><span style='color:#fff;'>, </span><span style='color:#f0f;'>header</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000050</span><span style='color:#fff;'></span> <span style='color:#f0f;'>20 </span><span style='color:#f00;'>77 61 72 6e 69 6e 67 73 20 3b 0a 75 73 65 20 </span> <span style='color:#f0f;'> </span><span style='color:#f00;'>warnings ;.use </span> <span style='color:#f0f;'>header</span><span style='color:#fff;'>, </span><span style='color:#f00;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000070</span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#f00;'>43 61 72 70 20 </span><span style='color:#0f0;'>3b 0a 0a 42 45 </span><span style='color:#ff0;'>47 49 4e 20 0a 7b </span> <span style='color:#f00;'>Carp </span><span style='color:#0f0;'>;..BE</span><span style='color:#ff0;'>GIN .{</span> <span style='color:#f00;'>data</span><span style='color:#fff;'>, </span><span style='color:#fff;'>"extra data"</span><span style='color:#fff;'>, </span><span style='color:#0f0;'>header</span><span style='color:#fff;'>, </span><span style='color:#ff0;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>000000a0</span> <span style='color:#ff0;'>0a 0a 75 73 65 20 53 75 62 3a 3a 45 78 70 6f 72 </span> <span style='color:#ff0;'>..use Sub::Expor</span> <span style='color:#ff0;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>000000b0</span> <span style='color:#ff0;'>74 65 72 20 2d 73 65 74 75 70 20 3d 3e 20 0a 09 </span> <span style='color:#ff0;'>ter -setup => ..</span> <span style='color:#ff0;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>000000c0</span><span style='color:#fff;'></span> <span style='color:#ff0;'>7b 0a </span><span style='color:#f0f;'>09 65 78 70                               </span> <span style='color:#ff0;'>{.</span><span style='color:#f0f;'>.exp          </span> <span style='color:#ff0;'>data</span><span style='color:#fff;'>, </span><span style='color:#f0f;'>footer</span><span style='color:#fff;'>, </span> 
+
+</pre>
+
+=end html
 
 =head2 Range definition
 
@@ -180,17 +212,15 @@ Ranges are Array references containing four (4) elements:
 
 =back
 
-Any of the three first elements can be replaced by a subroutine reference. See L<Dynamic range definition> below.
+Any of the elements can be replaced by a subroutine reference. See L<Dynamic range definition> below.
 
 You can also declare the ranges in a string. The string use the format used by the I<hdr> command line range dumper
 that was installed by this module.
 
 Example:
 
-  hdr -r 'header,12:name,10:xx, 2:yy,2:offset,4:BITMAP,4,bright_yellow,hi:ff,x2b2:fx,b32:f0,b16: \
-       field,x8b8:field2, b17:footer,17:something,5'  \
-       -col -display_ruler -display_range_size 1 -show_dec_dump 1 -o ver my_data_file
-
+I<hdr --col -display_ruler -o ver lib/Data/HexDump/Range.pm -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16:field,x8b8:field2, b17:footer,20'>
+       
 TODO: document string range format
 
 =head3 Coloring
@@ -267,50 +297,50 @@ If the size of a range is the string '#', the whole range is considered a commen
 
 Bitfields can be up to 32 bits long and can overlap each other. Bitfields are applied on the previously defined range.
 
-  hdr -r 'BITMAP,4,bright_yellow:ff,x2b2:fx,3b17:f0,7b13' -col -o ver ~/my_file
+In the example below, bitfields I<ff, fx, f0> are extracted form the data defined by the I<MYDATA> range.
 
+                 .------------.                      .--------------.
+                 | data range |                      | data hexdump |
+ .---.           '------------'                      '--------------'
+ | b |                  |                                    |
+ | i |     RANGE_NAME   |   OFFSET   CUMULATI HEX_DUMP       |                                 ASCII_DUMP     
+ | t |     MYDATA  <----'   00000000 00000000 63 6f 6d 6d <--'                                 comm           
+ | f |   ^ .ff              02 .. 03          -- -- -- 02 --10----------------------------     .bitfield: ---.
+ | i |---> .fx              03 .. 19          -- 00 36 f6 ---00011011011110110------------     .bitfield: -.6?
+ | e |   v .f0              07 .. 17          -- -- 05 bd -------10110111101--------------     .bitfield: --.?
+ | l |                         ^                    ^                     ^                          ^
+ | d |                         |                    |                     |                          |
+ | s |             .----------------------.-------------------.----------------------.    .---------------------.
+ '---'             | start bit .. end bit | bitfields hexdump | bitfield binary dump |    | bitfield ascci dump |
+                   '----------------------'-------------------'----------------------'    '---------------------'
 
-In the I<hdr> example above, four bitfields I<ff, fx, f0> are defined. They will be applied on the data defined by the
-I<BITMAP> range.
+The the format definiton  is: an optional "x (for offset) + offset" + "b (for bits) + number of bits". Eg: I<x8b8> second byte in MYDATA.
 
+An example output containing normal data and bifields dumps.
 
-
-                   .------------.                      .--------------.
-                   | data range |                      | data hexdump |
-                   '------------'                      '--------------'
-                          |                                    |
-                          |                                    |
-             RANGE_NAME   |   OFFSET   CUMULATI HEX_DUMP       |                                 ASCII_DUMP     
-             BITMAP  <----'   00000000 00000000 63 6f 6d 6d <--'                                 comm           
-         .-> .ff              02 .. 03          -- -- -- 02 --10----------------------------     .bitfield: ---.
-         .-> .fx              03 .. 19          -- 00 36 f6 ---00011011011110110------------     .bitfield: -.6?
-         .-> .f0              07 .. 17          -- -- 05 bd -------10110111101--------------     .bitfield: --.?
-         |                        ^                   ^                   ^                            ^
-         |                        |                   |                   |                            |
-      .-----------.     .-------------------.         |       .----------------------.      .---------------------.
-      | bitfields |     | start and end bit |         |       | bitfield binary dump |      | bitfield ascci dump |
-      '-----------'     '-------------------'         |       '----------------------'      '---------------------'
-                                            .-------------------.
-                                            | bitfields hexdump |
-                                            '-------------------'
-
-The definiton follows the format an optional "x (for offset) + offset" + "b (for bits) + number of bits".
-
-The dump with colors:
+command: I<hdr --col -display_ruler -o ver -r 'header,12:name,10:magic, 2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' file_name
 
 =begin html
 
 <pre style ="font-family: monospace; background-color: #000 ;">
 
 <span style='color:#fff;'>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span> 
-<span style='color:#ff0;'>BITMAP          </span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>63 6f 6d 6d                                     </span> <span style='color:#ff0;'>comm            </span> 
-<span style='color:#0f0;'>.ff             </span> <span style='color:#0f0;'>02 .. 03</span> <span style='color:#0f0;'>        </span> <span style='color:#0f0;'>-- -- -- 02 --10----------------------------    </span> <span style='color:#0f0;'>.bitfield: ---. </span> 
-<span style='color:#ff0;'>.fx             </span> <span style='color:#ff0;'>03 .. 19</span> <span style='color:#ff0;'>        </span> <span style='color:#ff0;'>-- 00 36 f6 ---00011011011110110------------    </span> <span style='color:#ff0;'>.bitfield: -.6ö </span> 
-<span style='color:#f0f;'>.f0             </span> <span style='color:#f0f;'>07 .. 19</span> <span style='color:#f0f;'>        </span> <span style='color:#f0f;'>-- -- 16 f6 -------1011011110110------------    </span> <span style='color:#f0f;'>.bitfield: --.ö </span> 
+<span style='color:#fff;'>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span> 
+<span style='color:#0f0;'>header          </span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>0a 70 61 63 6b 61 67 65 20 44 61 74             </span> <span style='color:#0f0;'>.package Dat    </span> 
+<span style='color:#ff0;'>name            </span> <span style='color:#fff;'>0000000c</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>61 3a 3a 48 65 78 44 75 6d 70                   </span> <span style='color:#ff0;'>a::HexDump      </span> 
+<span style='color:#f0f;'>magic           </span> <span style='color:#fff;'>00000016</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>3a 3a                                           </span> <span style='color:#f0f;'>::              </span> 
+<span style='color:#f00;'>offset          </span> <span style='color:#fff;'>00000018</span> <span style='color:#fff;'>00000000</span> <span style='color:#f00;'>52 61 6e 67                                     </span> <span style='color:#f00;'>Rang            </span> 
+<span style='color:#ff0;'>MYDATA          </span> <span style='color:#fff;'>0000001c</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>65 20 3b 0a                                     </span> <span style='color:#ff0;'>e ;.            </span> 
+<span style='color:#fff;'>.ff             </span> <span style='color:#fff;'>02 .. 03</span> <span style='color:#fff;'>        </span> <span style='color:#fff;'>-- -- -- 02 --10----------------------------    </span> <span style='color:#fff;'>.bitfield: ---. </span> 
+<span style='color:#0f0;'>.fx             </span> <span style='color:#0f0;'>00 .. 31</span> <span style='color:#0f0;'>        </span> <span style='color:#0f0;'>65 20 3b 0a 01100101001000000011101100001010    </span> <span style='color:#0f0;'>.bitfield: e ;. </span> 
+<span style='color:#ff0;'>.f0             </span> <span style='color:#ff0;'>00 .. 15</span> <span style='color:#ff0;'>        </span> <span style='color:#ff0;'>-- -- 65 20 0110010100100000----------------    </span> <span style='color:#ff0;'>.bitfield: --e  </span> 
+<span style='color:#f0f;'>footer          </span> <span style='color:#fff;'>00000020</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span> <span style='color:#f0f;'>.use strict;.use</span> 
 
 </pre>
 
 =end html
+
+B<NOTE!> This is under heavy developemnt. Complete error handling and indianess support are under way.
 
 =head3 Dynamic range definition
 
@@ -410,7 +440,7 @@ OR
 
 =head1 EXAMPLES
 
-See L<HDR.html>
+See L<hdr_user_manual>
 
 =head1 OTHER IDEAS
 
@@ -435,6 +465,8 @@ Readonly my $NEW_ARGUMENTS =>
 	[
 	qw(
 	NAME INTERACTION VERBOSE
+	
+	DUMP_RANGE_DESCRIPTION
 	
 	FORMAT 
 	COLOR 
@@ -498,6 +530,8 @@ I<Arguments> - All arguments are optional. Default values are listed below.
 Useful if you use Data::HexDump::Range in an application without terminal.
 
 =item * VERBOSE - Boolean - Display information about the creation of the object. Default is I<false>
+
+=item * DUMP_RANGE_DESCRIPTION - Boolean - Diplays the range descritption. A debugging flag.
 
 =item * FORMAT - String - format of the dump string generated by Data::HexDump::Range.
 
@@ -613,7 +647,8 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	%{$self},
 	
 	VERBOSE => 0,
-
+	DUMP_RANGE_DESCRIPTION => 0,
+	
 	FORMAT => 'ANSI',
 	COLOR => 'bw',
 	COLORS =>
@@ -1071,6 +1106,11 @@ else
 	{
 	my $ranges = $self->create_ranges($range_description) ;
 	
+	if($self->{DUMP_RANGE_DESCRIPTION})
+		{
+		$self->{INTERACTION}{INFO}(DumpTree $ranges, 'range definitions:', QUOTE_VALUES => 1)
+		}
+
 	$range_provider = 
 		sub
 		{
@@ -1096,7 +1136,7 @@ my $skip_ranges = 0 ;
 
 my $last_data = '' ;
 
-while(my $range  = $range_provider->($data, $used_data))
+while(my $range  = $range_provider->($self, $data, $used_data))
 	{
 	my ($range_name, $range_size, $range_color, $range_user_information) = @{$range} ;
 	my $is_comment = 0 ;
@@ -1142,7 +1182,7 @@ while(my $range  = $range_provider->($data, $used_data))
 	push @sub_or_scalar, ref($range_color) eq 'CODE' ? $range_color->($data, $used_data, $size)  : $range_color;
 	
 	($range_name, $range_size, $range_color) = @sub_or_scalar ;
-	
+
 	if($self->{DISPLAY_RANGE_SIZE})
 		{
 		unless($is_comment || $is_bitfield)
@@ -1151,7 +1191,7 @@ while(my $range  = $range_provider->($data, $used_data))
 			}
 		}
 		
-	#todo: merge bith tests qbove qnd below
+	#todo: merge both tests above and below
 	#
 	if(!$is_comment && ! $is_bitfield)
 		{
@@ -1179,7 +1219,7 @@ while(my $range  = $range_provider->($data, $used_data))
 		NAME => $range_name, 
 		COLOR => $range_color,
 		OFFSET => $used_data,
-		DATA =>  $last_data,
+		DATA =>  $is_comment ? undef : $last_data,
 		IS_BITFIELD => $is_bitfield ? $range_size_definition : 0,
 		USER_INFORMATION => $range_user_information,
 		} ;

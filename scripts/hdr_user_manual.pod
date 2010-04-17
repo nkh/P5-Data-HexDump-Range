@@ -1,0 +1,103 @@
+ 
+=head1 HDR USER MANUAL
+
+This document will help you understand how to use the I<hdr> command part of the L<Data::HexDump::Range> module. The latest 
+version is  at L<http://search.cpan.org/search?query=Data%3A%3AHexDump%3A%3ARange>.
+
+It is important to understand that I<hdr> is a visualisation tool. It does not understand your data.
+
+=head2 The hdr command
+
+=head2 default behavior
+
+=head2 output format
+
+=head2 ASCII
+
+=head2 ANSI
+
+=head3 HTML
+
+=head2 Columns
+
+=head3 Showing the column header and the rulers
+
+=head2 intput 
+
+=head2 from file or stdin
+
+=head2 limiting the amount of data
+
+head -c 
+
+=head2 too little data
+
+=head2 range descritption
+
+=head3 on command line
+
+=head3 from file
+
+simple
+
+advance perl
+
+See L<Advanced usage>
+
+=head2 Bitfields
+
+=head1 Advanced usage
+
+verify your data
+display data errors
+
+=head2 dynamic
+
+=head3 data parser
+
+=head2 Hekping out
+
+error reporting
+examples
+parsers
+
+=head1 AUTHOR
+
+	Nadim ibn hamouda el Khemir
+	CPAN ID: NKH
+	mailto: nadim@cpan.org
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2010 Nadim Khemir.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of either:
+
+=over 4
+
+=item * the GNU General Public License as published by the Free
+Software Foundation; either version 1, or (at your option) any
+later version, or
+
+=item * the Artistic License version 2.0.
+
+=back
+
+=head1 SUPPORT
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+Please report any bugs or feature requests to  L <bug-data-hexdump-range@rt.cpan.org>.
+
+=back
+
+=head1 SEE ALSO
+
+B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/>
+
+=cut

@@ -149,6 +149,7 @@ my $build = $class->new
 		'List::Util' => 0,
 		'List::MoreUtils' => 0,
 		'Scalar::Util' => 0,
+		'Data::TreeDumper' => 0,
 		},
 		
 	pm_files     => \%all_modules,
