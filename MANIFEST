@@ -8,6 +8,9 @@ Todo.txt
 #dump_example.html
 
 lib/Data/HexDump/Range.pm
+lib/Data/HexDump/Range/Gather.pm
+lib/Data/HexDump/Range/Split.pm
+lib/Data/HexDump/Range/Format.pm
 
 t/001_load.t
 t/002_test.t

@@ -2,12 +2,21 @@
 # This is Todo.txt #
 #------------------#
 
-handle indianness
-There is no reason to unpack the data in gather
-	pass reference and offset
+format can use the same code is colorizer is specialized for the html
 
-Error splice() offset past end of array at /devel/perl_modules/Data/HexDump/Range/blib/lib/Data/HexDump/Range.pm line 1579.
-	due to bitfield offset after the data it works on
+many todos in the code
+
+	There is no reason to unpack the data in gather
+		pass reference and offset
+
+support bitfields
+	#parse
+	#display
+	handle definiton errors
+	handle indianness
+
+	Error splice() offset past end of array at /devel/perl_modules/Data/HexDump/Range/blib/lib/Data/HexDump/Range.pm line 1579.
+		due to bitfield offset after the data it works on
 
 
 rename show_* options to display_* 
@@ -20,25 +29,13 @@ html file, that is the web site, in the distribution
 		http://en.wikipedia.org/wiki/S-record
 		IPV4 header
 
-format can use the same code is colorizer is specialized for the html
-
-	mail pod people to get an ansi color tag A<blue on yellow> this text A<reset>
-
-
-support bitfields
-	#parse
-	#display
-	handle definiton errors
-
-Add a comment element to the range description
-	dump it last
-
 handle stdin via <> magic
 
 option 
 	show ranges legend before dump
 		sub to only return the legend is public (see S-record above))
 		how does it work with gather?
+			display is done within _gather
 	
 	interval for showing
 		columns and rulers
@@ -51,9 +48,6 @@ in direct dump mode, use the offset passed by the user to set the starting offse
 	000017 xx xx xx xx                    something starting at offset 17
 
 if single item range is sub and the returned data is an array ref, expand the ref
-
-in vertical and horizontal examples
-	show the name of the columns
 
 pack format
 	can we get the size of the data defined by pack?
