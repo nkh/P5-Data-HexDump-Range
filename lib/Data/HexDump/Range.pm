@@ -757,7 +757,11 @@ for my $option_name (keys %options)
 	{
 	unless(exists $valid_options->{$option_name})
 		{
-		$self->{INTERACTION}{DIE}->("$self->{NAME}: Invalid Option '$option_name' at '$self->{FILE}:$self->{LINE}'!")  ;
+		$self->{INTERACTION}{DIE}->
+				(
+				"$self->{NAME}: Invalid Option '$option_name' at '$self->{FILE}:$self->{LINE}'\nValid options:\n\t"
+				.  join("\n\t", sort keys %{$valid_options}) . "\n"
+				);
 		}
 	}
 

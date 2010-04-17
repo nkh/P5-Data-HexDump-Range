@@ -93,6 +93,7 @@ I<Exceptions> dies if passed invalid parameters
 
 my ($self, $collected_data, $range_description, $data, $offset, $size) = @_ ;
 
+my $location = "$self->{FILE}:$self->{LINE}" ;
 my $range_provider ;
 
 if('CODE' eq ref($range_description))
@@ -103,11 +104,6 @@ else
 	{
 	my $ranges = $self->create_ranges($range_description) ;
 	
-	if($self->{DUMP_RANGE_DESCRIPTION})
-		{
-		$self->{INTERACTION}{INFO}(DumpTree $ranges, 'range definitions:', QUOTE_VALUES => 1)
-		}
-
 	$range_provider = 
 		sub
 		{
@@ -122,91 +118,76 @@ my $used_data = $offset || 0 ;
 
 if($used_data < 0)
 	{
-	my $location = "$self->{FILE}:$self->{LINE}" ;
 	$self->{INTERACTION}{DIE}("Warning: Invalid negative offset at '$location'.\n")
 	}
 
 $size = defined $size ? min($size, length($data) - $used_data) : length($data) - $used_data ;
 
-my $location = "$self->{FILE}:$self->{LINE}" ;
-my $skip_ranges = 0 ;
-
+my $skip_remaining_ranges = 0 ;
 my $last_data = '' ;
 
 while(my $range  = $range_provider->($self, $data, $used_data))
 	{
 	my ($range_name, $range_size, $range_color, $range_user_information) = @{$range} ;
-	my $is_comment = 0 ;
-	my $is_bitfield = 0 ;
-	
 	my $range_size_definition = $range_size ; # needed for comment and bitfield
-	
-	#~ use Data::TreeDumper ;
-	#~ print DumpTree $range ;
-	
-	my $unpack_format = '#' ;
+
+	for my $range_field ($range_name, $range_size, $range_color, $range_user_information)
+		{
+		$range_field =  $range_field->($data, $used_data, $size, $range) if 'CODE' eq ref($range_field) ;
+		}
+
+	my ($is_comment, $is_bitfield, $unpack_format) ;
 
 	if('' eq ref($range_size))
 		{
-		if('#' eq  $range_size)
-			{
-			$is_comment++ ;
-			$range_size = 0 ;
-			$unpack_format = '#' ;
-			}
-		elsif($range_size =~ 'b')
-			{
-			$is_bitfield++ ;
-			$range_size = 0 ;
-			$unpack_format = '#' ;
-			}
-		elsif(looks_like_number($range_size))
-			{
-			# OK
-			$unpack_format = "x$used_data a$range_size"  ;
-			}
-		else
-			{
-			$self->{INTERACTION}{DIE}("Error: size '$range_size' doesn't look like a number in range '$range_name' at '$location'.\n")
-			}
+		($is_comment, $is_bitfield, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
 		}
-	#todo: check it is a sub
-	
-	my @sub_or_scalar ;
-	
-	push @sub_or_scalar, ref($range_name) eq 'CODE' ? $range_name->($data, $used_data, $size)  : $range_name ;
-	push @sub_or_scalar, ref($range_size) eq 'CODE' ? $range_size->($data, $used_data, $size)  : $range_size ;
-	push @sub_or_scalar, ref($range_color) eq 'CODE' ? $range_color->($data, $used_data, $size)  : $range_color;
-	
-	($range_name, $range_size, $range_color) = @sub_or_scalar ;
-
-	if($self->{DISPLAY_RANGE_SIZE})
+	elsif('CODE' eq ref($range_size))
 		{
-		unless($is_comment || $is_bitfield)
-			{
-			$range_name = $range_size . ':' . $range_name ;
-			}
+		($is_comment, $is_bitfield, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size->(), $used_data) ;
+		}
+	else
+		{
+		$self->{INTERACTION}{DIE}("Error: size '$range_size' doesn't look like a number or a code reference in range '$range_name' at '$location'.\n")
 		}
 		
-	#todo: merge both tests above and below
-	#
-	if(!$is_comment && ! $is_bitfield)
+	if($self->{DUMP_RANGE_DESCRIPTION})
+		{
+		$self->{INTERACTION}{INFO}
+				(
+				DumpTree 
+					{
+					size => $range_size,
+					color => $range_color,
+					'unpack format' => $unpack_format,
+					'user information' => $range_user_information,
+					},
+					$range_name,
+					QUOTE_VALUES => 1, DISPLAY_ADDRESS => 0,
+				) ;
+		}
+
+	if(! $is_comment && ! $is_bitfield)
 		{
 		if($range_size == 0 && $self->{DISPLAY_ZERO_SIZE_RANGE_WARNING}) 
 			{
 			$self->{INTERACTION}{WARN}("Warning: range '$range_name' requires zero bytes.\n") ;
 			}
+			
+		if($self->{DISPLAY_RANGE_SIZE})
+			{
+			$range_name = $range_size . ':' . $range_name ;
+			}
 		}
-		
+
 	if($range_size > $size)
 		{
-		my $location = "$self->{FILE}:$self->{LINE}" ;
 		$self->{INTERACTION}{WARN}("Warning: not enough data for range '$range_name', $range_size needed but only $size available.\n") ;
 		
 		$range_name = '-' . ($range_size - $size)  . ':' . $range_name ;
 		
 		$range_size = $size;
-		$skip_ranges++ ;
+		$skip_remaining_ranges++ ;
 		}
 
 	$last_data = unpack($unpack_format, $data) unless $unpack_format eq '#' ; # get out data from the previous range for bitfield
@@ -224,10 +205,81 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 	$used_data += $range_size ;
 	$size -= $range_size ;
 	
-	last if $skip_ranges ;
+	last if $skip_remaining_ranges ;
 	}
 
 return $collected_data, $used_data ;
+}
+
+#-------------------------------------------------------------------------------
+
+sub unpack_range_size
+{
+
+=head2 [P] unpack_range_size($self, $range_name, $size, $used_data)
+
+Verifies the size field from a range descritpion and generates unpack format
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $self
+
+=item * $range_name
+
+=item * $size
+
+=item * $used_data
+
+=back
+
+I<Returns> - A list 
+
+=over 2 
+
+=item * $is_comment - Boolean -
+
+=item * $is_bitfield - Boolean -
+
+=item * $range_size - Integer
+
+=item * $unpack_format -  A String - formated according to I<pack>.
+
+=back
+I<Exceptions> - Croaks with an error messge if the input data is invalid
+
+=cut
+
+my ($self, $range_name, $size, $used_data) = @_ ;
+
+my ($is_comment, $is_bitfield, $range_size, $unpack_format) = (0, 0, -1, '');
+
+if('#' eq  $size)
+	{
+	$is_comment++ ;
+	$range_size = 0 ;
+	$unpack_format = '#' ;
+	}
+elsif($size =~ 'b')
+	{
+	$is_bitfield++ ;
+	$range_size = 0 ;
+	$unpack_format = '#' ;
+	}
+elsif(looks_like_number($size))
+	{
+	$unpack_format = "x$used_data a$size"  ;
+	$range_size = $size ;
+	}
+else
+	{
+	my $location = "$self->{FILE}:$self->{LINE}" ;
+
+	$self->{INTERACTION}{DIE}("Error: size '$size' doesn't look like a number in range '$range_name' at '$location'.\n")
+	}
+
+return ($is_comment, $is_bitfield, $range_size, $unpack_format) ;
 }
 
 #-------------------------------------------------------------------------------
@@ -237,7 +289,7 @@ sub create_ranges
 
 =head2 [P] create_ranges($range_description)
 
-transforms the user supplied ranges into an internal format
+Transforms the user supplied ranges into an internal format
 
 I<Arguments> - 
 
@@ -267,7 +319,7 @@ sub create_ranges_from_string
 
 =head2 [P] create_ranges_from_string($range_description)
 
-transforms the user supplied ranges into an internal format
+Transforms the user supplied ranges into an internal format
 
 I<Arguments> - 
 
@@ -371,11 +423,10 @@ map
 	
 	if(ref($description) eq 'ARRAY')
 		{
-		if(all {'' eq ref($_) || 'CODE' eq ref($_) } @{$description} ) # todo: handle code refs
+		if(all {'' eq ref($_) || 'CODE' eq ref($_) } @{$description} )
 			{
 			my $location = "$self->{FILE}:$self->{LINE}" ;
 			
-			# a simple  range description, color is  optional
 			if(@{$description} == 0)
 				{
 				$self->{INTERACTION}{DIE}->
@@ -406,7 +457,7 @@ map
 						. join(', ', map {defined $_ ? $_ : 'undef'}@{$description})  
 						. "] at '$location'." 
 						) 
-						unless (@{$description} == 3) ;
+						unless (@{$description} == 4) ;
 					}
 				}
 			elsif(@{$description} == 2)

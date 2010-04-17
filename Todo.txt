@@ -2,10 +2,7 @@
 # This is Todo.txt #
 #------------------#
 
-many todos in the code
-
-	There is no reason to unpack the data in gather
-		pass reference and offset
+ todos in the code
 
 support bitfields
 	#parse
@@ -30,6 +27,7 @@ html file, that is the web site, in the distribution
 handle stdin via <> magic
 
 option 
+	do not show bitfields => regular expression on names
 	show ranges legend before dump
 		sub to only return the legend is public (see S-record above))
 		how does it work with gather?
