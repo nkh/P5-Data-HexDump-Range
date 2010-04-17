@@ -713,6 +713,8 @@ $self->{FIELDS_TO_DISPLAY} =  $self->{ORIENTATION} =~ /^hor/
 	? [qw(OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME)]
 	: [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
 
+my (undef, undef, $colorizer) = get_colorizer_data($self->{FORMAT}) ; # verify validity
+$self->{INTERACTION}{DIE}("Error: Invalid output format '$self->{FORMAT}'.\n") unless defined $colorizer ;
 
 return(1) ;
 }

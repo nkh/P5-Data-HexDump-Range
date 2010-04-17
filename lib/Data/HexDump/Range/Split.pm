@@ -30,13 +30,6 @@ Readonly my $EMPTY_STRING => q{} ;
 
 use Carp qw(carp croak confess) ;
 
-#use Graphics::ColorNames
-#~ use List::Util qw(min) ;
-#~ use List::MoreUtils qw(all) ;
-#~ use Scalar::Util qw(looks_like_number) ;
-#~ use Term::ANSIColor ;
-#~ use Data::TreeDumper ;
-
 #-------------------------------------------------------------------------------
 
 =head1 NAME

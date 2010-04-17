@@ -30,13 +30,6 @@ Readonly my $EMPTY_STRING => q{} ;
 
 use Carp qw(carp croak confess) ;
 
-#use Graphics::ColorNames
-#~ use List::Util qw(min) ;
-#~ use List::MoreUtils qw(all) ;
-#~ use Scalar::Util qw(looks_like_number) ;
-#~ use Term::ANSIColor ;
-#~ use Data::TreeDumper ;
-
 #-------------------------------------------------------------------------------
 
 =head1 NAME
@@ -113,85 +106,99 @@ my ($self, $line_data) = @_ ;
 #~ use Data::TreeDumper ;
 #~ print DumpTree $line_data ;
 
+my ($header, $footer, $colorizer) = get_colorizer_data($self->{FORMAT}) ;
+
 my $formated = '' ;
 
 my @fields = @{$self->{FIELDS_TO_DISPLAY}} ;
 unshift @fields, 'INFORMATION', 'RULER' ;
 
-
-for ($self->{FORMAT})
+for my $line (@{$line_data})
 	{
-	/ASCII/ || /ANSI/ and do
+	for my $field (@fields)
 		{
-		my $colorizer = /ASCII/ ? sub {$_[0]} : \&colored ;
-		
-		for my $line (@{$line_data})
+		if(exists $line->{$field})
 			{
-			for my $field (@fields)
+			for my $range (@{$line->{$field}})
 				{
-				if(exists $line->{$field})
-					{
-					for my $range (@{$line->{$field}})
-						{
-						my $user_color = (defined $self->{COLOR_NAMES} &&  defined $range->{"${field}_COLOR"})
-										? $self->{COLOR_NAMES} {$self->{FORMAT}}{$range->{"${field}_COLOR"}}  ||  $range->{"${field}_COLOR"}
-										: $range->{"${field}_COLOR"} ;
-						
-						if(defined $user_color && $user_color ne '')
-							{
-							$formated .= $colorizer->($range->{$field}, $user_color) ;
-							}
-						else
-							{
-							$formated .= $range->{$field} ;
-							}
-						}
-						
-					$formated .= ' '
-					}
+				my $user_color = (defined $self->{COLOR_NAMES} &&  defined $range->{"${field}_COLOR"})
+								? $self->{COLOR_NAMES} {$self->{FORMAT}}{$range->{"${field}_COLOR"}}  ||  $range->{"${field}_COLOR"}
+								: $range->{"${field}_COLOR"} ;
+				
+				$formated .= $colorizer->($range->{$field}, $user_color) ;
 				}
 				
-			$formated .= "\n" if $line->{NEW_LINE} ;
+			$formated .= ' '
 			}
+		}
+		
+	$formated .= "\n" if $line->{NEW_LINE} ;
+	}
+
+return $header . $formated . $footer ;
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_colorizer_data
+{
+
+my ($format) = @_ ;
+my ($header, $footer, $colorizer)  = ('', '') ;
+
+for ($format)
+	{
+	/ASCII/ and do
+		{
+		$colorizer = sub {$_[0]} ;
+		last ;
+		} ;
+		
+	/ANSI/ and do
+		{
+		$colorizer = 
+			sub 
+			{
+			my ($text, $color) = @_ ;
+			
+			if(defined $color && $color ne '')
+				{
+				colored($text, $color) ;
+				}
+			else
+				{
+				$text ;
+				}
+			} ;
+			
+		last ;
 		} ;
 		
 	/HTML/ and do
 		{
-		$formated = <<'EOH' ;
+		$colorizer =
+			sub 
+			{
+			my ($text, $color) = @_ ;
+			
+			$color = "style='color:#fff;'" unless defined $color ;
+			
+			"<span $color>" . $text . "</span>" ;
+			} ;
+			
+		$header = <<'EOH' ;
 <pre style ="font-family: monospace; background-color: #000 ;">
 
 EOH
-		for my $line (@{$line_data})
-			{
-			for my $field (@fields)
-				{
-				if(exists $line->{$field})
-					{
-					for my $range (@{$line->{$field}})
-						{
-						my $user_color = (defined $self->{COLOR_NAMES} &&  defined $range->{"${field}_COLOR"})
-										? $self->{COLOR_NAMES} {$self->{FORMAT}}{$range->{"${field}_COLOR"}}  ||  $range->{"${field}_COLOR"}
-										: $range->{"${field}_COLOR"} ;
-						
-						$user_color = "style='color:#fff;'" unless defined $user_color ;
-						$formated .= "<span $user_color>" . $range->{$field} . "</span>" ;
-						}
-						
-					$formated .= ' ' ;
-					}
-				}
-				
-			$formated .= "\n" if $line->{NEW_LINE} ;
-			}
+
+		$footer .= "\n</pre>\n" ;
 		
-		$formated .= "\n</pre>\n" ;
+		last ;
 		} ;
 	}
-	
-return $formated ;
-}
 
-#-------------------------------------------------------------------------------
+return ($header, $footer, $colorizer) ;
+}
 
 1 ;
 

@@ -2,8 +2,6 @@
 # This is Todo.txt #
 #------------------#
 
-format can use the same code is colorizer is specialized for the html
-
 many todos in the code
 
 	There is no reason to unpack the data in gather
