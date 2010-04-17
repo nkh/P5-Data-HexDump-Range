@@ -49,6 +49,7 @@ head1 OPTIONS
 
 =head1 EXIT STATUS
 
+Non zero if an error occured.
 
 =head1 AUTHOR
 
@@ -63,6 +64,9 @@ head1 OPTIONS
 use Getopt::Long ;
 use English qw( -no_match_vars ) ;
 
+use File::Slurp ;
+use IO::Select ;
+
 use Data::HexDump::Range qw() ;
 
 our $VERSION = '0.02' ;
@@ -73,6 +77,8 @@ display_help() unless
 	GetOptions
 		(
 		'range_description|r=s' => \ my $range_description,
+		'dump_range_description|d' =>\my $dump_range_description,
+		
 		'offset=i' =>  \my $offset,
 		'max_size=i' =>  \my $max_size,
 		'orientation|o=s' => \my $orientation,
@@ -101,39 +107,6 @@ display_help() unless
 		'h|help' => \&display_help, 
 		) ;
 
-$offset ||= 0 ;
-$range_description ||= 'dumping all file' ;
-
-my $hdr = Data::HexDump::Range->new
-			(
-			ORIENTATION => $orientation || 'horizontal',
-			DISPLAY_COLUMN_NAMES => defined $display_column_names ? $display_column_names : 0,
-			DISPLAY_RULER => defined $display_ruler ? $display_ruler : 0,
-			
-			FORMAT => $format || 'ANSI',
-			COLOR => defined $color ? $color : 'cycle',
-			
-			OFFSET_FORMAT => $offset_format || 'hex',
-			DATA_WIDTH => $data_width || 16,
-			
-			DISPLAY_RANGE_NAME => defined $show_range_name ? $show_range_name : 1 ,
-			MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : 16,
-			DISPLAY_RANGE_SIZE => defined $display_range_size ? $display_range_size : 0,
-			
-			DISPLAY_OFFSET  => defined $show_offset ? $show_offset : 1 ,
-			DISPLAY_CUMULATIVE_OFFSET  => defined $show_cumulative_offset ? $show_cumulative_offset : 1 ,
-			DISPLAY_HEX_DUMP => defined $show_hex_dump ? $show_hex_dump : 1,
-			DISPLAY_DEC_DUMP => defined $show_dec_dump ? $show_dec_dump : 0,
-			DISPLAY_ASCII_DUMP => defined $show_ascii_dump ? $show_ascii_dump :  1 ,
-			DISPLAY_USER_INFORMATION => defined $show_user_information ? $show_user_information :  0 ,
-			DISPLAY_ZERO_SIZE_RANGE => defined $show_zero_size_range ? $show_zero_size_range : 1,
-			DISPLAY_ZERO_SIZE_RANGE_WARNING => defined  $show_zero_size_range_warning ? $show_zero_size_range_warning : 1,
-			) ;
-
-
-use File::Slurp ;
-use IO::Select ;
-
 my $data ;
 
 my $io_select = IO::Select->new(\*STDIN) ;
@@ -148,17 +121,54 @@ else
 	$data = read_file shift @ARGV ;
 	}
 
+$offset ||= 0 ;
+
 my $range ;
 
-if($range_description =~ /,/)
+if(defined $range_description )
 	{
-	$range = $range_description ;
+	if($range_description =~ /,/)
+		{
+		$range = $range_description ;
+		}
+	else
+		{
+		# a file
+		$range  = do $range_description || ['hdr: range error', 16 * 16 ] ;
+		}
 	}
 else
 	{
-	# a file
-	$range  = do $range_description || ['no range defined', length($data) ] ;
+	$range = ['no range definition', length($data) ] ;
+	$show_range_name = 0 ;
 	}
+	
+my $hdr = Data::HexDump::Range->new
+			(
+			ORIENTATION => $orientation || 'horizontal',
+			DISPLAY_COLUMN_NAMES => defined $display_column_names ? $display_column_names : 0,
+			DISPLAY_RULER => defined $display_ruler ? $display_ruler : 0,
+			
+			FORMAT => $format || 'ANSI',
+			COLOR => defined $color ? $color : 'cycle',
+			
+			OFFSET_FORMAT => $offset_format || 'hex',
+			DATA_WIDTH => $data_width || 16,
+			
+			DISPLAY_RANGE_NAME => defined $show_range_name ? $show_range_name : 1 ,
+			DUMP_RANGE_DESCRIPTION => defined $dump_range_description ? $dump_range_description : 0 ,
+			MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : 16,
+			DISPLAY_RANGE_SIZE => defined $display_range_size ? $display_range_size : 0,
+			
+			DISPLAY_OFFSET  => defined $show_offset ? $show_offset : 1 ,
+			DISPLAY_CUMULATIVE_OFFSET  => defined $show_cumulative_offset ? $show_cumulative_offset : 1 ,
+			DISPLAY_HEX_DUMP => defined $show_hex_dump ? $show_hex_dump : 1,
+			DISPLAY_DEC_DUMP => defined $show_dec_dump ? $show_dec_dump : 0,
+			DISPLAY_ASCII_DUMP => defined $show_ascii_dump ? $show_ascii_dump :  1 ,
+			DISPLAY_USER_INFORMATION => defined $show_user_information ? $show_user_information :  0 ,
+			DISPLAY_ZERO_SIZE_RANGE => defined $show_zero_size_range ? $show_zero_size_range : 1,
+			DISPLAY_ZERO_SIZE_RANGE_WARNING => defined  $show_zero_size_range_warning ? $show_zero_size_range_warning : 1,
+			) ;
 
 print $hdr->dump( $range, $data, $offset, $max_size) ;
 
