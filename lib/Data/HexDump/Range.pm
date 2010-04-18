@@ -598,7 +598,6 @@ in base 10. Default is 'hex'.
 	},
   }
 
-
 =item * ORIENTATION - String - 'vertical' or 'horizontal' (the default).
 
 =back

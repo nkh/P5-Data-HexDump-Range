@@ -32,12 +32,6 @@ Readonly my $RANGE_DEFINITON_FIELDS => 4 ;
 
 use Carp qw(carp croak confess) ;
 
-#~ use List::Util qw(min) ;
-#~ use List::MoreUtils qw(all) ;
-#~ use Scalar::Util qw(looks_like_number) ;
-#~ use Term::ANSIColor ;
-#~ use Data::TreeDumper ;
-
 #-------------------------------------------------------------------------------
 
 =head1 NAME
@@ -262,7 +256,7 @@ if('#' eq  $size)
 	$range_size = 0 ;
 	$unpack_format = '#' ;
 	}
-elsif($size =~ 'b')
+elsif($size =~ '^\s*(x\d*)?\s*b\d*\s*$')
 	{
 	$is_bitfield++ ;
 	$range_size = 0 ;
@@ -277,7 +271,7 @@ else
 	{
 	my $location = "$self->{FILE}:$self->{LINE}" ;
 
-	$self->{INTERACTION}{DIE}("Error: size '$size' doesn't look like a number in range '$range_name' at '$location'.\n")
+	$self->{INTERACTION}{DIE}("Error: size '$size' doesn't look valid in range '$range_name' at '$location'.\n")
 	}
 
 return ($is_comment, $is_bitfield, $range_size, $unpack_format) ;
@@ -468,6 +462,13 @@ map
 			elsif(@{$description} == 3)
 				{
 				push @{$description}, undef ;
+				# make sure we get a default color
+				$description->[2] = undef if $description->[2] eq $EMPTY_STRING ;
+				}
+			elsif(@{$description} == 4)
+				{
+				# make sure we get a default color
+				$description->[2] = undef if $description->[2] eq $EMPTY_STRING ;
 				}
 			elsif(@{$description} > $RANGE_DEFINITON_FIELDS)
 				{

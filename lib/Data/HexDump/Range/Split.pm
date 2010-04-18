@@ -303,7 +303,7 @@ $size ||= 1 ;
 
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 
-my %always_display_field = map {$_ => 1} qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET BITFIELD_SOURCE) ;
+my %always_display_field = map {$_ => 1} qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET BITFIELD_SOURCE USER_INFORMATION) ;
 
 for my  $field_type 
 	(
@@ -371,6 +371,9 @@ for my  $field_type
 		},
 
 		undef, $self->{DATA_WIDTH}],
+		
+		['USER_INFORMATION', sub { sprintf '%-20.20s', $_[0]->{USER_INFORMATION} || ''}, $bitfield_description->{COLOR}, 20],
+		
 	)
 	{
 	my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
