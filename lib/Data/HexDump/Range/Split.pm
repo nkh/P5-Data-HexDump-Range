@@ -60,7 +60,7 @@ I<Arguments> -
 
 =back
 
-I<Returns> - Nothing
+I<Returns> -  An Array  containing column elements
 
 I<Exceptions>
 
@@ -78,22 +78,34 @@ my $current_offset = 0 ;
 my $room_left = $self->{DATA_WIDTH} ;
 my $total_dumped_data = 0 ;
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
-
+my $range_source = ['?', 'white'] ;
 my @found_bitfields ;
 
-for my $range_data (@{$collected_data})
+my $last_range = (grep {!  $_->{IS_BITFIELD}}@{$collected_data})[-1] ;
+
+for my $range (@{$collected_data})
 	{
-	my $data_length = defined $range_data->{DATA} ? length($range_data->{DATA}) : 0 ;
-	my $is_comment = ! defined $range_data->{DATA} ;
+	my $data_length = defined $range->{DATA} ? length($range->{DATA}) : 0 ;
+	my $is_comment = ! defined $range->{DATA} ;
 	my ($start_quote, $end_quote) = $is_comment ? ('"', '"') : ('<', '>') ;
-	
-	$range_data->{COLOR} = $self->get_default_color()  unless defined $range_data->{COLOR} ;
-	
+		
+	$range->{SOURCE} = $range_source  if $range->{IS_BITFIELD} ;
+	$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+		
 	if($self->{ORIENTATION} =~ /^hor/)
 		{
-		my $last_data = $range_data == $collected_data->[-1] ? 1 : 0 ;
+		if($range->{IS_BITFIELD}) 
+			{
+			push @found_bitfields, $self->get_bitfield_lines($range) ;
+			next ;
+			}
+		else
+			{
+			$range_source = [$range->{NAME}, $range->{COLOR}]  ;
+			}
+		
 		my $dumped_data = 0 ;
-		my $data_length = defined $range_data->{DATA} ? length($range_data->{DATA}) : 0 ;
+		my $data_length = defined $range->{DATA} ? length($range->{DATA}) : 0 ;
 		
 		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE} && $self->{DISPLAY_RANGE_NAME})
 			{
@@ -102,8 +114,8 @@ for my $range_data (@{$collected_data})
 			
 			push @{$line->{RANGE_NAME}},
 				{
-				'RANGE_NAME' => $start_quote . sprintf("%.${name_size_quoted}s", $range_data->{NAME}) . $end_quote,
-				'RANGE_NAME_COLOR' => $range_data->{COLOR},
+				'RANGE_NAME' => $start_quote . sprintf("%.${name_size_quoted}s", $range->{NAME}) . $end_quote,
+				'RANGE_NAME_COLOR' => $range->{COLOR},
 				},
 				{
 				'RANGE_NAME_COLOR' => undef,
@@ -113,18 +125,20 @@ for my $range_data (@{$collected_data})
 		
 		while ($dumped_data < $data_length)
 			{
-			my $size_to_dump = min($room_left, length($range_data->{DATA}) - $dumped_data) || 0 ;
+			my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
+			
 			$room_left -= $size_to_dump ;
 			
-			my @range_unpacked_data = unpack("x$dumped_data C$size_to_dump", $range_data->{DATA}) ;
+			my @range_unpacked_data = unpack("x$dumped_data C$size_to_dump", $range->{DATA}) ;
 		
 			for my  $field_type 
 				(
 				['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $current_offset}, undef, 0],
-				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range_data->{COLOR}, 3],
-				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range_data->{COLOR}, 4],
-				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $range_data->{COLOR}, 1],
-				['RANGE_NAME',sub {sprintf "%.${max_range_name_size}s", $range_data->{NAME}}, $range_data->{COLOR}, 0],
+				['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
+				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
+				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
+				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $range->{COLOR}, 1],
+				['RANGE_NAME',sub {sprintf "%.${max_range_name_size}s", $range->{NAME}}, $range->{COLOR}, 0],
 				['RANGE_NAME', sub {', '}, undef, 0],
 				)
 				{
@@ -134,33 +148,29 @@ for my $range_data (@{$collected_data})
 					{
 					my $field_text = $field_data_formater->(@range_unpacked_data) ;
 					
-					my $pad = $last_data ? $pad_size 	? ' ' x ($room_left * $pad_size) : '' : '' ;
+					my $pad = $last_range == $range ? $pad_size  ? ' ' x ($room_left * $pad_size) : '' : '' ;
 					
 					push @{$line->{$field_name}},
 						{
 						$field_name . '_COLOR' => $color,
 						$field_name => $field_text . $pad,
 						} ;
+						
+						
 					}
 				}
 				
 			$dumped_data += $size_to_dump ;
-			$current_offset += $self->{DATA_WIDTH} ;
+			$current_offset += $size_to_dump ;
 			
-			if($range_data->{IS_BITFIELD} && ! $range_data->{BITFIELD_DISPLAYED})
-				{
-				push @found_bitfields, $self->get_bitfield_lines($range_data) ;
-				$range_data->{BITFIELD_DISPLAYED}++ ;
-				}
-			
-			if($room_left == 0 || $last_data)
+			if($room_left == 0 || $last_range == $range)
 				{
 				$line->{NEW_LINE}++ ;
 				push @lines, $line ;
 				
 				if(@found_bitfields)
 					{
-					push @lines, {NEW_LINE => 1}, @found_bitfields, {NEW_LINE => 1} ;
+					push @lines,  @found_bitfields ;
 					@found_bitfields = () ;
 					}
 					
@@ -178,12 +188,12 @@ for my $range_data (@{$collected_data})
 		my $dumped_data = 0 ;
 		my $current_range = '' ;
 		
-		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE} && $self->{DISPLAY_RANGE_NAME})
+		if(!$range->{IS_BITFIELD} && 0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE} && $self->{DISPLAY_RANGE_NAME})
 			{
 			push @{$line->{RANGE_NAME}},
 				{
-				'RANGE_NAME_COLOR' => $range_data->{COLOR},
-				'RANGE_NAME' => "$start_quote$range_data->{NAME}$end_quote",
+				'RANGE_NAME_COLOR' => $range->{COLOR},
+				'RANGE_NAME' => "$start_quote$range->{NAME}$end_quote",
 				} ;
 				
 			$line->{NEW_LINE} ++ ;
@@ -193,20 +203,21 @@ for my $range_data (@{$collected_data})
 			
 		while ($dumped_data < $data_length)
 			{ 
-			last if($range_data->{IS_BITFIELD}) ;
+			last if($range->{IS_BITFIELD}) ;
 
-			my $size_to_dump = min($self->{DATA_WIDTH}, length($range_data->{DATA}) - $dumped_data) ;
-			my @range_data = unpack("x$dumped_data C$size_to_dump", $range_data->{DATA}) ;
+			my $size_to_dump = min($self->{DATA_WIDTH}, length($range->{DATA}) - $dumped_data) ;
+			my @range_data = unpack("x$dumped_data C$size_to_dump", $range->{DATA}) ;
 			
 			for my  $field_type 
 				(
-				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range_data->{NAME} ; }, $range_data->{COLOR}, $max_range_name_size] ,
+				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
 				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data ;}, undef, 8],
 				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}, undef, 8],
-				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range_data->{COLOR}, 3 * $self->{DATA_WIDTH}],
-				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @{ $_[0] }}, $range_data->{COLOR}, 4 * $self->{DATA_WIDTH}],
-				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @{$_[0]}}, $range_data->{COLOR}, $self->{DATA_WIDTH}],
-                                ['USER_INFORMATION', sub { sprintf '%-20.20s', $range_data->{USER_INFORMATION} || ''}, $range_data->{COLOR}, 20],
+				['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
+				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $self->{DATA_WIDTH}],
+				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @{ $_[0] }}, $range->{COLOR}, 4 * $self->{DATA_WIDTH}],
+				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @{$_[0]}}, $range->{COLOR}, $self->{DATA_WIDTH}],
+                                ['USER_INFORMATION', sub { sprintf '%-20.20s', $range->{USER_INFORMATION} || ''}, $range->{COLOR}, 20],
 				)
 				{
 				
@@ -233,8 +244,21 @@ for my $range_data (@{$collected_data})
 			$line = {};
 			}
 			
-		push @lines, $self->get_bitfield_lines($range_data) if($range_data->{IS_BITFIELD}) ;
+		if($range->{IS_BITFIELD})
+			{
+			push @lines, $self->get_bitfield_lines($range)  ;
+			}
+		else
+			{
+			$range_source = [$range->{NAME}, $range->{COLOR}]  ;
+			}
 		}
+	}
+
+if(@found_bitfields)
+	{
+	push @lines,  @found_bitfields ;
+	@found_bitfields = () ;
 	}
 
 return \@lines ;
@@ -243,113 +267,145 @@ return \@lines ;
 sub get_bitfield_lines
 {
 
-my ($self, $data) = @_ ;
+=head2 [P] get_bitfield_lines($bitfield_description)
+
+Split the collected data into lines
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $self - a Data::HexDump::Range object
+
+=item * $bitfield_description - 
+
+=back
+
+I<Returns> - An Array  containing column elements, 
+
+I<Exceptions> None but will embed an error in the element if any is found
+
+=cut
+
+my ($self, $bitfield_description) = @_ ;
+
+#~ use Data::TreeDumper ;
+#~ print DumpTree $bitfield_description, '$bitfield_description', QUOTE_VALUES => 1 ;
+
+return unless $self->{DISPLAY_BITFIELDS} ;
+
+my ($line, @lines) = ({}) ;
+
+my ($offset, $size) = $bitfield_description->{IS_BITFIELD} =~ m/x?(.*)b(.*)/ ;
+
+$offset ||= 0 ;
+$size ||= 1 ;
 
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 
-my @lines ;
+my %always_display_field = map {$_ => 1} qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET BITFIELD_SOURCE) ;
 
-for my $bitfield_description ($data)
-	{
-	#todo: handle 'x' outside of string in unpack
-	#todo: handle bitfield without data
-	
-	#~ my @bitfield_data = unpack("$bitfield_description->{IS_BITFIELD}", $bitfield_description->{DATA}) ;
-
-	my ($offset, $size) = $bitfield_description->{IS_BITFIELD} =~ m/x?(.*)b(.*)/ ;
-
-	$offset ||= 0 ;
-	$size ||= 1 ;
-
-	my $line = {};
-
-	for my  $field_type 
-		(
-		['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", '.' . $_[0]->{NAME} ; }, undef, $max_range_name_size ] ,
-		['OFFSET', sub {sprintf '%02u .. %02u', $offset, ($offset + $size) - 1}, undef, 8],
-		['CUMULATIVE_OFFSET', sub {''}, undef, 8],
-		['HEX_DUMP', 
-			sub 
-			{
-			my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
-			splice(@binary, 0, $offset) ;
-			splice(@binary, $size) ;
-			my $binary = join('', @binary) ;
-			
-			my $value = unpack("N", pack("B32", substr("0" x 32 . $binary, -32)));
-
-			my $binary_dashed = '-' x $offset . $binary . '-' x (32 - ($size + $offset)) ;
-			my $bytes = $size > 24 ? 4 : $size > 16 ? 3 : $size > 8 ? 2 : 1 ;
-			
-			my @bytes = unpack("(H2)*", pack("B32", substr("0" x 32 . $binary, -32)));
-			
-			my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
-			splice @bytes, 0 , (4 - $number_of_bytes), map {'--'} 1 .. (4 - $number_of_bytes) ;
-			
-			join(' ', @bytes) . ' ' . $binary_dashed;
-			},
-			
-			undef, 3 * $self->{DATA_WIDTH}],
-		['DEC_DUMP', 
-			sub 
-			{
-			my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
-			splice(@binary, 0, $offset) ;
-			splice(@binary, $size) ;
-			my $binary = join('', @binary) ;
-			my $value = unpack("N", pack("B32", substr("0" x 32 . $binary, -32)));
-			
-			my @values = map {sprintf '%03u', $_} unpack("W*", pack("B32", substr("0" x 32 . $binary, -32)));
-			
-			my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
-			splice @values, 0 , (4 - $number_of_bytes), map {'---'} 1 .. (4 - $number_of_bytes) ;
-			
-			join(' ',  @values) . ' ' . "value: $value"  ;
-			},
-			
-			$bitfield_description->{COLOR}, 4 * $self->{DATA_WIDTH}],
-			
-		['ASCII_DUMP',
-			sub 
-			{
-			my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
-			splice(@binary, 0, $offset) ;
-			splice(@binary, $size) ;
-			my $binary = join('', @binary) ;
-			
-			my @chars = map{$_ < 30 ? '.' : chr($_) } unpack("C*", pack("B32", substr("0" x 32 . $binary, -32)));
-			
-			my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
-			splice @chars, 0 , (4 - $number_of_bytes), map {'-'} 1 .. (4 - $number_of_bytes) ;
-			
-			'.bitfield: '.  join('',  @chars) 
-			},
-
-			undef, $self->{DATA_WIDTH}],
-		)
+for my  $field_type 
+	(
+	['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", '.' . $_[0]->{NAME} ; }, undef, $max_range_name_size ] ,
+	['OFFSET', sub {sprintf '%02u .. %02u', $offset, ($offset + $size) - 1}, undef, 8],
+	['CUMULATIVE_OFFSET', sub {''}, undef, 8],
+	['BITFIELD_SOURCE', sub {sprintf '%-8.8s', $_[0]->{SOURCE}[0]}, $bitfield_description->{SOURCE}[1], 8],
+	['HEX_DUMP', 
+		sub 
 		{
-		my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
+		my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+		splice(@binary, 0, $offset) ;
+		splice(@binary, $size) ;
+		my $binary = join('', @binary) ;
 		
-		$color = $bitfield_description->{COLOR} ;
+		my $value = unpack("N", pack("B32", substr("0" x 32 . $binary, -32)));
+
+		my $binary_dashed = '-' x $offset . $binary . '-' x (32 - ($size + $offset)) ;
+		$binary_dashed  = substr($binary_dashed , -32) ;
 		
-		if($self->{"DISPLAY_$field_name"})
+		my $bytes = $size > 24 ? 4 : $size > 16 ? 3 : $size > 8 ? 2 : 1 ;
+		
+		my @bytes = unpack("(H2)*", pack("B32", substr("0" x 32 . $binary, -32)));
+		
+		my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
+		splice @bytes, 0 , (4 - $number_of_bytes), map {'--'} 1 .. (4 - $number_of_bytes) ;
+		
+		join(' ', @bytes) . '    ' . $binary_dashed;
+		},
+		
+		undef, 3 * $self->{DATA_WIDTH}],
+	['DEC_DUMP', 
+		sub 
+		{
+		my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+		splice(@binary, 0, $offset) ;
+		splice(@binary, $size) ;
+		my $binary = join('', @binary) ;
+		my $value = unpack("N", pack("B32", substr("0" x 32 . $binary, -32)));
+		
+		my @values = map {sprintf '%03u', $_} unpack("W*", pack("B32", substr("0" x 32 . $binary, -32)));
+		
+		my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
+		splice @values, 0 , (4 - $number_of_bytes), map {'---'} 1 .. (4 - $number_of_bytes) ;
+		
+		join(' ',  @values) . ' ' . "value: $value"  ;
+		},
+		
+		$bitfield_description->{COLOR}, 4 * $self->{DATA_WIDTH}],
+		
+	['ASCII_DUMP',
+		sub 
+		{
+		my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+		splice(@binary, 0, $offset) ;
+		splice(@binary, $size) ;
+		my $binary = join('', @binary) ;
+		
+		my @chars = map{$_ < 30 ? '.' : chr($_) } unpack("C*", pack("B32", substr("0" x 32 . $binary, -32)));
+		
+		my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
+		splice @chars, 0 , (4 - $number_of_bytes), map {'-'} 1 .. (4 - $number_of_bytes) ;
+		
+		'.bitfield: '.  join('',  @chars) 
+		},
+
+		undef, $self->{DATA_WIDTH}],
+	)
+	{
+	my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
+	
+	$color ||= $bitfield_description->{COLOR} ;
+	
+	if($self->{"DISPLAY_$field_name"})
+		{
+		my $field_text ;
+		
+		my $not_enough_data = $EMPTY_STRING eq $bitfield_description->{DATA} ;
+		$not_enough_data += length($bitfield_description->{DATA}) * 8 < ($offset + $size) ;
+		
+		if($not_enough_data && ! $always_display_field{$field_name})
 			{
-			my $field_text = $field_data_formater->($bitfield_description) ;
-			my $pad_size = $field_text_size -  length($field_text) ;
-			
-			push @{$line->{$field_name}},
-				{
-				$field_name . '_COLOR' => $color,
-				$field_name =>  $field_text . ' ' x $pad_size,
-				} ;
-				
+			$field_text = '?' ;
 			}
+		else
+			{
+			$field_text = $field_data_formater->($bitfield_description) ;
+			}
+		
+		my $pad_size = $field_text_size -  length($field_text) ;
+		
+		push @{$line->{$field_name}},
+			{
+			$field_name . '_COLOR' => $color,
+			$field_name =>  $field_text . ' ' x $pad_size,
+			} ;
 		}
-	
-	$line->{NEW_LINE} ++ ;
-	push @lines, $line ;
 	}
-	
+
+$line->{NEW_LINE} ++ ;
+push @lines, $line ;
+
 return @lines ;
 }
 

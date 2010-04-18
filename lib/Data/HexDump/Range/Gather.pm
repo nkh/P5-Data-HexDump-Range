@@ -159,8 +159,9 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 					{
 					size => $range_size,
 					color => $range_color,
-					'unpack format' => $unpack_format,
+					'unpack format' => $is_bitfield ? $range_size_definition : $unpack_format,
 					'user information' => $range_user_information,
+					type => $is_bitfield ? 'bitfield' : $is_comment ? 'comment' : 'data',
 					},
 					$range_name,
 					QUOTE_VALUES => 1, DISPLAY_ADDRESS => 0,

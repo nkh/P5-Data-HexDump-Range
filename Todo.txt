@@ -2,16 +2,18 @@
 # This is Todo.txt #
 #------------------#
 
- todos in the code
-
+error
+	nadim@naquadim Range (master)$ ./Build ; perl -Mblib scripts/hdr  --col -display_ruler -r 'a,b4   :b,b3 :x,b1:y,b1::z,b1  :data,1 :DATA,4:c,b9 :d,b3  :e,x4b5    :the end,12:x,b3data,12' lib/Data/HexDump/Range.pm
+	Building Data-HexDump-Range
+	Argument "3data" isn't numeric in addition (+) at /devel/perl_modules/Data/HexDump/Range/blib/lib/Data/HexDump/Range/Split.pm line 377.
+	
+	wrong offset in horizontal 
+	
 support bitfields
 	#parse
 	#display
 	handle definiton errors
 	handle indianness
-
-	Error splice() offset past end of array at /devel/perl_modules/Data/HexDump/Range/blib/lib/Data/HexDump/Range.pm line 1579.
-		due to bitfield offset after the data it works on
 
 
 rename show_* options to display_* 

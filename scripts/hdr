@@ -45,6 +45,9 @@ head1 OPTIONS
  show_ascii_dump               1 == display ASCII dump column
  show_user_information         1 == display user information columns
  
+ show_bitfields                1 == display bitfields
+ show_source                   1 == display source for bitfields 
+ 
  h|help                        display this scripts help page
 
 =head1 EXIT STATUS
@@ -103,6 +106,9 @@ display_help() unless
 		'show_dec_dump=i' => \my $show_dec_dump,
 		'show_ascii_dump=i' => \my $show_ascii_dump,
 		'show_user_information=i' => \my $show_user_information,
+		
+		'show_bitfields=i' => \my $show_bitfields,
+		'show_bitfield_source=i' => \my $show_bitfield_source,
 		
 		'h|help' => \&display_help, 
 		) ;
@@ -168,6 +174,10 @@ my $hdr = Data::HexDump::Range->new
 			DISPLAY_USER_INFORMATION => defined $show_user_information ? $show_user_information :  0 ,
 			DISPLAY_ZERO_SIZE_RANGE => defined $show_zero_size_range ? $show_zero_size_range : 1,
 			DISPLAY_ZERO_SIZE_RANGE_WARNING => defined  $show_zero_size_range_warning ? $show_zero_size_range_warning : 1,
+			
+			DISPLAY_BITFIELDS => defined $show_bitfields ? $show_bitfields : 1,
+			DISPLAY_BITFIELD_SOURCE => defined $show_bitfield_source ? $show_bitfield_source : 1,
+
 			) ;
 
 print $hdr->dump( $range, $data, $offset, $max_size) ;

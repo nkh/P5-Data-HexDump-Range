@@ -476,7 +476,8 @@ Readonly my $NEW_ARGUMENTS =>
 	DATA_WIDTH 
 	DISPLAY_COLUMN_NAMES
 	DISPLAY_RULER
-	DISPLAY_OFFSET DISPLAY_CUMULATIVE_OFFSET
+	DISPLAY_OFFSET 
+	DISPLAY_CUMULATIVE_OFFSET
 	DISPLAY_ZERO_SIZE_RANGE_WARNING
 	DISPLAY_ZERO_SIZE_RANGE 
 	DISPLAY_RANGE_NAME
@@ -486,6 +487,8 @@ Readonly my $NEW_ARGUMENTS =>
 	DISPLAY_HEX_DUMP
 	DISPLAY_DEC_DUMP
 	DISPLAY_USER_INFORMATION
+	DISPLAY_BITFIELDS
+	DISPLAY_BITFIELD_SOURCE
 	COLOR_NAMES 
 	ORIENTATION 
 	)] ;
@@ -575,6 +578,10 @@ in base 10. Default is 'hex'.
 
 =item * DISPLAY_DEC_DUMP - Boolean - If set, the decimall dump column is displayed. Default is I<false>
 
+=item * DISPLAY_BITFIELD_SOURCE - Boolean - if set an extra column indicataing the source of bitfields is displayed
+
+=item * DISPLAY_BITFIELDS - Boolean - if set the bitfields are displayed
+
 =item * COLOR_NAMES - A hash reference
 
   {
@@ -652,7 +659,7 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DUMP_RANGE_DESCRIPTION => 0,
 	
 	FORMAT => 'ANSI',
-	COLOR => 'bw',
+	COLOR => 'cycle',
 	COLORS =>
 		{
 		ASCII => [],
@@ -680,6 +687,9 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DISPLAY_ASCII_DUMP => 1,
 	DISPLAY_USER_INFORMATION => 0,
 
+	DISPLAY_BITFIELDS => 1,
+	DISPLAY_BITFIELD_SOURCE => 1,
+	
 	COLOR_NAMES => 
 		{
 		HTML =>
@@ -709,9 +719,19 @@ if($self->{VERBOSE})
 $self->{OFFSET_FORMAT} = $self->{OFFSET_FORMAT} =~ /^hex/ ? "%08x" : "%010d" ;
 $self->{MAXIMUM_RANGE_NAME_SIZE} = 2 if$self->{MAXIMUM_RANGE_NAME_SIZE} <= 2 ;
 
-$self->{FIELDS_TO_DISPLAY} =  $self->{ORIENTATION} =~ /^hor/
-	? [qw(OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME)]
-	: [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
+if($self->{ORIENTATION} =~ /^hor/)
+	{
+	my @fields = qw(OFFSET) ;
+	push @fields, 'BITFIELD_SOURCE' if $self->{DISPLAY_BITFIELD_SOURCE} ;
+	push @fields, qw( HEX_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME) ;
+	
+	$self->{FIELDS_TO_DISPLAY} =  \@fields ;
+	}
+else
+	{
+	$self->{FIELDS_TO_DISPLAY} =  
+		 [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
+	}
 
 my (undef, undef, $colorizer) = get_colorizer_data($self->{FORMAT}) ; # verify validity
 $self->{INTERACTION}{DIE}("Error: Invalid output format '$self->{FORMAT}'.\n") unless defined $colorizer ;
