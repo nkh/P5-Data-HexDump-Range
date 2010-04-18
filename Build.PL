@@ -12,6 +12,7 @@ lib/Data/HexDump//Range.pm
 lib/Data/HexDump/Range/Gather.pm
 lib/Data/HexDump/Range/Split.pm
 lib/Data/HexDump/Range/Format.pm
+lib/Data/HexDump/Range/Object.pm
 );
 
 for(@pm_files)

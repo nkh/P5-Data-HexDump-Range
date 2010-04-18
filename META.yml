@@ -21,6 +21,7 @@ provides:
     file: lib/Data/HexDump/Range.pm
     version: 0.06
 requires:
+  Data::TreeDumper: 0
   Getopt::Long: 0
   List::MoreUtils: 0
   List::Util: 0
@@ -29,4 +30,4 @@ requires:
   Sub::Exporter: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.06.18
+version: v0.06.24

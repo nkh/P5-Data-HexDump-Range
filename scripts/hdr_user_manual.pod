@@ -1,4 +1,4 @@
- 
+
 =head1 HDR USER MANUAL
 
 This document will help you understand how to use the I<hdr> command part of the L<Data::HexDump::Range> module. The latest 
@@ -26,25 +26,155 @@ It is important to understand that I<hdr> is a visualisation tool. It does not u
 
 =head2 from file or stdin
 
-=head2 limiting the amount of data
+=head2 too little data
+
+=head2 too much data
 
 head -c 
 
-=head2 too little data
+=head2 Displaying selected chunks
 
 =head2 range descritption
 
-=head3 on command line
+=head3 from command line
 
 =head3 from file
 
-simple
+=head4 simple
 
-advance perl
+=head4 advance
+
+ use strict ;
+ use warnings ;
+  
+ my $data_range = # definition to re-use
+ 	[
+ 	  ['data header', 5, 'blue on_cyan'],
+ 	  ['data', 20, 'blue on_bright_yellow'],
+ 	] ;
+ 
+ my $structured_range = 
+ 	[
+ 	    ['zero size', 0],
+ 	  [
+ 	    ['magic cookie', 12, 'red'],
+ 	    ['padding', 32, 'yellow'],
+ 	    $data_range, 
+ 	  ],
+              ['other zero size', 0],		
+ 	  [
+ 	    ['extra data', 18, undef],
+ 	      [
+ 	      $data_range, 
+ 	      ['footer', 4, 'bright_yellow on_red'],
+  	    ]
+   	  ],
+  	] ; 
+ 	
+ $structured_range ;
 
 See L<Advanced usage>
 
 =head2 Bitfields
+
+command: hdr  --col -display_ruler -r 'data,1 :DATA,4:c,b9:d,b3 :e,x4b5     :the end,8:x,b3:data,47:v,x90b8' lib/Data/HexDump/Range.pm -format HTML  > file.html
+
+=head3 Vertical mode
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+
+<span style='color:#fff;'>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span> 
+<span style='color:#fff;'>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span> 
+<span style='color:#0f0;'>data            </span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>0a                                              </span> <span style='color:#0f0;'>.               </span> 
+<span style='color:#ff0;'>DATA            </span> <span style='color:#fff;'>00000001</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>70 61 63 6b                                     </span> <span style='color:#ff0;'>pack            </span> 
+<span style='color:#0ff;'>.c              </span> <span style='color:#0ff;'>00 .. 08</span> <span style='color:#0ff;'>        </span> <span style='color:#0ff;'>-- -- 00 e0    011100000----------------------- </span> <span style='color:#0ff;'>.bitfield: --.à </span> 
+<span style='color:#f00;'>.d              </span> <span style='color:#f00;'>00 .. 02</span> <span style='color:#f00;'>        </span> <span style='color:#f00;'>-- -- -- 03    011----------------------------- </span> <span style='color:#f00;'>.bitfield: ---. </span> 
+<span style='color:#fff;'>.e              </span> <span style='color:#fff;'>04 .. 08</span> <span style='color:#fff;'>        </span> <span style='color:#fff;'>-- -- -- 00    ----00000----------------------- </span> <span style='color:#fff;'>.bitfield: ---. </span> 
+<span style='color:#0f0;'>the end         </span> <span style='color:#fff;'>00000005</span> <span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>61 67 65 20 44 61 74 61                         </span> <span style='color:#0f0;'>age Data        </span> 
+<span style='color:#ff0;'>.x              </span> <span style='color:#ff0;'>00 .. 02</span> <span style='color:#ff0;'>        </span> <span style='color:#ff0;'>-- -- -- 03    011----------------------------- </span> <span style='color:#ff0;'>.bitfield: ---. </span> 
+<span style='color:#0ff;'>data            </span> <span style='color:#fff;'>0000000d</span> <span style='color:#fff;'>00000000</span> <span style='color:#0ff;'>3a 3a 48 65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 </span> <span style='color:#0ff;'>::HexDump::Range</span> 
+<span style='color:#0ff;'>data            </span> <span style='color:#fff;'>0000001d</span> <span style='color:#fff;'>00000010</span> <span style='color:#0ff;'>20 3b 0a 0a 75 73 65 20 73 74 72 69 63 74 3b 0a </span> <span style='color:#0ff;'> ;..use strict;.</span> 
+<span style='color:#0ff;'>data            </span> <span style='color:#fff;'>0000002d</span> <span style='color:#fff;'>00000020</span> <span style='color:#0ff;'>75 73 65 20 77 61 72 6e 69 6e 67 73 20 3b 0a    </span> <span style='color:#0ff;'>use warnings ;. </span> 
+<span style='color:#f00;'>.v              </span> <span style='color:#f00;'>90 .. 97</span> <span style='color:#f00;'>        </span> <span style='color:#f00;'>-- -- -- 49    ------------------------01001001 </span> <span style='color:#f00;'>.bitfield: ---I </span> 
+
+</pre>
+
+=end html
+
+=head3 Horizontal mode
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+
+<span style='color:#fff;'>OFFSET   BITFIELD HEX_DUMP                                         ASCII_DUMP       RANGE_NAME                  </span> 
+<span style='color:#fff;'>                  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                             </span> 
+<span style='color:#fff;'>00000000</span><span style='color:#fff;'></span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#fff;'>        </span><span style='color:#fff;'></span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#0f0;'>0a </span><span style='color:#ff0;'>70 61 63 6b </span><span style='color:#0f0;'>61 67 65 20 44 61 74 61 </span><span style='color:#0ff;'>3a 3a 48 </span> <span style='color:#0f0;'>.</span><span style='color:#ff0;'>pack</span><span style='color:#0f0;'>age Data</span><span style='color:#0ff;'>::H</span> <span style='color:#0f0;'>data</span><span style='color:#fff;'>, </span><span style='color:#ff0;'>DATA</span><span style='color:#fff;'>, </span><span style='color:#0f0;'>the end</span><span style='color:#fff;'>, </span><span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#0ff;'>00 .. 08</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#0ff;'>-- -- 00 e0    011100000----------------------- </span> <span style='color:#0ff;'>.bitfield: --.à </span> <span style='color:#0ff;'>.c              </span> 
+<span style='color:#f00;'>00 .. 02</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#f00;'>-- -- -- 03    011----------------------------- </span> <span style='color:#f00;'>.bitfield: ---. </span> <span style='color:#f00;'>.d              </span> 
+<span style='color:#fff;'>04 .. 08</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#fff;'>-- -- -- 00    ----00000----------------------- </span> <span style='color:#fff;'>.bitfield: ---. </span> <span style='color:#fff;'>.e              </span> 
+<span style='color:#ff0;'>00 .. 02</span> <span style='color:#0f0;'>the end </span> <span style='color:#ff0;'>-- -- -- 03    011----------------------------- </span> <span style='color:#ff0;'>.bitfield: ---. </span> <span style='color:#ff0;'>.x              </span> 
+<span style='color:#fff;'>00000010</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a </span> <span style='color:#0ff;'>exDump::Range ;.</span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000020</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span> <span style='color:#0ff;'>.use strict;.use</span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000030</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>20 77 61 72 6e 69 6e 67 73 20 3b 0a             </span> <span style='color:#0ff;'> warnings ;.    </span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#f00;'>90 .. 97</span> <span style='color:#0ff;'>data    </span> <span style='color:#f00;'>-- -- -- 49    ------------------------01001001 </span> <span style='color:#f00;'>.bitfield: ---I </span> <span style='color:#f00;'>.v              </span> 
+
+</pre>
+
+=end html
+
+=head3 Bitfields need enough data!
+
+B<No data to start with>
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+
+<span style='color:#fff;'>OFFSET   BITFIELD HEX_DUMP                                         ASCII_DUMP       RANGE_NAME                  </span> 
+<span style='color:#fff;'>                  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                             </span> 
+<span style='color:#fff;'>00000000</span><span style='color:#fff;'></span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#fff;'>        </span><span style='color:#fff;'></span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#0f0;'>0a </span><span style='color:#ff0;'>70 61 63 6b </span><span style='color:#0f0;'>61 67 65 20 44 61 74 61 </span><span style='color:#0ff;'>3a 3a 48 </span> <span style='color:#0f0;'>.</span><span style='color:#ff0;'>pack</span><span style='color:#0f0;'>age Data</span><span style='color:#0ff;'>::H</span> <span style='color:#0f0;'>data</span><span style='color:#fff;'>, </span><span style='color:#ff0;'>DATA</span><span style='color:#fff;'>, </span><span style='color:#0f0;'>the end</span><span style='color:#fff;'>, </span><span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#0f0;'>00 .. 03</span> <span style='color:#fff;'>?       </span> <span style='color:#0f0;'>?                                               </span> <span style='color:#0f0;'>?               </span> <span style='color:#0f0;'>.a              </span> 
+<span style='color:#ff0;'>00 .. 02</span> <span style='color:#fff;'>?       </span> <span style='color:#ff0;'>?                                               </span> <span style='color:#ff0;'>?               </span> <span style='color:#ff0;'>.b              </span> 
+<span style='color:#0ff;'>00 .. 00</span> <span style='color:#fff;'>?       </span> <span style='color:#0ff;'>?                                               </span> <span style='color:#0ff;'>?               </span> <span style='color:#0ff;'>.x              </span> 
+<span style='color:#f00;'>00 .. 00</span> <span style='color:#fff;'>?       </span> <span style='color:#f00;'>?                                               </span> <span style='color:#f00;'>?               </span> <span style='color:#f00;'>.y              </span> 
+<span style='color:#fff;'>00 .. 00</span> <span style='color:#fff;'>?       </span> <span style='color:#fff;'>?                                               </span> <span style='color:#fff;'>?               </span> <span style='color:#fff;'>.z              </span> 
+<span style='color:#0ff;'>00 .. 08</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#0ff;'>-- -- 00 e0    011100000----------------------- </span> <span style='color:#0ff;'>.bitfield: --.à </span> <span style='color:#0ff;'>.c              </span> 
+<span style='color:#f00;'>00 .. 02</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#f00;'>-- -- -- 03    011----------------------------- </span> <span style='color:#f00;'>.bitfield: ---. </span> <span style='color:#f00;'>.d              </span> 
+<span style='color:#fff;'>04 .. 08</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#fff;'>-- -- -- 00    ----00000----------------------- </span> <span style='color:#fff;'>.bitfield: ---. </span> <span style='color:#fff;'>.e              </span> 
+<span style='color:#ff0;'>00 .. 02</span> <span style='color:#0f0;'>the end </span> <span style='color:#ff0;'>-- -- -- 03    011----------------------------- </span> <span style='color:#ff0;'>.bitfield: ---. </span> <span style='color:#ff0;'>.x              </span> 
+<span style='color:#fff;'>00000010</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a </span> <span style='color:#0ff;'>exDump::Range ;.</span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000020</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span> <span style='color:#0ff;'>.use strict;.use</span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000030</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>20 77 61 72 6e 69 6e 67 73 20 3b 0a             </span> <span style='color:#0ff;'> warnings ;.    </span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#f00;'>90 .. 97</span> <span style='color:#0ff;'>data    </span> <span style='color:#f00;'>-- -- -- 49    ------------------------01001001 </span> <span style='color:#f00;'>.bitfield: ---I </span> <span style='color:#f00;'>.v              </span> 
+
+</pre>
+
+=end html
+
+B<not enough data>
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+
+<span style='color:#fff;'>OFFSET   BITFIELD HEX_DUMP                                         ASCII_DUMP       RANGE_NAME                  </span> 
+<span style='color:#fff;'>                  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                             </span> 
+<span style='color:#fff;'>00000000</span><span style='color:#fff;'></span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#fff;'>        </span><span style='color:#fff;'></span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#0f0;'>0a </span><span style='color:#ff0;'>70 61 63 6b </span><span style='color:#0f0;'>61 67 65 20 44 61 74 61 </span><span style='color:#0ff;'>3a 3a 48 </span> <span style='color:#0f0;'>.</span><span style='color:#ff0;'>pack</span><span style='color:#0f0;'>age Data</span><span style='color:#0ff;'>::H</span> <span style='color:#0f0;'>data</span><span style='color:#fff;'>, </span><span style='color:#ff0;'>DATA</span><span style='color:#fff;'>, </span><span style='color:#0f0;'>the end</span><span style='color:#fff;'>, </span><span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#0ff;'>00 .. 48</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#0ff;'>?                                               </span> <span style='color:#0ff;'>?               </span> <span style='color:#0ff;'>.c              </span> 
+<span style='color:#f00;'>49 .. 51</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#f00;'>?                                               </span> <span style='color:#f00;'>?               </span> <span style='color:#f00;'>.d              </span> 
+<span style='color:#fff;'>04 .. 08</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#fff;'>-- -- -- 00    ----00000----------------------- </span> <span style='color:#fff;'>.bitfield: ---. </span> <span style='color:#fff;'>.e              </span> 
+<span style='color:#ff0;'>00 .. 02</span> <span style='color:#0f0;'>the end </span> <span style='color:#ff0;'>-- -- -- 03    011----------------------------- </span> <span style='color:#ff0;'>.bitfield: ---. </span> <span style='color:#ff0;'>.x              </span> 
+<span style='color:#fff;'>00000010</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a </span> <span style='color:#0ff;'>exDump::Range ;.</span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000020</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span> <span style='color:#0ff;'>.use strict;.use</span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#fff;'>00000030</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>20 77 61 72 6e 69 6e 67 73 20 3b 0a             </span> <span style='color:#0ff;'> warnings ;.    </span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
+<span style='color:#f00;'>90 .. 97</span> <span style='color:#0ff;'>data    </span> <span style='color:#f00;'>-- -- -- 49    ------------------------01001001 </span> <span style='color:#f00;'>.bitfield: ---I </span> <span style='color:#f00;'>.v              </span> 
+
+</pre>
+
+=end html
 
 =head1 Advanced usage
 
@@ -55,7 +185,7 @@ display data errors
 
 =head3 data parser
 
-=head2 Hekping out
+=head2 Helping out
 
 error reporting
 examples

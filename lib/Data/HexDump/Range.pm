@@ -37,6 +37,7 @@ use Scalar::Util qw(looks_like_number) ;
 use Term::ANSIColor ;
 use Data::TreeDumper ;
 
+use Data::HexDump::Range::Object ;
 use Data::HexDump::Range::Gather ;
 use Data::HexDump::Range::Split ;
 use Data::HexDump::Range::Format ;
@@ -110,12 +111,12 @@ The default rendering corresponds to the object below:
 	DATA_WIDTH => 16,
 	) ;
 
-If you decided that you wanted the binary data to be showed in decimal instead for hexadecimal, you' set B<DISPLAY_HEX_DUMP => 0> and B<DISPLAY_DEC_DUMP => 1>.
+If you decided that you wanted the binary data to be showed in decimal instead for hexadecimal, you' set B<<DISPLAY_HEX_DUMP => 0>> and B<<DISPLAY_DEC_DUMP => 1>>.
 See L<new> for all the possible options. Most option are also available from the command line utility I<hdr>.
 
 =head2 Orientation
 
-Command I<hdr -r 'magic cookie,12:padding, 32:header,5:data, 20:extra data,#:header,5:data,40:footer,4' -col -o ver -display_ruler 1 lib/Data/HexDump/Range.pm>
+Command: I<hdr -r 'magic cookie,12:padding, 32:header,5:data, 20:extra data,#:header,5:data,40:footer,4' -col -o ver -display_ruler 1 lib/Data/HexDump/Range.pm>
 
 =head3 Vertical
 
@@ -202,7 +203,7 @@ In colors:
 
   my $simple_range = ['magic cookie', 12, 'red'] ;
   
-Ranges are Array references containing four (4) elements:
+Ranges are Array references containing two to four  elements:
 
 =over 2
 
@@ -212,14 +213,13 @@ Ranges are Array references containing four (4) elements:
 
 =item * color - a string or undef
 
-=item * user information - a very short string descibing  the range
+=item * user information - a very short string descibing  the range or undef
 
 =back
 
 Any of the elements can be replaced by a subroutine reference. See L<Dynamic range definition> below.
 
-You can also declare the ranges in a string. The string use the format used by the I<hdr> command line range dumper
-that was installed by this module.
+You can also pass the ranges as a string. The L<hdr> command line range dumper that was installed by this module uses the string format.
 
 Example:
 
@@ -322,7 +322,7 @@ The the format definiton  is: an optional "x (for offset) + offset" + "b (for bi
 
 An example output containing normal data and bifields dumps.
 
-command: I<hdr --col -display_ruler -o ver -r 'header,12:name,10:magic, 2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' file_name
+command: I<hdr --col -display_ruler -o ver -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' file_name
 
 =begin html
 
@@ -353,7 +353,7 @@ a subroutine definition.
 
   my $dynamic_range =
 	[
-	  [\&name, \&size, \&color ],
+	  [\&name, \&size, \&color, \&comment ],
 	  [\&define_range] # returns a range definition
 	] ;
 
@@ -622,179 +622,6 @@ bless $object, $class ;
 $object->Setup($package, $file_name, $line, @setup_data) ;
 
 return($object) ;
-}
-
-#-------------------------------------------------------------------------------
-
-sub Setup
-{
-
-=head2 [P] Setup(...)
-
-Helper sub called by new. This is a private sub.
-
-=cut
-
-my ($self, $package, $file_name, $line, @setup_data) = @_ ;
-
-if (@setup_data % 2)
-	{
-	croak "Invalid number of argument '$file_name, $line'!" ;
-	}
-
-$self->{INTERACTION}{INFO} ||= sub {print @_} ;
-$self->{INTERACTION}{WARN} ||= \&Carp::carp ;
-$self->{INTERACTION}{DIE}  ||= \&Carp::croak ;
-$self->{NAME} = 'Anonymous';
-$self->{FILE} = $file_name ;
-$self->{LINE} = $line ;
-
-$self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
-
-%{$self} = 
-	(
-	%{$self},
-	
-	VERBOSE => 0,
-	DUMP_RANGE_DESCRIPTION => 0,
-	
-	FORMAT => 'ANSI',
-	COLOR => 'cycle',
-	COLORS =>
-		{
-		ASCII => [],
-		ANSI => ['white', 'green', 'bright_yellow','cyan', 'red' ],
-		HTML => ['white', 'green', 'bright_yellow','cyan', 'red' ],
-		},
-		
-	OFFSET_FORMAT => 'hex',
-	DATA_WIDTH => 16,
-	
-	DISPLAY_ZERO_SIZE_RANGE_WARNING => 1,
-	DISPLAY_ZERO_SIZE_RANGE => 1,
-	
-	DISPLAY_RANGE_NAME => 1,
-	MAXIMUM_RANGE_NAME_SIZE => 16,
-	DISPLAY_RANGE_SIZE => 1,
-	
-	DISPLAY_COLUMN_NAMES  => 0 ,
-	DISPLAY_RULER => 0,
-	
-	DISPLAY_OFFSET => 1,
-	DISPLAY_CUMULATIVE_OFFSET => 1,
-	DISPLAY_HEX_DUMP => 1,
-	DISPLAY_DEC_DUMP => 0,
-	DISPLAY_ASCII_DUMP => 1,
-	DISPLAY_USER_INFORMATION => 0,
-
-	DISPLAY_BITFIELDS => 1,
-	DISPLAY_BITFIELD_SOURCE => 1,
-	
-	COLOR_NAMES => 
-		{
-		HTML =>
-			{
-			white => "style='color:#fff;'",
-			green => "style='color:#0f0;'",
-			bright_yellow => "style='color:#ff0;'",
-			yellow => "style='color:#ff0;'",
-			cyan => "style='color:#f0f;'",
-			red => "style='color:#f00;'",
-			},
-		},
-
-	ORIENTATION => 'horizontal',
-	
-	GATHERED => [],
-	@setup_data,
-	) ;
-
-my $location = "$self->{FILE}:$self->{LINE}" ;
-
-if($self->{VERBOSE})
-	{
-	$self->{INTERACTION}{INFO}('Creating ' . ref($self) . " '$self->{NAME}' at $location.\n") ;
-	}
-
-$self->{OFFSET_FORMAT} = $self->{OFFSET_FORMAT} =~ /^hex/ ? "%08x" : "%010d" ;
-$self->{MAXIMUM_RANGE_NAME_SIZE} = 2 if$self->{MAXIMUM_RANGE_NAME_SIZE} <= 2 ;
-
-if($self->{ORIENTATION} =~ /^hor/)
-	{
-	my @fields = qw(OFFSET) ;
-	push @fields, 'BITFIELD_SOURCE' if $self->{DISPLAY_BITFIELD_SOURCE} ;
-	push @fields, qw( HEX_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME) ;
-	
-	$self->{FIELDS_TO_DISPLAY} =  \@fields ;
-	}
-else
-	{
-	$self->{FIELDS_TO_DISPLAY} =  
-		 [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
-	}
-
-my (undef, undef, $colorizer) = get_colorizer_data($self->{FORMAT}) ; # verify validity
-$self->{INTERACTION}{DIE}("Error: Invalid output format '$self->{FORMAT}'.\n") unless defined $colorizer ;
-
-return(1) ;
-}
-
-#-------------------------------------------------------------------------------
-
-sub CheckOptionNames
-{
-
-=head2 [P] CheckOptionNames(...)
-
-Verifies the named options passed to the members of this class. Calls B<{INTERACTION}{DIE}> in case
-of error. 
-
-=cut
-
-my ($self, $valid_options, @options) = @_ ;
-
-if (@options % 2)
-	{
-	$self->{INTERACTION}{DIE}->('Invalid number of argument!') ;
-	}
-
-if('HASH' eq ref $valid_options)
-	{
-	# OK
-	}
-elsif('ARRAY' eq ref $valid_options)
-	{
-	$valid_options = { map{$_ => 1} @{$valid_options} } ;
-	}
-else
-	{
-	$self->{INTERACTION}{DIE}->("Invalid argument '$valid_options'!") ;
-	}
-
-my %options = @options ;
-
-for my $option_name (keys %options)
-	{
-	unless(exists $valid_options->{$option_name})
-		{
-		$self->{INTERACTION}{DIE}->
-				(
-				"$self->{NAME}: Invalid Option '$option_name' at '$self->{FILE}:$self->{LINE}'\nValid options:\n\t"
-				.  join("\n\t", sort keys %{$valid_options}) . "\n"
-				);
-		}
-	}
-
-if
-	(
-	   (defined $options{FILE} && ! defined $options{LINE})
-	|| (!defined $options{FILE} && defined $options{LINE})
-	)
-	{
-	$self->{INTERACTION}{DIE}->("$self->{NAME}: Incomplete option FILE::LINE!") ;
-	}
-
-return(1) ;
 }
 
 #-------------------------------------------------------------------------------

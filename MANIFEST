@@ -11,6 +11,7 @@ lib/Data/HexDump/Range.pm
 lib/Data/HexDump/Range/Gather.pm
 lib/Data/HexDump/Range/Split.pm
 lib/Data/HexDump/Range/Format.pm
+lib/Data/HexDump/Range/Object.pm
 
 t/001_load.t
 t/002_test.t
@@ -29,3 +30,5 @@ xt/author/perlcriticrc
 xt/author/dist/000_prereq.t
 
 scripts/hdr
+scripts/hdr_user_manual.pod
+
