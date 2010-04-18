@@ -154,6 +154,7 @@ my $build = $class->new
 		'List::MoreUtils' => 0,
 		'Scalar::Util' => 0,
 		'Data::TreeDumper' => 0,
+		'Term::Bash::Completion::Generator' => 0,
 		},
 		
 	pm_files     => \%all_modules,
