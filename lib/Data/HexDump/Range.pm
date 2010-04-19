@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.06';
+$VERSION     = '0.07';
 }
 
 #-------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ Readonly my $EMPTY_STRING => q{} ;
 use Carp qw(carp croak confess) ;
 
 #use Graphics::ColorNames
-use List::Util qw(min) ;
+use List::Util qw(min max) ;
 use List::MoreUtils qw(all) ;
 use Scalar::Util qw(looks_like_number) ;
 use Term::ANSIColor ;

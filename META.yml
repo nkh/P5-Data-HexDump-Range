@@ -28,6 +28,7 @@ requires:
   Readonly: 0
   Scalar::Util: 0
   Sub::Exporter: 0
+  Term::Bash::Completion::Generator: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.06.24
+version: v0.06.26

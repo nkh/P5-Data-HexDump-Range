@@ -123,6 +123,12 @@ for my $range (@{$collected_data})
 				} ;
 			}
 		
+		if(@found_bitfields && $room_left == $self->{DATA_WIDTH})
+			{
+			push @lines,  @found_bitfields ;
+			@found_bitfields = () ;
+			}
+					
 		while ($dumped_data < $data_length)
 			{
 			my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
@@ -155,8 +161,6 @@ for my $range (@{$collected_data})
 						$field_name . '_COLOR' => $color,
 						$field_name => $field_text . $pad,
 						} ;
-						
-						
 					}
 				}
 				
@@ -168,12 +172,6 @@ for my $range (@{$collected_data})
 				$line->{NEW_LINE}++ ;
 				push @lines, $line ;
 				
-				if(@found_bitfields)
-					{
-					push @lines,  @found_bitfields ;
-					@found_bitfields = () ;
-					}
-					
 				$line = {} ;
 				$room_left = $self->{DATA_WIDTH} ;
 				}
@@ -304,6 +302,8 @@ $size ||= 1 ;
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 
 my %always_display_field = map {$_ => 1} qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET BITFIELD_SOURCE USER_INFORMATION) ;
+
+#~ print DumpTree {length => length($bitfield_description->{DATA}), offset => $offset, size => $size, BF => $bitfield_description} ;
 
 for my  $field_type 
 	(

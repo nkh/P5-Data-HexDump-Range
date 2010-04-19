@@ -116,6 +116,7 @@ if($used_data < 0)
 	}
 
 $size = defined $size ? min($size, length($data) - $used_data) : length($data) - $used_data ;
+my $maximum_size = $size ;
 
 my $skip_remaining_ranges = 0 ;
 my $last_data = '' ;
@@ -132,35 +133,38 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 
 	my ($is_comment, $is_bitfield, $unpack_format) ;
 
-	if('' eq ref($range_size))
+	if($EMPTY_STRING eq ref($range_size))
 		{
-		($is_comment, $is_bitfield, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
+		# first, type and range size
+		($is_comment, $is_bitfield, $range_size, undef) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
+		
+		# second, adjust the so we don't extract more than the user asked for
+		if($maximum_size - $used_data < $range_size)
+			{
+			$range_size = max($maximum_size - $used_data, 0) ;
+			}
 		}
 	elsif('CODE' eq ref($range_size))
 		{
-		($is_comment, $is_bitfield, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size->(), $used_data) ;
+		($is_comment, $is_bitfield, $range_size, undef) = $self->unpack_range_size($range_name, $range_size->(), $used_data) ;
+		
+		if($maximum_size - $used_data < $range_size)
+			{
+			$range_size = max($maximum_size - $used_data, 0) ;
+			}
 		}
 	else
 		{
 		$self->{INTERACTION}{DIE}("Error: size '$range_size' doesn't look like a number or a code reference in range '$range_name' at '$location'.\n")
 		}
-		
-	if($self->{DUMP_RANGE_DESCRIPTION})
-		{
-		$self->{INTERACTION}{INFO}
-				(
-				DumpTree 
-					{
-					size => $range_size,
-					color => $range_color,
-					'unpack format' => $is_bitfield ? $range_size_definition : $unpack_format,
-					'user information' => $range_user_information,
-					type => $is_bitfield ? 'bitfield' : $is_comment ? 'comment' : 'data',
-					},
-					$range_name,
-					QUOTE_VALUES => 1, DISPLAY_ADDRESS => 0,
-				) ;
-		}
+
+	#third, get the unpack format with the justified size
+	# note that we keep $is_comment and $is_bitfield from first run
+	# as the those are extracted from the size field and we have modified it
+	(undef, undef, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
+	
+	# display bitfields even for ranges that pass max_size (truncated ranges)
+	last if $maximum_size == $used_data && ! $is_comment && !$is_bitfield ;
 
 	if(! $is_comment && ! $is_bitfield)
 		{
@@ -184,10 +188,13 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		$range_size = $size;
 		$skip_remaining_ranges++ ;
 		}
-
-	$last_data = unpack($unpack_format, $data) unless $unpack_format eq '#' ; # get out data from the previous range for bitfield
-
-	push @{$collected_data}, 		
+		
+	unless ($is_comment || $is_bitfield)
+		{
+		$last_data = unpack($unpack_format, $data) # get out data from the previous range for bitfield
+		}
+		
+	my $chunk = 
 		{
 		NAME => $range_name, 
 		COLOR => $range_color,
@@ -196,6 +203,22 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		IS_BITFIELD => $is_bitfield ? $range_size_definition : 0,
 		USER_INFORMATION => $range_user_information,
 		} ;
+	
+	if($self->{DUMP_RANGE_DESCRIPTION})
+		{
+		$self->{INTERACTION}{INFO}
+				(
+				DumpTree 
+					{
+					%{$chunk},
+					'unpack format' => $is_bitfield ? $range_size_definition : $unpack_format,
+					},
+					$range_name,
+					QUOTE_VALUES => 1, DISPLAY_ADDRESS => 0,
+				) ;
+		}
+
+	push @{$collected_data}, $chunk ;	
 	
 	$used_data += $range_size ;
 	$size -= $range_size ;

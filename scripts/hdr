@@ -87,7 +87,7 @@ my @options =
 	'max_size=i' =>  \my $max_size,
 	'orientation|o=s' => \my $orientation,
 	'display_column_names|col' => \my $display_column_names,
-	'display_ruler' => \my $display_ruler,
+	'display_ruler|rul' => \my $display_ruler,
 
 	'format|f=s' => \my $format,
 	'color=s' => \my $color,
@@ -153,6 +153,7 @@ else
 	{
 	$range = ['no range definition', length($data) ] ;
 	$display_range_name = 0 ;
+	$display_bitfield_source = 0 ;
 	}
 	
 my $hdr = Data::HexDump::Range->new
@@ -228,7 +229,7 @@ my (@definitions) = @_ ;
 my $flip = 0 ;
 my @options = grep {++$flip % 2} @definitions ;
 
-print Term::Bash::Completion::Generator::generate_bash_completion_function('hdr', [@options], undef, 0) ;
+print Term::Bash::Completion::Generator::generate_bash_completion_function('hdr', [@options], undef, 1) ;
 
 exit(0) ;
 }
