@@ -243,6 +243,7 @@ B<not enough data>
 
 =head1 Advanced usage
 
+sub_as_definition_returning_array_to_flatten_or_string & parser example
 verify your data
 
 display data errors with hdr

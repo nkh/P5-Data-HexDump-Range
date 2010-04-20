@@ -9,7 +9,7 @@ use Data::HexDump::Range  qw() ;
  
 sub my_parser 
 	{
-	my ($data, $offset) = @_ ;
+	my ($dumper, $data, $offset) = @_ ;
 	
 	my $first_byte = unpack ("x$offset C", $data) ;
 	

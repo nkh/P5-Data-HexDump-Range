@@ -92,7 +92,27 @@ my $range_provider ;
 
 if('CODE' eq ref($range_description))
 	{
-	$range_provider = $range_description ;
+	my $ranges ;
+	
+	$range_provider = 
+		sub
+		{
+		my ($dumper, $data, $offset) = @_ ;
+		
+		if(! defined $ranges || ! @{$ranges})
+			{
+			my $generated_range_description = $range_description->($dumper, $data, $offset) ;
+			
+			return undef unless defined $generated_range_description ;
+			
+			$ranges = $self->create_ranges($generated_range_description) ;
+			}
+		
+		while(@{$ranges})
+			{
+			return shift @{$ranges} ;
+			}
+		}
 	}
 else
 	{
@@ -112,7 +132,7 @@ my $used_data = $offset || 0 ;
 
 if($used_data < 0)
 	{
-	$self->{INTERACTION}{DIE}("Warning: Invalid negative offset at '$location'.\n")
+	$self->{INTERACTION}{DIE}("Error: Invalid negative offset at '$location'.\n")
 	}
 
 $size = defined $size ? min($size, length($data) - $used_data) : length($data) - $used_data ;
@@ -133,6 +153,7 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 
 	my ($is_comment, $is_bitfield, $unpack_format) ;
 
+	# handle maximum_size
 	if($EMPTY_STRING eq ref($range_size))
 		{
 		# first, type and range size
@@ -163,8 +184,20 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 	# as the those are extracted from the size field and we have modified it
 	(undef, undef, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
 	
-	# display bitfields even for ranges that pass max_size (truncated ranges)
-	last if $maximum_size == $used_data && ! $is_comment && !$is_bitfield ;
+	if($maximum_size == $used_data)
+		{
+		if($is_comment || $is_bitfield)
+			{
+			# display bitfields even for ranges that pass maximim_size (truncated ranges)
+			}
+		else
+			{
+			my $next_range  = $range_provider->($self, $data, $used_data) ;
+			$self->{INTERACTION}{WARN} "Warning: More ranges to display but no more data.\n" if defined $range ;
+			
+			last ;
+			}
+		}
 
 	if(! $is_comment && ! $is_bitfield)
 		{
@@ -222,10 +255,10 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 	
 	$used_data += $range_size ;
 	$size -= $range_size ;
-	
+
 	last if $skip_remaining_ranges ;
 	}
-
+	
 return $collected_data, $used_data ;
 }
 
@@ -486,12 +519,12 @@ map
 				{
 				push @{$description}, undef ;
 				# make sure we get a default color
-				$description->[2] = undef if $description->[2] eq $EMPTY_STRING ;
+				$description->[2] = undef if defined $description->[2] && $description->[2] eq $EMPTY_STRING ;
 				}
 			elsif(@{$description} == 4)
 				{
 				# make sure we get a default color
-				$description->[2] = undef if $description->[2] eq $EMPTY_STRING ;
+				$description->[2] = undef if defined $description->[2] && $description->[2] eq $EMPTY_STRING ;
 				}
 			elsif(@{$description} > $RANGE_DEFINITON_FIELDS)
 				{
