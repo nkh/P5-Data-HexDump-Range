@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.07';
+$VERSION     = '0.08';
 }
 
 #-------------------------------------------------------------------------------
@@ -343,8 +343,6 @@ command: I<hdr --col -display_ruler -o ver -r 'header,12:name,10:magic,2:offset,
 </pre>
 
 =end html
-
-B<NOTE!> This is under heavy developemnt. Complete error handling and indianess support are under way.
 
 =head3 Dynamic range definition
 

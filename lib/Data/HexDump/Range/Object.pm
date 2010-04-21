@@ -114,7 +114,10 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DUMP_RANGE_DESCRIPTION => 0,
 	
 	FORMAT => 'ANSI',
+	
 	COLOR => 'cycle',
+	CURRENT_COLOR_INDEX => 0,
+
 	COLORS =>
 		{
 		ASCII => [],
@@ -142,7 +145,7 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DISPLAY_ASCII_DUMP => 1,
 	DISPLAY_USER_INFORMATION => 0,
 
-	DISPLAY_BITFIELDS => 1,
+	DISPLAY_BITFIELDS => undef,
 	DISPLAY_BITFIELD_SOURCE => 1,
 	
 	COLOR_NAMES => 
@@ -176,6 +179,8 @@ $self->{MAXIMUM_RANGE_NAME_SIZE} = 2 if$self->{MAXIMUM_RANGE_NAME_SIZE} <= 2 ;
 
 if($self->{ORIENTATION} =~ /^hor/)
 	{
+	$self->{DISPLAY_BITFIELDS} = 0 unless defined $self->{DISPLAY_BITFIELDS} ;
+	
 	my @fields = qw(OFFSET) ;
 	push @fields, 'BITFIELD_SOURCE' if $self->{DISPLAY_BITFIELD_SOURCE} ;
 	push @fields, qw( HEX_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME) ;
@@ -184,6 +189,8 @@ if($self->{ORIENTATION} =~ /^hor/)
 	}
 else
 	{
+	$self->{DISPLAY_BITFIELDS} = 1 unless defined $self->{DISPLAY_BITFIELDS} ;
+	
 	$self->{FIELDS_TO_DISPLAY} =  
 		 [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
 	}

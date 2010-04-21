@@ -21,10 +21,14 @@ my $structured_range =
 	    ['padding', 32, 'yellow'],
 	    ['padding bitfield', 'x25b3'],
 	    $data_range, 
+	      [
+		 ['bf', 'b4' ],
+		 ['bf', 'x4b4'],
+	      ],
 	  ],
              ['other zero size', 0],		
 	  [
-	    ['extra data', 18, undef],
+	    ['extra data', 8, undef],
 	      [
 	      $data_range, 
 	      ['footer', 4, 'bright_yellow on_red'],
@@ -49,10 +53,34 @@ sub my_parser
 			: undef
 	}
 
-my $data = join '', map {$_ %10} 1 .. 15 ;
+my $index_2 = 0 ;
+sub my_meta_parser 
+	{
+	my ($dumper, $data, $offset) = @_ ;
+	
+	my $first_byte = unpack ("x$offset C", $data) ;
+	
+	$index_2++ ;
+	$index_2 == 1 
+		? 'meta1,1'
+		: $index_2 == 2
+			? \&my_parser
+			: undef
+	}
 
-#~ my $hdr = Data::HexDump::Range->new(ORIENTATION => 'vertical', DUMP_RANGE_DESCRIPTION => 0) ;
+
+my $data = join '', map {$_ %10} 1 .. 150 ;
+
 my $hdr = Data::HexDump::Range->new() ;
+print $hdr->dump(\&my_meta_parser, $data) ;
 
-print $hdr->dump(\&my_parser, $data) ;
+
+#------------------------------------------------------------------------
+
+$index = 0 ;
+$index_2 = 0 ;
+
+my $hdr2 = Data::HexDump::Range->new(ORIENTATION => 'vertical', DUMP_RANGE_DESCRIPTION => 0) ;
+print $hdr2->dump(\&my_meta_parser, $data) ;
+
 

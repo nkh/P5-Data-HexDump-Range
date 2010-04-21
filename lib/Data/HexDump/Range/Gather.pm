@@ -88,46 +88,8 @@ I<Exceptions> dies if passed invalid parameters
 my ($self, $collected_data, $range_description, $data, $offset, $size) = @_ ;
 
 my $location = "$self->{FILE}:$self->{LINE}" ;
-my $range_provider ;
 
-if('CODE' eq ref($range_description))
-	{
-	my $ranges ;
-	
-	$range_provider = 
-		sub
-		{
-		my ($dumper, $data, $offset) = @_ ;
-		
-		if(! defined $ranges || ! @{$ranges})
-			{
-			my $generated_range_description = $range_description->($dumper, $data, $offset) ;
-			
-			return undef unless defined $generated_range_description ;
-			
-			$ranges = $self->create_ranges($generated_range_description) ;
-			}
-		
-		while(@{$ranges})
-			{
-			return shift @{$ranges} ;
-			}
-		}
-	}
-else
-	{
-	my $ranges = $self->create_ranges($range_description) ;
-	
-	$range_provider = 
-		sub
-		{
-		while(@{$ranges})
-			{
-			return shift @{$ranges} ;
-			}
-		}
-	}
-
+my $range_provider = $self->create_range_provider($range_description);
 my $used_data = $offset || 0 ;
 
 if($used_data < 0)
@@ -154,6 +116,7 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 	my ($is_comment, $is_bitfield, $unpack_format) ;
 
 	# handle maximum_size
+	my $truncated_size ;
 	if($EMPTY_STRING eq ref($range_size))
 		{
 		# first, type and range size
@@ -162,7 +125,9 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		# second, adjust the so we don't extract more than the user asked for
 		if($maximum_size - $used_data < $range_size)
 			{
-			$range_size = max($maximum_size - $used_data, 0) ;
+			$truncated_size = max($maximum_size - $used_data, 0) ;
+			$self->{INTERACTION}{WARN}("Warning: range '$range_name' size $range_size was shortened to $truncated_size due to maximum size limit at '$location'.\n") ;
+			$range_size = $truncated_size ;
 			}
 		}
 	elsif('CODE' eq ref($range_size))
@@ -171,7 +136,9 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		
 		if($maximum_size - $used_data < $range_size)
 			{
-			$range_size = max($maximum_size - $used_data, 0) ;
+			$truncated_size = max($maximum_size - $used_data, 0) ;
+			$self->{INTERACTION}{WARN}("Warning: range '$range_name' size $range_size was shortened to $truncated_size due to maximum size limit at '$location'.\n") ;
+			$range_size = $truncated_size ;
 			}
 		}
 	else
@@ -193,7 +160,7 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		else
 			{
 			my $next_range  = $range_provider->($self, $data, $used_data) ;
-			$self->{INTERACTION}{WARN} "Warning: More ranges to display but no more data.\n" if defined $range ;
+			$self->{INTERACTION}{WARN}("Warning: More ranges to display but no more data.\n")if defined $range ;
 			
 			last ;
 			}
@@ -206,9 +173,14 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 			$self->{INTERACTION}{WARN}("Warning: range '$range_name' requires zero bytes.\n") ;
 			}
 			
+		if(defined $truncated_size)
+			{
+			$range_name = "<T>$range_name"  ;
+			}
+
 		if($self->{DISPLAY_RANGE_SIZE})
 			{
-			$range_name = $range_size . ':' . $range_name ;
+			$range_name = "$range_size:$range_name" ;
 			}
 		}
 
@@ -264,6 +236,100 @@ return $collected_data, $used_data ;
 
 #-------------------------------------------------------------------------------
 
+sub create_range_provider
+{
+
+=head2 [P] create_range_provider($range_description)
+
+Transforms the user supplied ranges into an internal format
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $range_description - An array reference or a subroutine reference
+
+=back
+
+I<Returns> - Array ference - ranges in internal format
+
+I<Exceptions> - None
+
+=cut
+
+my ($self, $range_description) = @_ ;
+
+my $range_provider ;
+
+if('CODE' eq ref($range_description))
+	{
+	my $ranges ;
+	
+	$range_provider = 
+		sub
+		{
+		my ($dumper, $data, $offset) = @_ ;
+		
+		if(! defined $ranges || ! @{$ranges})
+			{
+			my $generated_range_description = $range_description->($dumper, $data, $offset) ;
+			
+			return undef unless defined $generated_range_description ;
+			
+			my $created_ranges = $self->create_ranges($generated_range_description) ;
+			
+			push @{$ranges}, @{$created_ranges}, $range_description ;
+			}
+		
+	RANGE:
+		my $local_description = shift@{$ranges} ;
+		
+		if('CODE' eq  ref $local_description)
+			{
+			my $sub_range_description = $local_description->($dumper, $data, $offset) ; 
+			
+			if(defined $sub_range_description)
+				{
+				unshift @{$ranges}, $local_description ;
+				
+				if('CODE' eq  ref $sub_range_description )
+					{
+					unshift @{$ranges}, $sub_range_description ;
+					}
+				else
+					{
+					my $created_ranges = $self->create_ranges($sub_range_description) ; 
+					unshift @{$ranges}, @{$created_ranges} ;
+					}
+				}
+			#else
+				# sub generating ranges is done
+				
+			goto RANGE ;
+			}
+		
+		return $local_description ;
+		}
+	}
+else
+	{
+	my $ranges = $self->create_ranges($range_description) ;
+	
+	$range_provider = 
+		sub
+		{
+		while(@{$ranges})
+			{
+			return shift @{$ranges} ;
+			}
+		}
+	}
+
+return $range_provider ;
+}
+
+#-------------------------------------------------------------------------------
+
 sub unpack_range_size
 {
 
@@ -298,6 +364,7 @@ I<Returns> - A list
 =item * $unpack_format -  A String - formated according to I<pack>.
 
 =back
+
 I<Exceptions> - Croaks with an error messge if the input data is invalid
 
 =cut
@@ -350,7 +417,7 @@ I<Arguments> -
 
 =back
 
-I<Returns> - Nothing
+I<Returns> - Array ference - ranges in internal format
 
 I<Exceptions> - Croaks with an error messge if the input data is invalid
 
@@ -380,7 +447,7 @@ I<Arguments> -
 
 =back
 
-I<Returns> - Nothing
+I<Returns> - Array ference - ranges in internal format
 
 I<Exceptions> - Croaks with an error messge if the input data is invalid
 
@@ -423,7 +490,7 @@ I<Arguments> -
 
 =back
 
-I<Returns> - Nothing
+I<Returns> - I<Returns> - Array ference - ranges in internal format
 
 I<Exceptions> - Croaks with an error messge if the input data is invalid
 

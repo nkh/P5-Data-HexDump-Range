@@ -2,7 +2,9 @@
 # This is Todo.txt #
 #------------------#
 
-if single item range is sub and the returned data is an array ref, expand the ref
+warn about truncation of field because no more data
+
+#if single item range is sub and the returned data is an array ref, expand the ref
 	expand all refs
 
 	#todo: handle when the sub return a single sub
@@ -10,6 +12,9 @@ if single item range is sub and the returned data is an array ref, expand the re
 	# 	if(XX) return \&parser_for XXX
 	#	if(YY) return \&parser_for YYY
 	# how do we handle error in format?
+
+comment can be a sub
+
 
 handle indianness
 

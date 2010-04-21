@@ -44,8 +44,6 @@ Subroutines prefixed with B<[P]> are not part of the public API and shall not be
 
 #-------------------------------------------------------------------------------
 
-my $current_color_index = 0 ;
-
 sub get_default_color
 {
 
@@ -73,10 +71,10 @@ if($self->{COLOR} eq 'bw')
 	}
 else
 	{
-	$current_color_index++ ;
-	$current_color_index = 0 if $current_color_index >= @{$self->{COLORS}{$self->{FORMAT}}} ;
+	$self->{CURRENT_COLOR_INDEX}++ ;
+	$self->{CURRENT_COLOR_INDEX} = 0 if $self->{CURRENT_COLOR_INDEX} >= @{$self->{COLORS}{$self->{FORMAT}}} ;
 	
-	$default_color = $self->{COLORS}{$self->{FORMAT}}[$current_color_index] ;
+	$default_color = $self->{COLORS}{$self->{FORMAT}}[$self->{CURRENT_COLOR_INDEX}] ;
 	}
 	
 return $default_color ;

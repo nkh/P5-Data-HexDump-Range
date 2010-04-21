@@ -82,6 +82,7 @@ my $range_source = ['?', 'white'] ;
 my @found_bitfields ;
 
 my $last_range = (grep {!  $_->{IS_BITFIELD}}@{$collected_data})[-1] ;
+my $wrapped_line = 0 ;
 
 for my $range (@{$collected_data})
 	{
@@ -123,12 +124,6 @@ for my $range (@{$collected_data})
 				} ;
 			}
 		
-		if(@found_bitfields && $room_left == $self->{DATA_WIDTH})
-			{
-			push @lines,  @found_bitfields ;
-			@found_bitfields = () ;
-			}
-					
 		while ($dumped_data < $data_length)
 			{
 			my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
@@ -174,6 +169,9 @@ for my $range (@{$collected_data})
 				
 				$line = {} ;
 				$room_left = $self->{DATA_WIDTH} ;
+				
+				push @lines,  @found_bitfields ;
+				@found_bitfields = () ;
 				}
 			}
 		}
