@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.01';
+$VERSION     = '0.02';
 }
 
 #-------------------------------------------------------------------------------
@@ -124,6 +124,59 @@ for my $range (@{$collected_data})
 				} ;
 			}
 		
+		if($range->{IS_SKIP}) 
+			{
+			# skip range don't display any data
+			my $size_to_dump = $data_length ;
+			
+			#justify offset for next range
+			$current_offset += $size_to_dump ;
+			
+			$range->{NAME} = '>>' . $range->{NAME} ;
+			
+			#dump nothing
+			$size_to_dump = 0 ;
+			
+			for my  $field_type 
+				(
+				['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $current_offset}, undef, 0],
+				['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
+				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
+				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
+				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $range->{COLOR}, 1],
+				['RANGE_NAME',sub {sprintf "%.${max_range_name_size}s", $range->{NAME}}, $range->{COLOR}, 0],
+				)
+				{
+				my ($field_name, $field_data_formater, $color, $pad_size) = @{$field_type} ;
+				
+				if($self->{"DISPLAY_$field_name"})
+					{
+					my $field_text = $field_data_formater->() ;
+					
+					my $pad = $pad_size  ? ' ' x ($room_left * $pad_size) : ''  ;
+					
+					push @{$line->{$field_name}},
+						{
+						$field_name . '_COLOR' => $color,
+						$field_name => $field_text . $pad,
+						} ;
+					}
+				}
+			
+			$line->{NEW_LINE}++ ;
+			push @lines, $line ;
+				
+			push @lines,  @found_bitfields ;
+			@found_bitfields = () ;
+			
+			# start from frewh line
+			
+			$line = {} ;
+			$room_left = $self->{DATA_WIDTH} ;
+				
+			next ;
+			}
+			
 		while ($dumped_data < $data_length)
 			{
 			my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
@@ -197,6 +250,70 @@ for my $range (@{$collected_data})
 			$line = {};
 			}
 			
+		if($range->{IS_SKIP}) 
+			{
+			my $size_to_dump = $data_length ;
+			my $next_data_offset = $total_dumped_data + $data_length - 1 ;
+			
+			$range->{NAME} = '>>' . $range->{NAME} ;
+		
+			#dump nothing
+			$size_to_dump = 0 ;
+			
+			for my  $field_type 
+				(
+				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
+				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data ;}, undef, 8],
+				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $next_data_offset}, undef, 8],
+				['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
+				[
+				'HEX_DUMP', 
+				sub 
+					{
+					my @bytes = unpack("(H2)*", pack("N", $data_length));
+					"@bytes bytes skipped" ;
+					},
+				$range->{COLOR},
+				3 * $self->{DATA_WIDTH},
+				],
+				[
+				'DEC_DUMP', 
+				sub 
+					{
+					my @values = map {sprintf '%03u', $_} unpack("(C3)*", pack("N", $data_length));
+					join(' ',  @values) . " skipped: $data_length bytes"  ;
+					},
+				$range->{COLOR},
+				4 * $self->{DATA_WIDTH}
+				],
+				['ASCII_DUMP', sub {$EMPTY_STRING}, $range->{COLOR}, $self->{DATA_WIDTH}],
+                                ['USER_INFORMATION', sub { sprintf '%-20.20s', $range->{USER_INFORMATION} || ''}, $range->{COLOR}, 20],
+				)
+				{
+				my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
+				
+				if($self->{"DISPLAY_$field_name"})
+					{
+					my $field_text = $field_data_formater->([]) ;
+					my $pad = ' ' x ($field_text_size -  length($field_text)) ;
+					
+					push @{$line->{$field_name}},
+						{
+						$field_name . '_COLOR' => $color,
+						$field_name =>  $field_text .  $pad,
+						} ;
+					}
+				}
+			
+			$total_dumped_data += $data_length ;
+			
+			$line->{NEW_LINE} ++ ;
+			push @lines, $line ;
+			$line = {};
+				
+			next ;
+			}
+			
 		while ($dumped_data < $data_length)
 			{ 
 			last if($range->{IS_BITFIELD}) ;
@@ -216,7 +333,6 @@ for my $range (@{$collected_data})
                                 ['USER_INFORMATION', sub { sprintf '%-20.20s', $range->{USER_INFORMATION} || ''}, $range->{COLOR}, 20],
 				)
 				{
-				
 				my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
 				
 				if($self->{"DISPLAY_$field_name"})

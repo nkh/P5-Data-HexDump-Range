@@ -30,6 +30,8 @@ Readonly my $EMPTY_STRING => q{} ;
 
 use Carp qw(carp croak confess) ;
 
+use Text::Colorizer ;
+
 #-------------------------------------------------------------------------------
 
 =head1 NAME
@@ -80,6 +82,8 @@ else
 return $default_color ;
 }
 
+#-------------------------------------------------------------------------------
+
 sub format
 {
 	
@@ -101,12 +105,16 @@ I<Returns> - A dump in ANSI, ASCII or HTML.
 
 my ($self, $line_data) = @_ ;
 
-#~ use Data::TreeDumper ;
-#~ print DumpTree $line_data ;
+my @colors ;
+push @colors, 'COLORS' => $self->{COLOR_NAMES} if defined $self->{COLOR_NAMES} ;
 
-my ($header, $footer, $colorizer) = get_colorizer_data($self->{FORMAT}) ;
+my $colorizer = Text::Colorizer->new
+				(
+				FORMAT => $self->{FORMAT},
+				@colors,
+				) ;
 
-my $formated = '' ;
+my @colored_lines ;
 
 my @fields = @{$self->{FIELDS_TO_DISPLAY}} ;
 unshift @fields, 'INFORMATION', 'RULER' ;
@@ -119,84 +127,20 @@ for my $line (@{$line_data})
 			{
 			for my $range (@{$line->{$field}})
 				{
-				my $user_color = (defined $self->{COLOR_NAMES} &&  defined $range->{"${field}_COLOR"})
-								? $self->{COLOR_NAMES} {$self->{FORMAT}}{$range->{"${field}_COLOR"}}  ||  $range->{"${field}_COLOR"}
-								: $range->{"${field}_COLOR"} ;
-				
-				$formated .= $colorizer->($range->{$field}, $user_color) ;
+				push @colored_lines, $range->{"${field}_COLOR"}, $range->{$field} ,
 				}
 				
-			$formated .= ' '
+			push @colored_lines, $EMPTY_STRING, ' ' ;
 			}
 		}
 		
-	$formated .= "\n" if $line->{NEW_LINE} ;
+	push @colored_lines, '', "\n" if $line->{NEW_LINE} ;
 	}
 
-return $header . $formated . $footer ;
+return $colorizer->color(@colored_lines) ;
 }
 
 #-------------------------------------------------------------------------------
-
-sub get_colorizer_data
-{
-
-my ($format) = @_ ;
-my ($header, $footer, $colorizer)  = ('', '') ;
-
-for ($format)
-	{
-	/ASCII/ and do
-		{
-		$colorizer = sub {$_[0]} ;
-		last ;
-		} ;
-		
-	/ANSI/ and do
-		{
-		$colorizer = 
-			sub 
-			{
-			my ($text, $color) = @_ ;
-			
-			if(defined $color && $color ne '')
-				{
-				colored($text, $color) ;
-				}
-			else
-				{
-				$text ;
-				}
-			} ;
-			
-		last ;
-		} ;
-		
-	/HTML/ and do
-		{
-		$colorizer =
-			sub 
-			{
-			my ($text, $color) = @_ ;
-			
-			$color = "style='color:#fff;'" unless defined $color ;
-			
-			"<span $color>" . $text . "</span>" ;
-			} ;
-			
-		$header = <<'EOH' ;
-<pre style ="font-family: monospace; background-color: #000 ;">
-
-EOH
-
-		$footer .= "\n</pre>\n" ;
-		
-		last ;
-		} ;
-	}
-
-return ($header, $footer, $colorizer) ;
-}
 
 1 ;
 

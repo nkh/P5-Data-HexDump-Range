@@ -148,19 +148,6 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DISPLAY_BITFIELDS => undef,
 	DISPLAY_BITFIELD_SOURCE => 1,
 	
-	COLOR_NAMES => 
-		{
-		HTML =>
-			{
-			white => "style='color:#fff;'",
-			green => "style='color:#0f0;'",
-			bright_yellow => "style='color:#ff0;'",
-			yellow => "style='color:#ff0;'",
-			cyan => "style='color:#0ff;'",
-			red => "style='color:#f00;'",
-			},
-		},
-
 	ORIENTATION => 'horizontal',
 	
 	GATHERED => [],
@@ -195,8 +182,12 @@ else
 		 [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
 	}
 
-my (undef, undef, $colorizer) = get_colorizer_data($self->{FORMAT}) ; # verify validity
-$self->{INTERACTION}{DIE}("Error: Invalid output format '$self->{FORMAT}'.\n") unless defined $colorizer ;
+#Todo: verify FORMAT and COLOR_NAMES validity
+if(! defined $self->{FORMAT} || ($self->{FORMAT} ne 'ANSI' && $self->{FORMAT} ne 'HTML' && $self->{FORMAT} ne 'ASCII'))
+	{
+	$self->{FORMAT} ||= 'undef' ;
+	$self->{INTERACTION}{DIE}("Error: Invalid output format '$self->{FORMAT}'.\n")  ;
+	}
 
 return(1) ;
 }

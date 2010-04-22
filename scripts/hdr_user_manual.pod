@@ -67,6 +67,8 @@ B<ANSI> can't be rendered from pod but it look like the <HTML> below
 
 =end html
 
+=head3 defining your own colors
+
 =head3 Showing the column header and the rulers
 
 Command: I<hdr -col -rul your_file>
@@ -85,7 +87,7 @@ Command: I<hdr -col -rul your_file>
 
 =end html
 
-=head2 intput 
+=head2 input 
 
 =head2 from file or stdin
 
@@ -106,6 +108,8 @@ head -c
 =head3 from file
 
 =head4 simple
+
+=head4 skip ranges
 
 =head4 advance
 
@@ -170,23 +174,13 @@ command: hdr  --col -display_ruler -r 'data,1 :DATA,4:c,b9:d,b3 :e,x4b5     :the
 
 =head3 Horizontal mode
 
+By default, bitmaps are not displayed in horizontal mode as they tend to clutter the display. You can force the display of bitfields in vertical
+mode by using B<display_bitfields>.
+
+TODO: example
+
 =begin html
 
-<pre style ="font-family: monospace; background-color: #000 ;">
-
-<span style='color:#fff;'>OFFSET   BITFIELD HEX_DUMP                                         ASCII_DUMP       RANGE_NAME                  </span> 
-<span style='color:#fff;'>                  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                             </span> 
-<span style='color:#fff;'>00000000</span><span style='color:#fff;'></span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#fff;'>        </span><span style='color:#fff;'></span><span style='color:#fff;'></span><span style='color:#fff;'></span> <span style='color:#0f0;'>0a </span><span style='color:#ff0;'>70 61 63 6b </span><span style='color:#0f0;'>61 67 65 20 44 61 74 61 </span><span style='color:#0ff;'>3a 3a 48 </span> <span style='color:#0f0;'>.</span><span style='color:#ff0;'>pack</span><span style='color:#0f0;'>age Data</span><span style='color:#0ff;'>::H</span> <span style='color:#0f0;'>data</span><span style='color:#fff;'>, </span><span style='color:#ff0;'>DATA</span><span style='color:#fff;'>, </span><span style='color:#0f0;'>the end</span><span style='color:#fff;'>, </span><span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
-<span style='color:#0ff;'>00 .. 08</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#0ff;'>-- -- 00 e0    011100000----------------------- </span> <span style='color:#0ff;'>.bitfield: --.à </span> <span style='color:#0ff;'>.c              </span> 
-<span style='color:#f00;'>00 .. 02</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#f00;'>-- -- -- 03    011----------------------------- </span> <span style='color:#f00;'>.bitfield: ---. </span> <span style='color:#f00;'>.d              </span> 
-<span style='color:#fff;'>04 .. 08</span> <span style='color:#ff0;'>DATA    </span> <span style='color:#fff;'>-- -- -- 00    ----00000----------------------- </span> <span style='color:#fff;'>.bitfield: ---. </span> <span style='color:#fff;'>.e              </span> 
-<span style='color:#ff0;'>00 .. 02</span> <span style='color:#0f0;'>the end </span> <span style='color:#ff0;'>-- -- -- 03    011----------------------------- </span> <span style='color:#ff0;'>.bitfield: ---. </span> <span style='color:#ff0;'>.x              </span> 
-<span style='color:#fff;'>00000010</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a </span> <span style='color:#0ff;'>exDump::Range ;.</span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
-<span style='color:#fff;'>00000020</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span> <span style='color:#0ff;'>.use strict;.use</span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
-<span style='color:#fff;'>00000030</span> <span style='color:#fff;'>        </span> <span style='color:#0ff;'>20 77 61 72 6e 69 6e 67 73 20 3b 0a             </span> <span style='color:#0ff;'> warnings ;.    </span> <span style='color:#0ff;'>data</span><span style='color:#fff;'>, </span> 
-<span style='color:#f00;'>90 .. 97</span> <span style='color:#0ff;'>data    </span> <span style='color:#f00;'>-- -- -- 49    ------------------------01001001 </span> <span style='color:#f00;'>.bitfield: ---I </span> <span style='color:#f00;'>.v              </span> 
-
-</pre>
 
 =end html
 

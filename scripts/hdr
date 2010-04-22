@@ -16,21 +16,22 @@ use Carp ;
 
 head1 OPTIONS
 
- range_description|r             file name containing a description
-                                 or a string description formated as:
+ range_description|r              file name containing a description
+                                  or a string description formated as:
 			                   'color:name,size:name,size,...'
 					    
- offset                          position in the data where to start dumping
- max_size                        amount of data to dump
+ offset                           position in the data where to start dumping
+ max_size                         amount of data to dump
  
- orientation|o                   'horizontal' or 'vertical'
- display_column_names|col        display columns names
- display_ruler|rul               display horizontal ruler
- format|f                        'ANSI' or 'ASCII' or 'HTML' 
- color                           'bw' or 'cycle',
+ orientation|o                    'horizontal' or 'vertical'
+ display_column_names|col         display columns names
+ display_ruler|rul                display horizontal ruler
+ format|f                         'ANSI' or 'ASCII' or 'HTML' 
+ color                            'bw' or 'cycle',
+ colors                           file containing custom colors
  data_width|w                     number of bytes per dump line
  
- offset_format                   'hex' or 'dec' 
+ offset_format                    'hex' or 'dec' 
  display_offset                   0 == no the offset display
  display_cumulative_offset        0 == no cumulative offset display
  display_zero_size_range          0 == no display of range with size 0
@@ -91,6 +92,7 @@ my @options =
 
 	'format|f=s' => \my $format,
 	'color=s' => \my $color,
+	'colors=s' => \my $color_file,
 	'data_width=i' =>  \my $data_width,
 
 	'offset_format=s' => \my $offset_format,
@@ -156,6 +158,9 @@ else
 	$display_bitfield_source = 0 ;
 	}
 	
+	
+my @color_file = (COLOR_NAMES => $color_file) if(defined $color_file) ;
+
 my $hdr = Data::HexDump::Range->new
 			(
 			ORIENTATION => $orientation || 'horizontal',
@@ -184,6 +189,8 @@ my $hdr = Data::HexDump::Range->new
 			
 			DISPLAY_BITFIELDS => $display_bitfields,
 			DISPLAY_BITFIELD_SOURCE => defined $display_bitfield_source ? $display_bitfield_source : 1,
+			
+			@color_file
 			) ;
 
 print $hdr->dump( $range, $data, $offset, $max_size) ;

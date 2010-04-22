@@ -113,14 +113,14 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		$range_field =  $range_field->($data, $used_data, $size, $range) if 'CODE' eq ref($range_field) ;
 		}
 
-	my ($is_comment, $is_bitfield, $unpack_format) ;
+	my ($is_comment, $is_bitfield, $is_skip, $unpack_format) ;
 
 	# handle maximum_size
 	my $truncated_size ;
 	if($EMPTY_STRING eq ref($range_size))
 		{
 		# first, type and range size
-		($is_comment, $is_bitfield, $range_size, undef) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
+		($is_comment, $is_bitfield, $is_skip, $range_size, undef) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
 		
 		# second, adjust the so we don't extract more than the user asked for
 		if($maximum_size - $used_data < $range_size)
@@ -132,7 +132,7 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		}
 	elsif('CODE' eq ref($range_size))
 		{
-		($is_comment, $is_bitfield, $range_size, undef) = $self->unpack_range_size($range_name, $range_size->(), $used_data) ;
+		($is_comment, $is_bitfield, $is_skip, $range_size, undef) = $self->unpack_range_size($range_name, $range_size->(), $used_data) ;
 		
 		if($maximum_size - $used_data < $range_size)
 			{
@@ -149,7 +149,7 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 	#third, get the unpack format with the justified size
 	# note that we keep $is_comment and $is_bitfield from first run
 	# as the those are extracted from the size field and we have modified it
-	(undef, undef, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
+	(undef, undef, undef, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
 	
 	if($maximum_size == $used_data)
 		{
@@ -206,6 +206,7 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		OFFSET => $used_data,
 		DATA =>  $is_comment ? undef : $last_data,
 		IS_BITFIELD => $is_bitfield ? $range_size_definition : 0,
+		IS_SKIP => $is_skip,
 		USER_INFORMATION => $range_user_information,
 		} ;
 	
@@ -371,7 +372,7 @@ I<Exceptions> - Croaks with an error messge if the input data is invalid
 
 my ($self, $range_name, $size, $used_data) = @_ ;
 
-my ($is_comment, $is_bitfield, $range_size, $unpack_format) = (0, 0, -1, '');
+my ($is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format) = (0, 0, 0, -1, '');
 
 if('#' eq  $size)
 	{
@@ -383,6 +384,12 @@ elsif($size =~ '^\s*(x\d*)?\s*b\d*\s*$')
 	{
 	$is_bitfield++ ;
 	$range_size = 0 ;
+	$unpack_format = '#' ;
+	}
+elsif($size =~ '^\s*x(\d+)\s*$')
+	{
+	$is_skip++ ;
+	$range_size = $1 ;
 	$unpack_format = '#' ;
 	}
 elsif(looks_like_number($size))
@@ -397,7 +404,7 @@ else
 	$self->{INTERACTION}{DIE}("Error: size '$size' doesn't look valid in range '$range_name' at '$location'.\n")
 	}
 
-return ($is_comment, $is_bitfield, $range_size, $unpack_format) ;
+return ($is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format) ;
 }
 
 #-------------------------------------------------------------------------------
