@@ -121,8 +121,8 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => ['white', 'green', 'bright_yellow','cyan', 'red' ],
-		HTML => ['white', 'green', 'bright_yellow','cyan', 'red' ],
+		ANSI => ['bright_white', 'bright_green', 'bright_yellow','bright_cyan', 'bright_red' ],
+		HTML => ['bright_white', 'bright_green', 'bright_yellow','bright_cyan', 'bright_red' ],
 		},
 		
 	OFFSET_FORMAT => 'hex',
@@ -167,6 +167,7 @@ $self->{MAXIMUM_RANGE_NAME_SIZE} = 2 if$self->{MAXIMUM_RANGE_NAME_SIZE} <= 2 ;
 if($self->{ORIENTATION} =~ /^hor/)
 	{
 	$self->{DISPLAY_BITFIELDS} = 0 unless defined $self->{DISPLAY_BITFIELDS} ;
+	$self->{DISPLAY_BITFIELD_SOURCE} = 0 unless $self->{DISPLAY_BITFIELDS} ;
 	
 	my @fields = qw(OFFSET) ;
 	push @fields, 'BITFIELD_SOURCE' if $self->{DISPLAY_BITFIELD_SOURCE} ;

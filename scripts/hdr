@@ -6,7 +6,7 @@ use Carp ;
 
 =head1 NAME 
 
- $> hdr - hexdump range
+ $>hdr - hexdump range
 
 =head1 USAGE
 
@@ -21,7 +21,7 @@ head1 OPTIONS
 			                   'color:name,size:name,size,...'
 					    
  offset                           position in the data where to start dumping
- max_size                         amount of data to dump
+ maximum_size                     amount of data to dump
  
  orientation|o                    'horizontal' or 'vertical'
  display_column_names|col         display columns names
@@ -85,7 +85,7 @@ my @options =
 	'dump_range_description|d' =>\my $dump_range_description,
 
 	'offset=i' =>  \my $offset,
-	'max_size=i' =>  \my $max_size,
+	'maximum_size=i' =>  \my $maximum_size,
 	'orientation|o=s' => \my $orientation,
 	'display_column_names|col' => \my $display_column_names,
 	'display_ruler|rul' => \my $display_ruler,
@@ -193,7 +193,7 @@ my $hdr = Data::HexDump::Range->new
 			@color_file
 			) ;
 
-print $hdr->dump( $range, $data, $offset, $max_size) ;
+print $hdr->dump( $range, $data, $offset, $maximum_size) ;
 
 #------------------------------------------------------------------------------------------------------------------------
 

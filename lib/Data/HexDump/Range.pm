@@ -52,7 +52,8 @@ Data::HexDump::Range - Hexadecial Range Dumper
 
   my $hdr = Data::HexDump::Range->new() ;
   
-  print $hdr->dump(['magic cookie', 12, 'red'], $data) ;
+  print $hdr->dump([['magic cookie', 12, 'red'],['image type', 2, 'green']],  $data) ;
+  print $hdr->dump('magic cookie, 12, red :image type, 2, green',  $data) ;
   
   $hdr->gather(['magic cookie', 12, 'red'], $data) ; 
   $hdr->gather(['image type', 2, 'green'], $other_data) ;
@@ -73,6 +74,8 @@ to create an easy to understand dump of binary data. This achieved through:
 
 =item * Bitfield rendering
 
+=item * Ranges that skipping data
+
 =item * The possibility to describe complex structures
 
 =back
@@ -82,8 +85,8 @@ to create an easy to understand dump of binary data. This achieved through:
 The shortest perl dumper is C<perl -ne 'BEGIN{$/=\16} printf "%07x0: @{[unpack q{(H2)*}]}\n", $.-1'>, courtesy of a golfing session 
 with Andrew Rodland <arodland@cpan.org> aka I<hobbs>. I<priodev>, I<tm604>, I<Khisanth> and other helped with the html output.
 
-B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to write this module. It may be a better 
-alternative If you need very fast dump generation.
+B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to write this module. This module offers
+more options but B<hexd> may be a better  alternative If you need very fast dump generation.
 
 B<Data::HexDump::Range> splits binary data according to user defined I<ranges> and rendered as a B<hex> or/and B<decimal> data dump.
 The data dump can be rendered in ANSI, ASCII or HTML.
@@ -91,7 +94,11 @@ The data dump can be rendered in ANSI, ASCII or HTML.
 =head2 Rendered Columns
 
 You can choose which columns are rendered by setting options when creating a Data::HexDump::Range object.
-The default rendering corresponds to the object below:
+The default rendering  includes the following
+
+  RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP ASCII_DUMP
+
+which corresponds to the object below:
 
   Data::HexDump::Range->new
 	(
@@ -111,14 +118,16 @@ The default rendering corresponds to the object below:
 	DATA_WIDTH => 16,
 	) ;
 
-If you decided that you wanted the binary data to be showed in decimal instead for hexadecimal, you' set B<<DISPLAY_HEX_DUMP => 0>> and B<<DISPLAY_DEC_DUMP => 1>>.
+If you decided that you wanted the binary data to be showed in decimal instead for hexadecimal, you' set DISPLAY_HEX_DUMP => 0 and DISPLAY_DEC_DUMP => 1.
 See L<new> for all the possible options. Most option are also available from the command line utility I<hdr>.
 
 =head2 Orientation
 
-Command: I<hdr -r 'magic cookie,12:padding, 32:header,5:data, 20:extra data,#:header,5:data,40:footer,4' -col -o ver -display_ruler 1 lib/Data/HexDump/Range.pm>
+The examples below show the output of the following command:
 
-=head3 Vertical
+  $>hdr -r 'magic cookie,12:padding, 32:header,5:data, 20:extra data,#:header,5:data,40:footer,4' -col -o ver -display_ruler 1 lib/Data/HexDump/Range.pm
+
+=head3 Vertical orientation
 
 In this orientation mode, each range displayed on a separate line.
 
@@ -162,7 +171,7 @@ In colors:
 
 =end html
 
-=head3 Horizontal
+=head3 Horizontal orientation
 
 In this mode, the data are packed together in the dump
 
@@ -178,7 +187,6 @@ In this mode, the data are packed together in the dump
  000000c0 7b 0a 09 65 78 70                                {..exp           data, footer,
 
 In colors:
-
 
 =begin html
 
@@ -209,7 +217,7 @@ Ranges are Array references containing two to four  elements:
 
 =item * name - a string
 
-=item * size - an integer
+=item * size - an integer or a format - a string
 
 =item * color - a string or undef
 
@@ -223,9 +231,18 @@ You can also pass the ranges as a string. The L<hdr> command line range dumper t
 
 Example:
 
-I<hdr --col -display_ruler -o ver lib/Data/HexDump/Range.pm -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16:field,x8b8:field2, b17:footer,20'>
+ $>hdr --col -display_ruler -o ver -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16:field,x8b8:field2, b17:footer,20' my_binary
        
-TODO: document string range format
+=head3 Size field format
+
+The size field is used to defined if the range is a normal range, a comment, a bitfield or a skip range. The formats are a s follows:
+
+                  format                complete range example
+		  
+  normal range => integer               header, 4, bright_blue     
+  comment      => #                     data section start, # 
+  bitfield     => [xInteger]bInteger    bitfield, x8b4 
+  skip range   => xInteger              boring, x256,, comment
 
 =head3 Coloring
 
@@ -320,9 +337,9 @@ In the example below, bitfields I<ff, fx, f0> are extracted form the data define
 
 The the format definiton  is: an optional "x (for offset) + offset" + "b (for bits) + number of bits". Eg: I<x8b8> second byte in MYDATA.
 
-An example output containing normal data and bifields dumps.
+An example output containing normal data and bifields dumps using the comand below.
 
-command: I<hdr --col -display_ruler -o ver -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' file_name
+  $>hdr --col -display_ruler -o ver -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' file_name
 
 =begin html
 
@@ -340,6 +357,48 @@ command: I<hdr --col -display_ruler -o ver -r 'header,12:name,10:magic,2:offset,
 <span style='color:#ff0;'>.f0             </span> <span style='color:#ff0;'>00 .. 15</span> <span style='color:#ff0;'>        </span> <span style='color:#ff0;'>-- -- 65 20 0110010100100000----------------    </span> <span style='color:#ff0;'>.bitfield: --e  </span> 
 <span style='color:#f0f;'>footer          </span> <span style='color:#fff;'>00000020</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span> <span style='color:#f0f;'>.use strict;.use</span> 
 
+</pre>
+
+=end html
+
+By default bitfields are displayed  in vertical mode but not in horizontal mode.
+
+=head4 Skip ranges
+
+If the size format is 'x' + number, that number of bytes is skipped from the data. B<Data::HexDump::Range>
+will display the skip range in the dump but not the data.
+
+In the command below, the range 'skip' removes 32 bytes from the display. '>>' is prepended to the range name.
+
+Command: I<hdr -r 'magic, 5, magic   :other,37  :bf,b8   :skip,x32,, I skipped :more, 20'  -rul -o ver>
+
+  RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP
+                                     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345
+  magic            00000000 00000000 63 6f 6d 6d 69                                   commi
+  other            00000005 00000000 74 20 31 39 39 61 34 62 31 32 37 62 32 39 66 39  t 199a4b127b29f9
+  other            00000015 00000010 31 64 32 65 36 33 66 39 35 66 38 63 34 30 62 64  1d2e63f95f8c40bd
+  other            00000025 00000020 65 31 39 62 61                                   e19ba
+  .bf              00 .. 07          -- -- -- 74    01110100------------------------  .bitfield: ---t
+  >>skip           0000002a 00000049 00 00 00 20 bytes skipped
+  more             0000004a 00000000 69 6d 20 6b 68 65 6d 69 72 20 3c 6e 6b 68 40 63  im khemir <nkh@c
+  more             0000005a 00000010 70 61 6e 2e                                      pan.
+
+in color:
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = ' color:#fff; '>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#fff; '>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#0f0; '>magic           </span><span style = ''> </span><span style = ''>00000000</span><span style = ''> </span><span style = ''>00000000</span><span style = ''> </span><span style = ' color:#0f0; '>63 6f 6d 6d 69                                  </span><span style = ''> </span><span style = ' color:#0f0; '>commi           </span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#ff0; '>other           </span><span style = ''> </span><span style = ''>00000005</span><span style = ''> </span><span style = ''>00000000</span><span style = ''> </span><span style = ' color:#ff0; '>74 20 31 39 39 61 34 62 31 32 37 62 32 39 66 39 </span><span style = ''> </span><span style = ' color:#ff0; '>t 199a4b127b29f9</span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#ff0; '>other           </span><span style = ''> </span><span style = ''>00000015</span><span style = ''> </span><span style = ''>00000010</span><span style = ''> </span><span style = ' color:#ff0; '>31 64 32 65 36 33 66 39 35 66 38 63 34 30 62 64 </span><span style = ''> </span><span style = ' color:#ff0; '>1d2e63f95f8c40bd</span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#ff0; '>other           </span><span style = ''> </span><span style = ''>00000025</span><span style = ''> </span><span style = ''>00000020</span><span style = ''> </span><span style = ' color:#ff0; '>65 31 39 62 61                                  </span><span style = ''> </span><span style = ' color:#ff0; '>e19ba           </span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#0ff; '>.bf             </span><span style = ''> </span><span style = ' color:#0ff; '>00 .. 07</span><span style = ''> </span><span style = ' color:#0ff; '>        </span><span style = ''> </span><span style = ' color:#0ff; '>-- -- -- 74    01110100------------------------ </span><span style = ''> </span><span style = ' color:#0ff; '>.bitfield: ---t </span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#f00; '>>>skip          </span><span style = ''> </span><span style = ''>0000002a</span><span style = ''> </span><span style = ''>00000049</span><span style = ''> </span><span style = ' color:#f00; '>00 00 00 20 bytes skipped                       </span><span style = ''> </span><span style = ' color:#f00; '>                </span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#fff; '>more            </span><span style = ''> </span><span style = ''>0000004a</span><span style = ''> </span><span style = ''>00000000</span><span style = ''> </span><span style = ' color:#fff; '>69 6d 20 6b 68 65 6d 69 72 20 3c 6e 6b 68 40 63 </span><span style = ''> </span><span style = ' color:#fff; '>im khemir <nkh@c</span><span style = ''> </span><span style = ''>
+</span><span style = ' color:#fff; '>more            </span><span style = ''> </span><span style = ''>0000005a</span><span style = ''> </span><span style = ''>00000010</span><span style = ''> </span><span style = ' color:#fff; '>70 61 6e 2e                                     </span><span style = ''> </span><span style = ' color:#fff; '>pan.            </span><span style = ''> </span><span style = ''>
+</span>
 </pre>
 
 =end html
@@ -393,7 +452,7 @@ a subroutine definition.
 
 =head3  User defined range generator
 
-A subroutine reference can be passed as a range definition. The cubroutine will be called repetitively
+A subroutine reference can be passed as a range definition. The subroutine will be called repetitively
 till the data is exhausted or the subroutine returns I<undef>.
 
   sub my_parser 
@@ -442,15 +501,7 @@ OR
 
 =head1 EXAMPLES
 
-See L<hdr_user_manual>
-
-=head1 OTHER IDEAS
-
-- allow pack format as range size
-	pack in array context returns the amount of fields processed
-	fixed format can be found with a length of unpack
-
-- hook with Convert::Binary::C to automatically create ranges
+See I<hdr_user_manual> in the distribution.
 
 =head1 SUBROUTINES/METHODS
 

@@ -574,7 +574,7 @@ if($self->{DISPLAY_COLUMN_NAMES})
 		
 	push @information,
 		{
-		INFORMATION => [ {INFORMATION => $information} ], 
+		INFORMATION => [ {INFORMATION_COLOR => 'bright_white', INFORMATION => $information} ], 
 		NEW_LINE => 1,
 		} ;
 	}
@@ -624,7 +624,7 @@ if($self->{DISPLAY_RULER})
 		
 	push @information,
 		{
-		RULER => [ {RULER=> $information} ], 
+		RULER => [ {RULER_COLOR => 'bright_white', RULER=> $information} ], 
 		NEW_LINE => 1,
 		} ;
 	}

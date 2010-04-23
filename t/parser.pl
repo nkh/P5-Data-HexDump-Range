@@ -15,13 +15,13 @@ sub my_parser
 	
 	$offset < length($data)
 		?  $first_byte == ord(0)
-			? ['from odd', 5, 'blue on_yellow']
-			: ['from even', 3, 'green']
+			? ['from "0"', 5, 'bright_yellow']
+			: ['from "1"', 3, 'bright_green']
 		: undef ;
 	}
 
-my $data = '01' x 50 ;
-my $hdr = Data::HexDump::Range->new(ORIENTATION => 'vertical') ;
+my $data = '01' x 20 ;
+my $hdr = Data::HexDump::Range->new(ORIENTATION => 'hor', FORMAT => 'HTML') ;
 
 print $hdr->dump(\&my_parser, $data) ;
 

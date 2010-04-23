@@ -126,7 +126,6 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		if($maximum_size - $used_data < $range_size)
 			{
 			$truncated_size = max($maximum_size - $used_data, 0) ;
-			$self->{INTERACTION}{WARN}("Warning: range '$range_name' size $range_size was shortened to $truncated_size due to maximum size limit at '$location'.\n") ;
 			$range_size = $truncated_size ;
 			}
 		}
@@ -137,7 +136,6 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		if($maximum_size - $used_data < $range_size)
 			{
 			$truncated_size = max($maximum_size - $used_data, 0) ;
-			$self->{INTERACTION}{WARN}("Warning: range '$range_name' size $range_size was shortened to $truncated_size due to maximum size limit at '$location'.\n") ;
 			$range_size = $truncated_size ;
 			}
 		}
@@ -164,6 +162,11 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 			
 			last ;
 			}
+		}
+		
+	if(defined $truncated_size)
+		{
+		$self->{INTERACTION}{WARN}("Warning: range '$range_name' size $range_size was shortened to $truncated_size due to maximum size limit at '$location'.\n") ;
 		}
 
 	if(! $is_comment && ! $is_bitfield)

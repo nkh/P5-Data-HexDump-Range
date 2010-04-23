@@ -2,27 +2,26 @@
 # This is Todo.txt #
 #------------------#
 
-#pass user defined color to Text::Colorizer
-
-#allow user to define colors in a file that is passed as argument to hdr
-
-#comment can be a sub
+update module documentation
 
 skip ranges
-	ranges that skip repetitive boring data
-	
-	
-type instead for IS_COMMENT, IS_BITFIELD, IS_SKIP
+	#ranges that skip repetitive boring data
+	#documentation
+	refactoring
+		type instead for IS_COMMENT, IS_BITFIELD, IS_SKIP
 
-handle indianness
+option to embed the comand line in the html output
 
-http://en.wikipedia.org/wiki/S-record
-IPV4 header
-
-		
 in direct dump mode, use the offset passed by the user to set the starting offset point
 	000017 xx xx xx xx                    something starting at offset 17
 
+handle indianness
+
+examples
+	IPV4 header
+	http://en.wikipedia.org/wiki/S-record
+
+		
 Data::hexDump::Table
 	see IPV4 example on wikipedia
 
