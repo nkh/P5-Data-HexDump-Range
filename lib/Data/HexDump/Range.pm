@@ -320,17 +320,16 @@ If the size of a range is the string '#', the whole range is considered a commen
 
 Bitfields can be up to 32 bits long and can overlap each other. Bitfields are applied on the previously defined range.
 
-In the example below, bitfields I<ff, fx, f0> are extracted form the data defined by the I<MYDATA> range.
+In the example below, bitfields I<ff, fx, f0> are extracted form the data defined by the I<BITMAP> range.
 
                  .------------.                      .--------------.
-                 | data range |                      | data hexdump |
- .---.           '------------'                      '--------------'
- | b |                  |                                    |
- | i |     RANGE_NAME   |   OFFSET   CUMULATI HEX_DUMP       |                                 ASCII_DUMP     
- | t |     MYDATA  <----'   00000000 00000000 63 6f 6d 6d <--'                                 comm           
- | f |   ^ .ff              02 .. 03          -- -- -- 02 --10----------------------------     .bitfield: ---.
- | i |---> .fx              03 .. 19          -- 00 36 f6 ---00011011011110110------------     .bitfield: -.6?
- | e |   v .f0              07 .. 17          -- -- 05 bd -------10110111101--------------     .bitfield: --.?
+ .---.           | data range |                      | data hexdump |
+ | b |           '------------'                      '--------------'
+ | i |                  |                                    |
+ | t |     BITMAP  <----'   00000000 00000000 0a 70 61 63 <--'                                 .pac           
+ | f |   ^ .ff              02 .. 03          -- -- -- 00    ----------------------------00--  .bitfield: ---.
+ | i |---> .fx              00 .. 31          0a 70 61 63    00001010011100000110000101100011  .bitfield: .pac
+ | e |   v .f0              00 .. 15          -- -- 61 63    ----------------0110000101100011  .bitfield: --ac
  | l |                         ^                    ^                     ^                          ^
  | d |                         |                    |                     |                          |
  | s |             .----------------------.-------------------.----------------------.    .---------------------.
@@ -341,24 +340,18 @@ The the format definiton  is: an optional "x (for offset) + offset" + "b (for bi
 
 An example output containing normal data and bifields dumps using the comand below.
 
-  $>hdr -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' -o ver file_name
+  $>hdr  -r 'header,12:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' -o ver file_name
 
 =begin html
 
 <pre style ="font-family: monospace; background-color: #000 ;">
-
-<span style='color:#fff;'>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span> 
-<span style='color:#fff;'>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span> 
-<span style='color:#0f0;'>header          </span> <span style='color:#fff;'>00000000</span> <span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>0a 70 61 63 6b 61 67 65 20 44 61 74             </span> <span style='color:#0f0;'>.package Dat    </span> 
-<span style='color:#ff0;'>name            </span> <span style='color:#fff;'>0000000c</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>61 3a 3a 48 65 78 44 75 6d 70                   </span> <span style='color:#ff0;'>a::HexDump      </span> 
-<span style='color:#f0f;'>magic           </span> <span style='color:#fff;'>00000016</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>3a 3a                                           </span> <span style='color:#f0f;'>::              </span> 
-<span style='color:#f00;'>offset          </span> <span style='color:#fff;'>00000018</span> <span style='color:#fff;'>00000000</span> <span style='color:#f00;'>52 61 6e 67                                     </span> <span style='color:#f00;'>Rang            </span> 
-<span style='color:#ff0;'>MYDATA          </span> <span style='color:#fff;'>0000001c</span> <span style='color:#fff;'>00000000</span> <span style='color:#ff0;'>65 20 3b 0a                                     </span> <span style='color:#ff0;'>e ;.            </span> 
-<span style='color:#fff;'>.ff             </span> <span style='color:#fff;'>02 .. 03</span> <span style='color:#fff;'>        </span> <span style='color:#fff;'>-- -- -- 02 --10----------------------------    </span> <span style='color:#fff;'>.bitfield: ---. </span> 
-<span style='color:#0f0;'>.fx             </span> <span style='color:#0f0;'>00 .. 31</span> <span style='color:#0f0;'>        </span> <span style='color:#0f0;'>65 20 3b 0a 01100101001000000011101100001010    </span> <span style='color:#0f0;'>.bitfield: e ;. </span> 
-<span style='color:#ff0;'>.f0             </span> <span style='color:#ff0;'>00 .. 15</span> <span style='color:#ff0;'>        </span> <span style='color:#ff0;'>-- -- 65 20 0110010100100000----------------    </span> <span style='color:#ff0;'>.bitfield: --e  </span> 
-<span style='color:#f0f;'>footer          </span> <span style='color:#fff;'>00000020</span> <span style='color:#fff;'>00000000</span> <span style='color:#f0f;'>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span> <span style='color:#f0f;'>.use strict;.use</span> 
-
+<span style = 'color:#fff;  color:#0f0; '>header          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>0a 70 61 63 6b 61 67 65 20 44 61 74             </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.package Dat    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>BITMAP          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000000c</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>61 3a 3a 48                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>a::H            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>.ff             </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>02 .. 03</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>-- -- -- 02    ----------------------------10-- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>.fx             </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 .. 31</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>61 3a 3a 48    01100001001110100011101001001000 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.bitfield: a::H </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>.f0             </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>00 .. 15</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- 3a 48    ----------------0011101001001000 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.bitfield: --:H </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>footer          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>exDump::Range ;.</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
 </pre>
 
 =end html
@@ -372,34 +365,34 @@ will display the skip range in the dump but not the data.
 
 In the command below, the range 'skip' removes 32 bytes from the display. '>>' is prepended to the range name.
 
-Command: I<hdr -r 'magic, 5, magic   :other,37  :bf,b8   :skip,x32,, I skipped :more, 20'  -rul -o ver>
+Command: I<hdr -r 'magic cookie, 5   :other,37  :bf,b8   :skip,x32,, I skipped :more, 20'  -rul -col -o ver>
 
-  RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP
-                                     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345
-  magic            00000000 00000000 63 6f 6d 6d 69                                   commi
-  other            00000005 00000000 74 20 31 39 39 61 34 62 31 32 37 62 32 39 66 39  t 199a4b127b29f9
-  other            00000015 00000010 31 64 32 65 36 33 66 39 35 66 38 63 34 30 62 64  1d2e63f95f8c40bd
-  other            00000025 00000020 65 31 39 62 61                                   e19ba
-  .bf              00 .. 07          -- -- -- 74    01110100------------------------  .bitfield: ---t
-  >>skip           0000002a 00000049 00 00 00 20 bytes skipped
-  more             0000004a 00000000 69 6d 20 6b 68 65 6d 69 72 20 3c 6e 6b 68 40 63  im khemir <nkh@c
-  more             0000005a 00000010 70 61 6e 2e                                      pan.
+ RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP
+                                    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345
+ magic cookie     00000000 00000000 63 6f 6d 6d 69                                   commi
+ other            00000005 00000000 74 20 31 39 39 61 34 62 31 32 37 62 32 39 66 39  t 199a4b127b29f9
+ other            00000015 00000010 31 64 32 65 36 33 66 39 35 66 38 63 34 30 62 64  1d2e63f95f8c40bd
+ other            00000025 00000020 65 31 39 62 61                                   e19ba
+ .bf              00 .. 07          -- -- -- 61    ------------------------01100001  .bitfield: ---a
+ >>skip           0000002a 00000049 00 00 00 20 bytes skipped
+ more             0000004a 00000000 69 6d 20 6b 68 65 6d 69 72 20 3c 6e 6b 68 40 63  im khemir <nkh@c
+ more             0000005a 00000010 70 61 6e 2e                                      pan.
 
 in color:
 
 =begin html
 
 <pre style ="font-family: monospace; background-color: #000 ;">
-<span style = ' color:#fff; '>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#fff; '>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#0f0; '>magic           </span><span style = ''> </span><span style = ''>00000000</span><span style = ''> </span><span style = ''>00000000</span><span style = ''> </span><span style = ' color:#0f0; '>63 6f 6d 6d 69                                  </span><span style = ''> </span><span style = ' color:#0f0; '>commi           </span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#ff0; '>other           </span><span style = ''> </span><span style = ''>00000005</span><span style = ''> </span><span style = ''>00000000</span><span style = ''> </span><span style = ' color:#ff0; '>74 20 31 39 39 61 34 62 31 32 37 62 32 39 66 39 </span><span style = ''> </span><span style = ' color:#ff0; '>t 199a4b127b29f9</span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#ff0; '>other           </span><span style = ''> </span><span style = ''>00000015</span><span style = ''> </span><span style = ''>00000010</span><span style = ''> </span><span style = ' color:#ff0; '>31 64 32 65 36 33 66 39 35 66 38 63 34 30 62 64 </span><span style = ''> </span><span style = ' color:#ff0; '>1d2e63f95f8c40bd</span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#ff0; '>other           </span><span style = ''> </span><span style = ''>00000025</span><span style = ''> </span><span style = ''>00000020</span><span style = ''> </span><span style = ' color:#ff0; '>65 31 39 62 61                                  </span><span style = ''> </span><span style = ' color:#ff0; '>e19ba           </span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#0ff; '>.bf             </span><span style = ''> </span><span style = ' color:#0ff; '>00 .. 07</span><span style = ''> </span><span style = ' color:#0ff; '>        </span><span style = ''> </span><span style = ' color:#0ff; '>-- -- -- 74    01110100------------------------ </span><span style = ''> </span><span style = ' color:#0ff; '>.bitfield: ---t </span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#f00; '>>>skip          </span><span style = ''> </span><span style = ''>0000002a</span><span style = ''> </span><span style = ''>00000049</span><span style = ''> </span><span style = ' color:#f00; '>00 00 00 20 bytes skipped                       </span><span style = ''> </span><span style = ' color:#f00; '>                </span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#fff; '>more            </span><span style = ''> </span><span style = ''>0000004a</span><span style = ''> </span><span style = ''>00000000</span><span style = ''> </span><span style = ' color:#fff; '>69 6d 20 6b 68 65 6d 69 72 20 3c 6e 6b 68 40 63 </span><span style = ''> </span><span style = ' color:#fff; '>im khemir <nkh@c</span><span style = ''> </span><span style = ''>
-</span><span style = ' color:#fff; '>more            </span><span style = ''> </span><span style = ''>0000005a</span><span style = ''> </span><span style = ''>00000010</span><span style = ''> </span><span style = ' color:#fff; '>70 61 6e 2e                                     </span><span style = ''> </span><span style = ' color:#fff; '>pan.            </span><span style = ''> </span><span style = ''>
+<span style = 'color:#fff;  color:#fff; '>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>magic cookie    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 6f 6d 6d 69                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>commi           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000005</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>74 20 31 39 39 61 34 62 31 32 37 62 32 39 66 39 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>t 199a4b127b29f9</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000015</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>31 64 32 65 36 33 66 39 35 66 38 63 34 30 62 64 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>1d2e63f95f8c40bd</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000025</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>65 31 39 62 61                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>e19ba           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>.bf             </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 .. 07</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>-- -- -- 61    ------------------------01100001 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.bitfield: ---a </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>&gt;&gt;skip          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000002a</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000049</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>00 00 00 20 bytes skipped                       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>                </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000004a</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>69 6d 20 6b 68 65 6d 69 72 20 3c 6e 6b 68 40 63 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>im khemir &lt;nkh@c</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000005a</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>70 61 6e 2e                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>pan.            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
 </span>
 </pre>
 
