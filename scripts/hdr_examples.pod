@@ -67,6 +67,69 @@ B<ANSI> can only be rendered on a terminal but it look like the HTML format belo
 
 =end html
 
+=head2 Range descritption
+
+                  format                complete range example
+		  
+  normal range => integer               header, 4, bright_blue     
+  comment      => #                     data section start, # 
+  bitfield     => [xInteger]bInteger    bitfield, x8b4 
+  skip range   => xInteger              boring, x256,, a comment
+
+=head3 Direct command line defintion
+
+You can define your range description on the command line by passing a string to  the I<--range_description> (short I<-r>) option.
+
+  hdr -r 'magic, 5,   :other,37  :bf,b8   :skip,x32,, I skipped :more, 20'
+
+=head3 Definition from a file
+
+The I<--range_description> option also accept a file namewhich contain a range description written in Perl.
+
+  hdr -r my_range_description_file
+
+=head4 simple file
+
+ 	[
+ 	  ['data header', 5, 'blue on_cyan'],
+ 	  ['data', 20, 'blue on_bright_yellow'],
+ 	] ;
+
+=head4 more structured file
+
+ use strict ;
+ use warnings ;
+ 
+ # any perl code you may need to generate your range definition
+ 
+ my $data_range = # definition to re-use
+ 	[
+ 	  ['data header', 5, 'blue on_cyan'],
+ 	  ['data', 20, 'blue on_bright_yellow'],
+ 	] ;
+ 
+ my $structured_range = 
+ 	[
+ 	  ['zero size', 0],
+ 	  [
+ 	    ['magic cookie', 12, 'red'],
+ 	    ['padding', 32, 'yellow'],
+ 	    $data_range, 
+ 	  ],
+          ['A comment', '#'],		
+ 	  [
+ 	    ['extra data', 18, undef],
+ 	      [
+ 	      $data_range, 
+ 	      ['footer', 4, 'bright_yellow on_red'],
+  	    ]
+   	  ],
+  	] ; 
+ 	
+ $structured_range ; # return the range description
+
+See Also L<Advanced usage>
+
 =head2 Colors and Headers
 
 =head3 Showing the column header and the rulers
@@ -93,21 +156,19 @@ Define a custom color file containing a data in the format below andd pass it as
   HTML =>
 	{
 	# custom color name
-	magic => 'color:#f00; background-color:#ff0; ',
+	custom => 'color:#f00; background-color:#ff0; ',
 	
 	# the normal ansi color
 	reset => '',
 	white => 'color:#aaa; ',
 	black => 'color:#000; ',
 	green => 'color:#0a0; ',
-	yellow => 'color:#aa0; ',
-	cyan => 'color:#0aa; ',
 	...
 	},
   ANSI =>
 	{
 	# custom color name, it's a good idea to define them on both formats
-	magic => 'bright_red on_bright_yellow; ',
+	custom => 'bright_red on_bright_yellow; ',
 	
 	reset => '',
 	white => 'white',
@@ -155,7 +216,7 @@ If you only want the ranges you gave a color to to be colorized,use the I<--colo
 
 =head3 from file or stdin
 
-  hdr -r 'magic, 5,  ...'  -rul -o ver -col my_file
+  hdr -r 'magic cooookie, 5,  ...'  -rul -o ver -col my_file
 
 or pipe your data into I<hdr>
 
@@ -172,10 +233,10 @@ I<hdr> will display one or more warnings is there is not enough data for all the
 
 I<hdr> only uses the  part that is used by your range descriptions. The rest is ignored.
 
-If you want to use an existing range description that contains too many range definitions, you can use the I<--maximum_size> option
+If you want to use an existing range description that contains many range definitions, you can use the I<--maximum_size> option
 to limit the amount of data I<hdr> will use.
 
-  $>hdr -r 'A,100:B,100:C,100:D,100' --maximum_size 200
+  $>hdr -r 'A,50:B,50:C,50:D,50' --maximum_size 100
 
 will display a warning:
 
@@ -260,9 +321,11 @@ If you want the displayed offset to correspond to the offset in your binary file
 =head3 Start color
 
 if you do not assign colors to your ranges, L<DATA::HexDump::Range> will conveniently assign a default color. Although this is what you want most of the time, in some cases you 
-want to control what dafault color is used first. In the above example, the first dump had range B<B> displayed in I<bright_yellow> and the second dump had it displayed in I<bright_green>.
+want to control what default color is used first.
 
-You can use option I<--start_color> to force the color.
+In the above example, the first dump had range B<B> displayed in I<bright_yellow> and the second dump had it displayed in I<bright_green>.
+
+You can use option I<--start_color> to force the color to match the dump that included the B<A> range.
 
   hdr -r 'B,5:bf,x3b5:C,18:D,10'  Changes -offset 55 -offset_start 55 -start_color bright_yellow
 
@@ -279,74 +342,11 @@ You can use option I<--start_color> to force the color.
 
 =end html
 
-See L<Skip Ranges>.
-
-=head2 Range descritption
-
-                  format                complete range example
-		  
-  normal range => integer               header, 4, bright_blue     
-  comment      => #                     data section start, # 
-  bitfield     => [xInteger]bInteger    bitfield, x8b4 
-  skip range   => xInteger              boring, x256,, comment
-
-=head3 Direct command line defintion
-
-You can define your range description on the command line by passing a string to  the I<--range_description> (short I<-r>) option.
-
-  hdr -r 'magic, 5,   :other,37  :bf,b8   :skip,x32,, I skipped :more, 20'
-
-=head3 Definition from a file
-
-The I<--range_description> option also accept a file namewhich contain a range description written in Perl.
-
-  hdr -r my_range_description_file
-
-=head4 simple file
-
- 	[
- 	  ['data header', 5, 'blue on_cyan'],
- 	  ['data', 20, 'blue on_bright_yellow'],
- 	] ;
-
-=head4 more structured file
-
- use strict ;
- use warnings ;
- 
- # any perl code you may need to generate your range definition
- 
- my $data_range = # definition to re-use
- 	[
- 	  ['data header', 5, 'blue on_cyan'],
- 	  ['data', 20, 'blue on_bright_yellow'],
- 	] ;
- 
- my $structured_range = 
- 	[
- 	    ['zero size', 0],
- 	  [
- 	    ['magic cookie', 12, 'red'],
- 	    ['padding', 32, 'yellow'],
- 	    $data_range, 
- 	  ],
-              ['other zero size', 0],		
- 	  [
- 	    ['extra data', 18, undef],
- 	      [
- 	      $data_range, 
- 	      ['footer', 4, 'bright_yellow on_red'],
-  	    ]
-   	  ],
-  	] ; 
- 	
- $structured_range ;
-
-See L<Advanced usage>
+See Also L<Skip Ranges>.
 
 =head2 Bitfields
 
-  $> hdr  --col -display_ruler -r 'data,1 :DATA,4:c,b9:d,b3 :e,x4b5     :the end,8:x,b3:data,47:v,x90b8' lib/Data/HexDump/Range.pm -format HTML  > file.html
+  $> hdr  -r 'data,1 :DATA,4  :c,b9  :d,b3 :e,x4b5  :the end,8 :x,b3 :data,47 :v,x90b8'
 
 =head3 Vertical mode
 
@@ -436,7 +436,7 @@ If you define an offset and a bit amout that sets the bitfields outside the data
 
 =head2 Skip Ranges
 
-Say you have data with data that you are not interrested in seeing in the dump.
+Say you have data with data that you are not interrested in seeing in the hexdump.
 
   $>hdr -r 'magic, 5  :other,37  :uninterresting,45     :more, 20'
 
@@ -455,7 +455,7 @@ Say you have data with data that you are not interrested in seeing in the dump.
 
 =end html
 
-Change the I<unninterresting> range definition to skip the data.
+Change the I<uninterresting> range definition to skip the data.
 
   $>hdr -r 'magic, 5  :other,37  :uninterresting,x45     :more, 20'
 

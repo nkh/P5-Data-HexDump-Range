@@ -428,15 +428,30 @@ for my  $field_type
 	['HEX_DUMP', 
 		sub 
 		{
-		my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
-		splice(@binary, 0, $offset) ;
-		splice(@binary, $size) ;
-		my $binary = join('', @binary) ;
+		my ($binary, @binary , $binary_dashed) ;
 		
-		my $value = unpack("N", pack("B32", substr("0" x 32 . $binary, -32)));
-
-		my $binary_dashed = '-' x $offset . $binary . '-' x (32 - ($size + $offset)) ;
-		$binary_dashed  = substr($binary_dashed , -32) ;
+		if($self->{BIT_ZERO_ON_LEFT})
+			{
+			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+			splice(@binary, 0, $offset) ;
+			splice(@binary, $size) ;
+			
+			$binary = join('', @binary) ;
+			
+			$binary_dashed = '-' x $offset . $binary . '-' x (32 - ($size + $offset)) ;
+			$binary_dashed  = substr($binary_dashed , -32) ;
+			}
+		else
+			{
+			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+			splice(@binary, -$offset) unless $offset == 0 ;
+			@binary = splice(@binary, - $size) ;
+			
+			$binary = join('',  @binary) ;
+			
+			$binary_dashed = '-' x (32 - ($size + $offset)) . $binary . '-' x $offset  ;
+			$binary_dashed  = substr($binary_dashed , 0, 32) ;
+			}
 		
 		my $bytes = $size > 24 ? 4 : $size > 16 ? 3 : $size > 8 ? 2 : 1 ;
 		
@@ -452,11 +467,24 @@ for my  $field_type
 	['DEC_DUMP', 
 		sub 
 		{
-		my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
-		splice(@binary, 0, $offset) ;
-		splice(@binary, $size) ;
-		my $binary = join('', @binary) ;
-		my $value = unpack("N", pack("B32", substr("0" x 32 . $binary, -32)));
+		my ($binary, @binary , $value) ;
+		
+		if($self->{BIT_ZERO_ON_LEFT})
+			{
+			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+			splice(@binary, 0, $offset) ;
+			splice(@binary, $size) ;
+			$binary = join('', @binary) ;
+			$value = unpack("N", pack("B32", substr("0" x 32 . $binary, -32)));
+			}
+		else
+			{
+			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+			splice(@binary, -$offset) unless $offset == 0 ;
+			@binary = splice(@binary, - $size) ;
+			$binary = join('', @binary) ;
+			$value = unpack("N", pack("B32", substr("0" x 32 . $binary, -32)));
+			}
 		
 		my @values = map {sprintf '%03u', $_} unpack("W*", pack("B32", substr("0" x 32 . $binary, -32)));
 		
@@ -471,12 +499,23 @@ for my  $field_type
 	['ASCII_DUMP',
 		sub 
 		{
-		my @binary = split '', unpack("B*",  $_[0]->{DATA}) ;
-		splice(@binary, 0, $offset) ;
-		splice(@binary, $size) ;
-		my $binary = join('', @binary) ;
+		my ($binary, @binary , @chars) ;
 		
-		my @chars = map{$_ < 30 ? '.' : chr($_) } unpack("C*", pack("B32", substr("0" x 32 . $binary, -32)));
+		if($self->{BIT_ZERO_ON_LEFT})
+			{
+			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+			splice(@binary, 0, $offset) ;
+			splice(@binary, $size) ;
+			}
+		else
+			{
+			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+			splice(@binary, -$offset) unless $offset == 0 ;
+			@binary = splice(@binary, - $size) ;
+			}
+			
+		$binary = join('', @binary) ;
+		@chars = map{$_ < 30 ? '.' : chr($_) } unpack("C*", pack("B32", substr("0" x 32 . $binary, -32)));
 		
 		my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
 		splice @chars, 0 , (4 - $number_of_bytes), map {'-'} 1 .. (4 - $number_of_bytes) ;

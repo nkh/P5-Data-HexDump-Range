@@ -63,8 +63,10 @@ Data::HexDump::Range - Hexadecial Range Dumper
 
 =head1 DESCRIPTION
 
-Creates a dump from binary data and user defined I<range> descriptions. The goal of this modules is
-to create an easy to understand dump of binary data. This achieved through:
+Creates a dump from binary data and user defined I<range> descriptions. The goal of this module is
+to create an easy to understand dump of binary data. 
+
+This achieved through:
 
 =over 2
 
@@ -74,7 +76,7 @@ to create an easy to understand dump of binary data. This achieved through:
 
 =item * Bitfield rendering
 
-=item * Ranges that skipping data
+=item * Skipping uninterresting data
 
 =item * The possibility to describe complex structures
 
@@ -83,9 +85,9 @@ to create an easy to understand dump of binary data. This achieved through:
 =head1 DOCUMENTATION
 
 The shortest perl dumper is C<perl -ne 'BEGIN{$/=\16} printf "%07x0: @{[unpack q{(H2)*}]}\n", $.-1'>, courtesy of a golfing session 
-with Andrew Rodland <arodland@cpan.org> aka I<hobbs>. I<priodev>, I<tm604>, I<Khisanth> and other helped with the html output.
+with Andrew Rodland <arodland@cpan.org> aka I<hobbs>. I<priodev>, I<tm604>, I<Khisanth> and other provided valuable insight particularely  with the html output.
 
-B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to write this module. This module offers
+B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to write this module. This module offers many
 more options but B<hexd> may be a better  alternative If you need very fast dump generation.
 
 B<Data::HexDump::Range> splits binary data according to user defined I<ranges> and rendered as a B<hex> or/and B<decimal> data dump.
@@ -232,7 +234,7 @@ You can also pass the ranges as a string. The L<hdr> command line range dumper t
 Example:
 
  $>hdr --col -display_ruler -o ver -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16:field,x8b8:field2, b17:footer,20' my_binary
-       
+
 =head3 Size field format
 
 The size field is used to defined if the range is a normal range, a comment, a bitfield or a skip range. The formats are a s follows:
@@ -296,7 +298,7 @@ For simple data formats, your can put all the your range descriptions in a array
 	    ]
 	  ],
 	]
-	
+
 =head4 Comment ranges
 
 If the size of a range is the string '#', the whole range is considered a comment
@@ -339,7 +341,7 @@ The the format definiton  is: an optional "x (for offset) + offset" + "b (for bi
 
 An example output containing normal data and bifields dumps using the comand below.
 
-  $>hdr --col -display_ruler -o ver -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' file_name
+  $>hdr -r 'header,12:name,10:magic,2:offset,4:BITMAP,4,bright_yellow:ff,x2b2:fx,b32:f0,b16::footer,16' -o ver file_name
 
 =begin html
 
@@ -361,9 +363,9 @@ An example output containing normal data and bifields dumps using the comand bel
 
 =end html
 
-By default bitfields are displayed  in vertical mode but not in horizontal mode.
+By default bitfields are not displayed  in horizontal mode.
 
-=head4 Skip ranges
+=head3 Skip ranges
 
 If the size format is 'x' + number, that number of bytes is skipped from the data. B<Data::HexDump::Range>
 will display the skip range in the dump but not the data.
@@ -424,7 +426,7 @@ a subroutine definition.
   }
   
   $hdr->dump([\&cloth_size, 1, 'yellow'], $data) ;
-  
+
 =head4 'size' sub ref
 
   sub cloth_size
@@ -434,7 +436,7 @@ a subroutine definition.
   }
   
   $hdr->dump(['data', \&get_size, 'yellow'], $data) ;
-  
+
 =head4 'color' sub ref
 
   my $flip_flop = 1 ;
@@ -501,7 +503,7 @@ OR
 
 =head1 EXAMPLES
 
-See I<hdr_user_manual> in the distribution.
+See I<hdr_examples.pod> in the distribution.
 
 =head1 SUBROUTINES/METHODS
 
@@ -632,6 +634,8 @@ in base 10. Default is 'hex'.
 =item * DISPLAY_BITFIELD_SOURCE - Boolean - if set an extra column indicataing the source of bitfields is displayed
 
 =item * DISPLAY_BITFIELDS - Boolean - if set the bitfields are displayed
+
+=item * BIT_ZERO_ON_LEFT - Boolean - if set the bit of index 0 is on left growing to the right. Default I<false>
 
 =item * COLOR_NAMES - A hash reference
 

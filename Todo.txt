@@ -2,31 +2,14 @@
 # This is Todo.txt #
 #------------------#
 
-update module documentation
-	skip range
+binary dump range
 
 refactoring
 	type instead for IS_COMMENT, IS_BITFIELD, IS_SKIP
 	split should use $self->{FIELD_LENGTH}
 	author tests
 
-#colorizer does not handle  < in html format
-
-#error wrong way to compute the column width
-	show when rnage names are short and few on the first line
-	
-#option to embed the comand line in the html output
-
-#color_start
-#start_end_tag
-
-
-#in direct dump mode, use the offset passed by the user to set the starting offset point
-	#000017 xx xx xx xx                    something starting at offset 17
-	#=> option
-	OFFSET_START in examples
-
-handle indianness
+handle bit zero on left
 
 examples
 	IPV4 header
