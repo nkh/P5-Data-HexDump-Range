@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.08';
+$VERSION     = '0.09';
 }
 
 #-------------------------------------------------------------------------------
@@ -614,6 +614,8 @@ in base 10. Default is 'hex'.
 =item * DISPLAY_OFFSET - Boolean - If set, the offset column is displayed. Default I<true>
 
 =item * DISPLAY_CUMULATIVE_OFFSET - Boolean - If set, the cumulative offset column is displayed in 'vertical' rendering mode. Default is I<true>
+
+=item * OFFSET_START - Integer - value added to the offset. 
 
 =item * DISPLAY_ZERO_SIZE_RANGE - Boolean - if set, ranges that do not consume data are displayed. default is I<true> 
 

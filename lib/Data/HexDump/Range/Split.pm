@@ -139,7 +139,7 @@ for my $range (@{$collected_data})
 			
 			for my  $field_type 
 				(
-				['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $current_offset}, undef, 0],
+				['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $current_offset + $self->{OFFSET_START}}, undef, 0],
 				['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
 				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
 				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
@@ -187,7 +187,7 @@ for my $range (@{$collected_data})
 		
 			for my  $field_type 
 				(
-				['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $current_offset}, undef, 0],
+				['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $current_offset + $self->{OFFSET_START}}, undef, 0],
 				['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
 				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
 				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
@@ -262,10 +262,10 @@ for my $range (@{$collected_data})
 			
 			for my  $field_type 
 				(
-				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
-				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data ;}, undef, 8],
+				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} }, $range->{COLOR}, $max_range_name_size] ,
+				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data + $self->{OFFSET_START}}, undef, 8],
 				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $next_data_offset}, undef, 8],
-				['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
+				['BITFIELD_SOURCE', sub {' ' x 8}, undef, 8],
 				[
 				'HEX_DUMP', 
 				sub 
@@ -324,7 +324,7 @@ for my $range (@{$collected_data})
 			for my  $field_type 
 				(
 				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
-				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data ;}, undef, 8],
+				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data + $self->{OFFSET_START}}, undef, 8],
 				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}, undef, 8],
 				['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
 				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $self->{DATA_WIDTH}],
@@ -561,12 +561,7 @@ if($self->{DISPLAY_COLUMN_NAMES})
 		{
 		if(exists $split_data->[0]{$field_name})
 			{
-			my $length = 0 ;
-			
-			for (@{$split_data->[0]{$field_name}})
-				{
-				$length += length($_->{$field_name}) ;
-				}
+			my $length = $self->{FIELD_LENGTH}{$field_name} || croak "Error: undefined field length" ;
 				
 			$information .= sprintf "%-${length}.${length}s ", $field_name
 			}
@@ -587,13 +582,6 @@ if($self->{DISPLAY_RULER})
 		{
 		if(exists $split_data->[0]{$field_name})
 			{
-			my $length = 0 ;
-			
-			for (@{$split_data->[0]{$field_name}})
-				{
-				$length += length($_->{$field_name}) ;
-				}
-				
 			for ($field_name)
 				{
 				/HEX_DUMP/ and do
@@ -617,7 +605,7 @@ if($self->{DISPLAY_RULER})
 					last ;
 					} ;
 					
-				$information .= ' ' x $length  . ' ' ;
+				$information .= ' ' x $self->{FIELD_LENGTH}{$field_name}  . ' ' ;
 				}
 			}
 		}

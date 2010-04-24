@@ -73,10 +73,10 @@ if($self->{COLOR} eq 'bw')
 	}
 else
 	{
+	$default_color = $self->{COLORS}{$self->{FORMAT}}[$self->{CURRENT_COLOR_INDEX}] ;
+	
 	$self->{CURRENT_COLOR_INDEX}++ ;
 	$self->{CURRENT_COLOR_INDEX} = 0 if $self->{CURRENT_COLOR_INDEX} >= @{$self->{COLORS}{$self->{FORMAT}}} ;
-	
-	$default_color = $self->{COLORS}{$self->{FORMAT}}[$self->{CURRENT_COLOR_INDEX}] ;
 	}
 	
 return $default_color ;

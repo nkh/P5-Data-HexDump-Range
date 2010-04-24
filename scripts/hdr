@@ -21,14 +21,22 @@ head1 OPTIONS
 			                   'color:name,size:name,size,...'
 					    
  offset                           position in the data where to start dumping
+ offset_start                     value added to the offset before display
+ 
  maximum_size                     amount of data to dump
  
  orientation|o                    'horizontal' or 'vertical'
  display_column_names|col         display columns names
  display_ruler|rul                display horizontal ruler
  format|f                         'ANSI' or 'ASCII' or 'HTML' 
+ display_command_line             make the command line part of the output
+ 
  color                            'bw' or 'cycle',
  colors                           file containing custom colors
+ start_color                      name of the first random color to use
+ start_tag/end_tag                text that is output before and after the dump
+                                       see L<hdr_examples.pod>
+ 
  data_width|w                     number of bytes per dump line
  
  offset_format                    'hex' or 'dec' 
@@ -50,6 +58,7 @@ head1 OPTIONS
  display_source                   1 == display source for bitfields 
  
  h|help                           display this scripts help page
+ generate_completion_script|bash  generates a completion script on STDOUT
  
 
 =head1 EXIT STATUS
@@ -75,7 +84,7 @@ use IO::Select ;
 use Data::HexDump::Range qw() ;
 use Term::Bash::Completion::Generator ;
 
-our $VERSION = '0.03' ;
+our $VERSION = '0.04' ;
 
 #------------------------------------------------------------------------------------------------------------------------
 
@@ -85,14 +94,22 @@ my @options =
 	'dump_range_description|d' =>\my $dump_range_description,
 
 	'offset=i' =>  \my $offset,
+	'offset_start=i' => \my $offset_start,
+	
 	'maximum_size=i' =>  \my $maximum_size,
 	'orientation|o=s' => \my $orientation,
 	'display_column_names|col' => \my $display_column_names,
 	'display_ruler|rul' => \my $display_ruler,
 
 	'format|f=s' => \my $format,
+	'display_command_line' => \my $display_command_line,
+	
 	'color=s' => \my $color,
 	'colors=s' => \my $color_file,
+	'start_color=s' => \my $start_color,
+	'start_tag=s' => \my $start_tag,
+	'end_tag=s' => \my $end_tag,
+	
 	'data_width=i' =>  \my $data_width,
 
 	'offset_format=s' => \my $offset_format,
@@ -117,9 +134,21 @@ my @options =
 	'generate_completion_script|bash' => \my $generatebash_completion,
 	) ;
 
+my @ARGV_COPY = @ARGV ; # getopt removes elements
+
 display_help() unless GetOptions(@options) ;
 
 generate_completion_script(@options) if $generatebash_completion ;
+
+print "\n$start_tag\n\n" if defined $start_tag ;
+
+if($display_command_line)
+	{
+	use Text::Colorizer ;
+	my $c= Text::Colorizer->new(FORMAT => $format || 'ANSI', JOIN => ' ') ;
+	
+	print $c->color_all('bright_white', 'hdr', grep{! /-output_command_line/} @ARGV_COPY) ;
+	}
 
 my $data ;
 
@@ -163,14 +192,19 @@ my @color_file = (COLOR_NAMES => $color_file) if(defined $color_file) ;
 
 my $hdr = Data::HexDump::Range->new
 			(
+			INTERACTION => {WARN => sub {warn @_}},
+			
 			ORIENTATION => $orientation || 'horizontal',
 			DISPLAY_COLUMN_NAMES => defined $display_column_names ? $display_column_names : 0,
 			DISPLAY_RULER => defined $display_ruler ? $display_ruler : 0,
 			
 			FORMAT => $format || 'ANSI',
 			COLOR => defined $color ? $color : 'cycle',
+			START_COLOR => $start_color,
 			
 			OFFSET_FORMAT => $offset_format || 'hex',
+			OFFSET_START => $offset_start || 0,
+			
 			DATA_WIDTH => $data_width || 16,
 			
 			DISPLAY_RANGE_NAME => defined $display_range_name ? $display_range_name : 1 ,
@@ -194,6 +228,8 @@ my $hdr = Data::HexDump::Range->new
 			) ;
 
 print $hdr->dump( $range, $data, $offset, $maximum_size) ;
+
+print "\n$end_tag\n\n" if defined $end_tag ;
 
 #------------------------------------------------------------------------------------------------------------------------
 
