@@ -68,30 +68,27 @@ I<Exceptions>
 
 my ($self, $collected_data) = @_ ;
 
-#~ use Data::TreeDumper ;
-#~ print DumpTree $collected_data ;
-
 my @lines ;
 my $line = {} ;
-my $current_offset = 0 ;
+my $wrapped_line = 0 ;
 
-my $room_left = $self->{DATA_WIDTH} ;
+my $current_offset = 0 ;
 my $total_dumped_data = 0 ;
+my $room_left = $self->{DATA_WIDTH} ;
+
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 my $range_source = ['?', 'white'] ;
+
 my @found_bitfields ;
 
 my $last_range = (grep {!  $_->{IS_BITFIELD}}@{$collected_data})[-1] ;
-my $wrapped_line = 0 ;
 
 for my $range (@{$collected_data})
 	{
 	my $data_length = defined $range->{DATA} ? length($range->{DATA}) : 0 ;
-	my $is_comment = ! defined $range->{DATA} ;
-	my ($start_quote, $end_quote) = $is_comment ? ('"', '"') : ('<', '>') ;
+	my ($start_quote, $end_quote) = $range->{IS_COMMENT} ? ('"', '"') : ('<', '>') ;
 		
 	$range->{SOURCE} = $range_source  if $range->{IS_BITFIELD} ;
-	$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
 		
 	if($self->{ORIENTATION} =~ /^hor/)
 		{
@@ -100,7 +97,11 @@ for my $range (@{$collected_data})
 			push @found_bitfields, $self->get_bitfield_lines($range) ;
 			next ;
 			}
-		else
+			
+		$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+		
+		# remember what range we process in case next range is bitfield
+		unless($range->{IS_COMMENT})
 			{
 			$range_source = [$range->{NAME}, $range->{COLOR}]  ;
 			}
@@ -169,7 +170,7 @@ for my $range (@{$collected_data})
 			push @lines,  @found_bitfields ;
 			@found_bitfields = () ;
 			
-			# start from frewh line
+			# start a fresh line
 			
 			$line = {} ;
 			$room_left = $self->{DATA_WIDTH} ;
@@ -232,6 +233,8 @@ for my $range (@{$collected_data})
 		{ 
 		# vertical mode
 			
+		$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+		
 		$line = {} ;
 
 		my $dumped_data = 0 ;

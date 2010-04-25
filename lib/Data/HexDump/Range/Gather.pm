@@ -89,13 +89,8 @@ my ($self, $collected_data, $range_description, $data, $offset, $size) = @_ ;
 
 my $location = "$self->{FILE}:$self->{LINE}" ;
 
-my $range_provider = $self->create_range_provider($range_description);
 my $used_data = $offset || 0 ;
-
-if($used_data < 0)
-	{
-	$self->{INTERACTION}{DIE}("Error: Invalid negative offset at '$location'.\n")
-	}
+$self->{INTERACTION}{DIE}("Error: Invalid negative offset at '$location'.\n") if($used_data < 0) ;
 
 $size = defined $size ? min($size, length($data) - $used_data) : length($data) - $used_data ;
 my $maximum_size = $size ;
@@ -103,10 +98,12 @@ my $maximum_size = $size ;
 my $skip_remaining_ranges = 0 ;
 my $last_data = '' ;
 
+my $range_provider = $self->create_range_provider($range_description);
+
 while(my $range  = $range_provider->($self, $data, $used_data))
 	{
-	my ($range_name, $range_size, $range_color, $range_user_information) = @{$range} ;
-	my $range_size_definition = $range_size ; # needed for comment and bitfield
+	my ($range_name, $range_size_definition, $range_color, $range_user_information) = @{$range} ;
+	my $range_size = $range_size_definition; 
 
 	for my $range_field ($range_name, $range_size, $range_color, $range_user_information)
 		{
@@ -116,34 +113,25 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 	my ($is_comment, $is_bitfield, $is_skip, $unpack_format) ;
 
 	# handle maximum_size
-	my $truncated_size ;
 	if($EMPTY_STRING eq ref($range_size))
 		{
-		# first, type and range size
 		($is_comment, $is_bitfield, $is_skip, $range_size, undef) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
-		
-		# second, adjust the so we don't extract more than the user asked for
-		if($maximum_size - $used_data < $range_size)
-			{
-			$truncated_size = max($maximum_size - $used_data, 0) ;
-			$range_size = $truncated_size ;
-			}
 		}
 	elsif('CODE' eq ref($range_size))
 		{
 		($is_comment, $is_bitfield, $is_skip, $range_size, undef) = $self->unpack_range_size($range_name, $range_size->(), $used_data) ;
-		
-		if($maximum_size - $used_data < $range_size)
-			{
-			$truncated_size = max($maximum_size - $used_data, 0) ;
-			$range_size = $truncated_size ;
-			}
 		}
 	else
 		{
 		$self->{INTERACTION}{DIE}("Error: size '$range_size' doesn't look like a number or a code reference in range '$range_name' at '$location'.\n")
 		}
 
+	my $truncated_size ;
+	if($maximum_size - $used_data < $range_size)
+		{
+		$range_size = $truncated_size = max($maximum_size - $used_data, 0) ;
+		$skip_remaining_ranges++ ;
+		}
 	#third, get the unpack format with the justified size
 	# note that we keep $is_comment and $is_bitfield from first run
 	# as the those are extracted from the size field and we have modified it
@@ -158,17 +146,12 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		else
 			{
 			my $next_range  = $range_provider->($self, $data, $used_data) ;
-			$self->{INTERACTION}{WARN}("Warning: More ranges to display but no more data.\n")if defined $range ;
+			$self->{INTERACTION}{WARN}("Warning: More ranges to display but no more data.\n") if defined $next_range ;
 			
 			last ;
 			}
 		}
 		
-	if(defined $truncated_size)
-		{
-		$self->{INTERACTION}{WARN}("Warning: range '$range_name' size $range_size was shortened to $truncated_size due to maximum size limit at '$location'.\n") ;
-		}
-
 	if(! $is_comment && ! $is_bitfield)
 		{
 		if($range_size == 0 && $self->{DISPLAY_ZERO_SIZE_RANGE_WARNING}) 
@@ -178,27 +161,17 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 			
 		if(defined $truncated_size)
 			{
-			$range_name = "<T>$range_name"  ;
+			$self->{INTERACTION}{WARN}("Warning: range '$range_name' size was reduced from $range_size_definition to $truncated_size due to size limit at '$location'.\n") ;
+			$range_name = "$range_size_definition->$truncated_size:$range_name"  ;
 			}
-
-		if($self->{DISPLAY_RANGE_SIZE})
+		else
 			{
-			$range_name = "$range_size:$range_name" ;
+			if($self->{DISPLAY_RANGE_SIZE})
+				{
+				$range_name = "$range_size:$range_name" ;
+				}
 			}
-		}
-
-	if($range_size > $size)
-		{
-		$self->{INTERACTION}{WARN}("Warning: not enough data for range '$range_name', $range_size needed but only $size available.\n") ;
-		
-		$range_name = '-' . ($range_size - $size)  . ':' . $range_name ;
-		
-		$range_size = $size;
-		$skip_remaining_ranges++ ;
-		}
-		
-	unless ($is_comment || $is_bitfield)
-		{
+			
 		$last_data = unpack($unpack_format, $data) # get out data from the previous range for bitfield
 		}
 		
@@ -210,8 +183,11 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		DATA =>  $is_comment ? undef : $last_data,
 		IS_BITFIELD => $is_bitfield ? $range_size_definition : 0,
 		IS_SKIP => $is_skip,
+		IS_COMMENT => $is_comment,
 		USER_INFORMATION => $range_user_information,
 		} ;
+	
+	push @{$collected_data}, $chunk ;	
 	
 	if($self->{DUMP_RANGE_DESCRIPTION})
 		{
@@ -227,8 +203,6 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 				) ;
 		}
 
-	push @{$collected_data}, $chunk ;	
-	
 	$used_data += $range_size ;
 	$size -= $range_size ;
 

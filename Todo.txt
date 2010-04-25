@@ -2,14 +2,16 @@
 # This is Todo.txt #
 #------------------#
 
-binary dump range
-
 refactoring
+	do not cary the data in the ranges
 	type instead for IS_COMMENT, IS_BITFIELD, IS_SKIP
 	split should use $self->{FIELD_LENGTH}
 	author tests
-
-handle bit zero on left
+	spelling
+	skip range code
+	bitfield column display code
+		cleaner
+		more effective
 
 examples
 	IPV4 header

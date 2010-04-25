@@ -130,6 +130,32 @@ The I<--range_description> option also accept a file namewhich contain a range d
 
 See Also L<Advanced usage>
 
+=head2 Decimal dump
+
+You can get a decimal dump instead for an hexidecimal dump.
+
+ hdr  -r 'header,20 :DATA,4  :c,b24  :e,x4b5 :uninterresting, x16  :more,20' -display_dec_dump 1 -display_hex_dump 0 -rul -col -o ver 
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>RANGE_NAME       OFFSET   CUMULATI DEC_DUMP                                                         ASCII_DUMP       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>                                   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5    0123456789012345 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>header          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>010 112 097 099 107 097 103 101 032 068 097 116 097 058 058 072 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.package Data::H</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>header          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>101 120 068 117                                                 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>exDu            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>DATA            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000014</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>109 112 058 058                                                 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>mp::            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>.c              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 .. 23</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>--- 112 058 058 value: 7354938                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.bitfield: -p:: </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>.e              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>04 .. 08</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>--- --- --- 003 value: 3                                        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>&gt;&gt;uninterresting</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000018</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000027</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>000 000 000 016 skipped: 16 bytes                               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>                </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000028</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>105 099 116 059 010 117 115 101 032 119 097 114 110 105 110 103 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>ict;.use warning</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000038</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>115 032 059 010                                                 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>s ;.            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+You can also have both dumps simulteanously. Check the display option of the I<hdr> command.
+
 =head2 Colors and Headers
 
 =head3 Showing the column header and the rulers
