@@ -779,7 +779,9 @@ my ($self, $range_description, $data, $offset, $size) = @_ ;
 
 return unless defined wantarray ;
 
-my ($gathered_data, $used_data) = $self->_gather(undef, $range_description, $data, $offset, $size) ;
+local $self->{GATHERED} = [] ;
+
+my ($gathered_data, $used_data) = $self->_gather($self->{GATHERED}, $range_description, $data, $offset, $size) ;
 
 my $split_data = $self->split($gathered_data) ;
 

@@ -17,8 +17,6 @@ examples
 	IPV4 header
 	http://en.wikipedia.org/wiki/S-record
 
-pass the already gathered data to the dynamic range generators
-
 # --------------------------------------------------------
 # IPV4_header:
 # BF: Version 4, Header length 4, Differentiated Services 2, Total Length 30

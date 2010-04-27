@@ -108,6 +108,9 @@ my $range_provider = $self->create_range_provider($range_description);
 
 while(my $range  = $range_provider->($self, $data, $used_data))
 	{
+	use Data::TreeDumper ;
+	print DumpTree $range ;
+	
 	my ($range_name, $range_size_definition, $range_color, $range_user_information) = @{$range} ;
 	my $range_size = $range_size_definition; 
 
