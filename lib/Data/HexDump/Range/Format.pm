@@ -1,5 +1,5 @@
 
-package Data::HexDump::Range ;
+package Data::HexDump::Range ; ## no critic (Modules::RequireFilenameMatchesPackage)
 
 use strict;
 use warnings ;
@@ -37,6 +37,12 @@ use Text::Colorizer ;
 =head1 NAME
 
 Data::HexDump::Range::Format - Handles formating for Data::HexDump::Range
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 DOCUMENTATION
 
 =head1 SUBROUTINES/METHODS
 
@@ -84,7 +90,7 @@ return $default_color ;
 
 #-------------------------------------------------------------------------------
 
-sub format
+sub format ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 {
 	
 =head2 [P] format($line_data)
@@ -130,11 +136,11 @@ for my $line (@{$line_data})
 				push @colored_lines, $range->{"${field}_COLOR"}, $range->{$field} ,
 				}
 				
-			push @colored_lines, $EMPTY_STRING, ' ' ;
+			push @colored_lines, $EMPTY_STRING, q{ } ;
 			}
 		}
 		
-	push @colored_lines, '', "\n" if $line->{NEW_LINE} ;
+	push @colored_lines, $EMPTY_STRING, "\n" if $line->{NEW_LINE} ;
 	}
 
 return $colorizer->color(@colored_lines) ;
@@ -154,9 +160,9 @@ None so far.
 	CPAN ID: NKH
 	mailto: nadim@cpan.org
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2010 Nadim Khemir.
+Copyright Nadim Khemir 2010.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of either:

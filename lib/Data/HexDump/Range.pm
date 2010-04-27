@@ -760,7 +760,7 @@ return $self->format($split_data) ;
 
 #-------------------------------------------------------------------------------
 
-sub dump
+sub dump ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 {
 
 =head2 dump($range_description, $data, $offset, $size)
@@ -813,11 +813,11 @@ I<Exceptions> - dies if the range description is invalid
 
 =cut
 
-my ($self) = shift ;
+my ($self,$data, $offset, $size) = @_ ;
 
 return unless defined wantarray ;
 
-my ($gathered_data, $used_data) = $self->_gather(undef, @_) ;
+my ($gathered_data, $used_data) = $self->_gather(undef, $data, $offset, $size) ;
 
 my $dump =$self->format($self->split($gathered_data)) ;
 
@@ -826,7 +826,7 @@ return  $dump, $used_data ;
 
 #-------------------------------------------------------------------------------
 
-sub reset
+sub reset ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 {
 
 =head2 reset()
@@ -862,9 +862,9 @@ None so far.
 	CPAN ID: NKH
 	mailto: nadim@cpan.org
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2010 Nadim Khemir.
+Copyright Nadim Khemir 2010.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of either:

@@ -14,7 +14,7 @@ use Carp ;
  
  $> hdr file_to_dump -r 'header,40, yellow:padding,24:magic,16,red:size,4:data,100:footer,16' -o ver
 
-head1 OPTIONS
+=head1 OPTIONS
 
  range_description|r              file name containing a description
                                   or a string description formated as:
@@ -87,6 +87,10 @@ use Term::Bash::Completion::Generator ;
 
 our $VERSION = '0.04' ;
 
+use Readonly ;
+Readonly my $SIZE_IF_RANGE_ERROR=> 256 ;
+Readonly my $DEFAULT_SIZE => 16 ;
+
 #------------------------------------------------------------------------------------------------------------------------
 
 my @options = 
@@ -147,9 +151,9 @@ print "\n$start_tag\n\n" if defined $start_tag ;
 if($display_command_line)
 	{
 	use Text::Colorizer ;
-	my $c= Text::Colorizer->new(FORMAT => $format || 'ANSI', JOIN => ' ') ;
+	my $c= Text::Colorizer->new(FORMAT => $format || 'ANSI', JOIN => q{ }) ;
 	
-	print $c->color_all('bright_white', 'hdr', grep{! /-output_command_line/} @ARGV_COPY) ;
+	print $c->color_all('bright_white', 'hdr', grep{! /-output_command_line/xsm} @ARGV_COPY) ;
 	}
 
 my $data ;
@@ -157,7 +161,7 @@ my $data ;
 my $io_select = IO::Select->new(\*STDIN) ;
 if($io_select->can_read(0))
 	{
-	$/ = undef ;
+	local $INPUT_RECORD_SEPARATOR = undef ;
 	$data =  <STDIN> ; ## no critic (InputOutput::ProhibitExplicitStdin)
 	}
 else
@@ -172,14 +176,14 @@ my $range ;
 
 if(defined $range_description )
 	{
-	if($range_description =~ /,/)
+	if($range_description =~ /,/xsm)
 		{
 		$range = $range_description ;
 		}
 	else
 		{
 		# a file
-		$range  = do $range_description || ['hdr: range error', 16 * 16 ] ;
+		$range  = do $range_description || ['hdr: range error', $SIZE_IF_RANGE_ERROR ] ;
 		}
 	}
 else
@@ -190,11 +194,12 @@ else
 	}
 	
 	
-my @color_file = (COLOR_NAMES => $color_file) if(defined $color_file) ;
+my @color_file ;
+@color_file = (COLOR_NAMES => $color_file) if(defined $color_file) ;
 
 my $hdr = Data::HexDump::Range->new
 			(
-			INTERACTION => {WARN => sub {warn @_}},
+			INTERACTION => {WARN => sub {warn @_}}, ## no critic (ErrorHandling::RequireCarping)
 			
 			ORIENTATION => $orientation || 'horizontal',
 			DISPLAY_COLUMN_NAMES => defined $display_column_names ? $display_column_names : 0,
@@ -207,11 +212,11 @@ my $hdr = Data::HexDump::Range->new
 			OFFSET_FORMAT => $offset_format || 'hex',
 			OFFSET_START => $offset_start || 0,
 			
-			DATA_WIDTH => $data_width || 16,
+			DATA_WIDTH => $data_width || $DEFAULT_SIZE,
 			
 			DISPLAY_RANGE_NAME => defined $display_range_name ? $display_range_name : 1 ,
 			DUMP_RANGE_DESCRIPTION => defined $dump_range_description ? $dump_range_description : 0 ,
-			MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : 16,
+			MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : $DEFAULT_SIZE,
 			DISPLAY_RANGE_SIZE => defined $display_range_size ? $display_range_size : 0,
 			
 			DISPLAY_OFFSET  => defined $display_offset ? $display_offset : 1 ,

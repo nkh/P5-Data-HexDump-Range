@@ -1,5 +1,5 @@
 
-package Data::HexDump::Range ;
+package Data::HexDump::Range ; ## no critic (Modules::RequireFilenameMatchesPackage)
 
 use strict;
 use warnings ;
@@ -39,6 +39,8 @@ Data::HexDump::Range::Object - Hexadecial Range Dumper object creation support m
 =head1 DESCRIPTION
 
 The main goal of this module is to remove non public APIs from the module documentation
+
+=head1 DOCUMENTATION
 
 =head1 SUBROUTINES/METHODS
 
@@ -87,7 +89,7 @@ Readonly my $NEW_ARGUMENTS =>
 sub Setup
 {
 
-=head2 [P] Setup(...)
+=head2 [P] Setup()
 
 Helper sub called by new. This is a private sub.
 
@@ -234,7 +236,7 @@ return ;
 sub CheckOptionNames
 {
 
-=head2 [P] CheckOptionNames(...)
+=head2 [P] CheckOptionNames()
 
 Verifies the named options passed to the members of this class. Calls B<{INTERACTION}{DIE}> in case
 of error. 
@@ -301,9 +303,9 @@ None so far.
 	CPAN ID: NKH
 	mailto: nadim@cpan.org
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2010 Nadim Khemir.
+Copyright Nadim Khemir 2010.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of either:

@@ -1,5 +1,5 @@
 
-package Data::HexDump::Range ;
+package Data::HexDump::Range ; ## no critic (Modules::RequireFilenameMatchesPackage)
 
 use strict;
 use warnings ;
@@ -36,6 +36,11 @@ use Carp qw(carp croak confess) ;
 
 Data::HexDump::Range::Split - Handles formating for Data::HexDump::Range
 
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 DOCUMENTATION
 
 =head1 SUBROUTINES/METHODS
 
@@ -677,9 +682,9 @@ None so far.
 	CPAN ID: NKH
 	mailto: nadim@cpan.org
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2010 Nadim Khemir.
+Copyright Nadim Khemir 2010.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of either:

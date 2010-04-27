@@ -17,22 +17,7 @@ examples
 	IPV4 header
 	http://en.wikipedia.org/wiki/S-record
 
-		
-Data::hexDump::Table
-	see IPV4 example on wikipedia
-
-Test::Hexdump::Range
-	alway use ANSI or ascii. or direct to file and accept any format
-	not user settable color (we cycle)
-	different bytes are displayed with red background
-		how do we tell DHR to change the color of only a few bytes within a range
-			./Build ; perl -Mblib scripts/hdr Todo.txt  -r 'header,40, yellow:padding,16:magic,16,red:size,4:data,10:data_got,10,on_red:data,80:footer,16'
-			./Build ; perl -Mblib scripts/hdr Todo.txt  -r 'header,40, yellow:padding,16:magic,16,red:size,4:data,10:data_exp,10,black on_green:data,80:footer,16'
-
-	cyclic colors must contain OK and error colors
-	user settable number of ranges to dispay after and before the diff in the binary data
-	side by side comparizon
-
+pass the already gathered data to the dynamic range generators
 
 # --------------------------------------------------------
 # IPV4_header:
