@@ -57,6 +57,7 @@ Readonly my $NEW_ARGUMENTS =>
 	NAME INTERACTION VERBOSE
 	
 	DUMP_RANGE_DESCRIPTION
+	GATHERED_CHUNK
 	
 	FORMAT 
 	COLOR 
@@ -213,6 +214,11 @@ if(! defined $self->{FORMAT} || ($self->{FORMAT} ne 'ANSI' && $self->{FORMAT} ne
 	{
 	$self->{FORMAT} ||= 'undef' ;
 	$self->{INTERACTION}{DIE}("Error: Invalid output format '$self->{FORMAT}'.\n")  ;
+	}
+
+if(defined $self->{GATHERED_CHUNK} && 'CODE' ne ref($self->{GATHERED_CHUNK}))
+	{
+	$self->{INTERACTION}{DIE}("Error: GATHERED_CHUNK is not a code reference.\n")  ;
 	}
 
 if(defined $self->{START_COLOR})

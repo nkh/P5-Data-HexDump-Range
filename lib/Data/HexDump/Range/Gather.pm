@@ -108,9 +108,6 @@ my $range_provider = $self->create_range_provider($range_description);
 
 while(my $range  = $range_provider->($self, $data, $used_data))
 	{
-	use Data::TreeDumper ;
-	print DumpTree $range ;
-	
 	my ($range_name, $range_size_definition, $range_color, $range_user_information) = @{$range} ;
 	my $range_size = $range_size_definition; 
 
@@ -196,7 +193,17 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		USER_INFORMATION => $range_user_information,
 		} ;
 	
-	push @{$collected_data}, $chunk ;	
+	if(defined $self->{GATHERED_CHUNK})
+		{
+		my @chunks = $self->{GATHERED_CHUNK}($self, $chunk) ;
+		push @{$collected_data}, @chunks ;	
+		}
+	else
+		{
+		push @{$collected_data}, $chunk ;	
+		}
+	
+	# todo dump the stuff that the gathered callback returned
 	
 	if($self->{DUMP_RANGE_DESCRIPTION})
 		{
