@@ -155,6 +155,7 @@ my $build = $class->new
 		'Scalar::Util' => 0,
 		'Data::TreeDumper' => 0,
 		'Term::Bash::Completion::Generator' => 0,
+		'Text::Colorizer' => 0,
 		},
 		
 	pm_files     => \%all_modules,

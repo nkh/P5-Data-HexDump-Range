@@ -624,6 +624,8 @@ in base 10. Default is 'hex'.
 
 =item * DISPLAY_ZERO_SIZE_RANGE_WARNING - Boolean - if set, a warning is emitted if ranges that do not consume data. Default is I<true> 
 
+=item * DISPLAY_COMMENT_RANGE - Boolean - if set, comment ranges are displayed. default is I<true> 
+
 =item * DISPLAY_RANGE_SIZE - Bolean - if set the range size is prepended to the name. Default I<false>
 
 =item * DISPLAY_ASCII_DUMP - Boolean - If set, the ASCII representation of the binary data is displayed. Default is I<true>

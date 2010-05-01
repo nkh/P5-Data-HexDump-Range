@@ -7,9 +7,7 @@
 sync with random color index from a range color definition
 
 let range modify display options on the fly
-	displaying a lot of data , width 32 other wise 4
-
-options to not show comment ranges (except zero size option)
+	displaying a lot of data , width 32 otherwise 4
 
 update hdr_user_documentation
 	make the already gathered ranges available to $range_provider 
@@ -27,10 +25,7 @@ refactoring
 	bitfield column display code
 		cleaner
 		more effective
-
-examples
-	IPV4 header
-	http://en.wikipedia.org/wiki/S-record
+	data flow and architectural overview
 
 # --------------------------------------------------------
 # IPV4_header:

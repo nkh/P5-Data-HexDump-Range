@@ -25,7 +25,10 @@ my $IPV4_header =
 			['Identification, Flags, Fragment Offset', '#', 'blue on_cyan'],
 			['Second 32 bits', 4], 
 			['Identification', 'b16'],
-			['Flags', 'x16b3'],
+			
+			['reserved', 'x16b1'],
+			["Don't Fragment", 'x17b1'],
+			['More Fragments', 'x18b1'],
 				# bit 0: Reserved; must be zero. As an April Fools joke, proposed for use in RFC 3514 as the "Evil bit".
 				# bit 1: Don't Fragment (DF)
 				# bit 2: More Fragments (MF)

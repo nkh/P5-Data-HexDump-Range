@@ -121,22 +121,36 @@ for my $range (@{$collected_data})
 		my $dumped_data = 0 ;
 		my $data_length = defined $range->{DATA} ? length($range->{DATA}) : 0 ;
 		
-		if(0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE} && $self->{DISPLAY_RANGE_NAME})
+		if(0 == $data_length && $self->{DISPLAY_RANGE_NAME})
 			{
-			my $name_size_quoted = $max_range_name_size - 2 ;
-			$name_size_quoted =  2 if $name_size_quoted < 2 ;
+			my $display_range_name = 0 ;
 			
-			push @{$line->{RANGE_NAME}},
+			if($range->{IS_COMMENT})
 				{
-				'RANGE_NAME' => $start_quote . sprintf("%.${name_size_quoted}s", $range->{NAME}) . $end_quote,
-				'RANGE_NAME_COLOR' => $range->{COLOR},
-				},
+				$display_range_name++ if $self->{DISPLAY_COMMENT_RANGE} ;
+				}
+			else
 				{
-				'RANGE_NAME_COLOR' => undef,
-				'RANGE_NAME' => ', ',
-				} ;
+				$display_range_name++ if $self->{DISPLAY_ZERO_SIZE_RANGE} ;
+				}
+					
+			if($display_range_name)
+				{
+				my $name_size_quoted = $max_range_name_size - 2 ;
+				$name_size_quoted =  2 if $name_size_quoted < 2 ;
+				
+				push @{$line->{RANGE_NAME}},
+					{
+					'RANGE_NAME' => $start_quote . sprintf("%.${name_size_quoted}s", $range->{NAME}) . $end_quote,
+					'RANGE_NAME_COLOR' => $range->{COLOR},
+					},
+					{
+					'RANGE_NAME_COLOR' => undef,
+					'RANGE_NAME' => ', ',
+					} ;
+				}
 			}
-		
+			
 		if($range->{IS_SKIP}) 
 			{
 			# skip range don't display any data
@@ -252,17 +266,31 @@ for my $range (@{$collected_data})
 		my $dumped_data = 0 ;
 		my $current_range = '' ;
 		
-		if(!$range->{IS_BITFIELD} && 0 == $data_length && $self->{DISPLAY_ZERO_SIZE_RANGE} && $self->{DISPLAY_RANGE_NAME})
+		if(!$range->{IS_BITFIELD} && 0 == $data_length && $self->{DISPLAY_RANGE_NAME}) # && $self->{DISPLAY_RANGE_NAME})
 			{
-			push @{$line->{RANGE_NAME}},
+			my $display_range_name = 0 ;
+			
+			if($range->{IS_COMMENT})
 				{
-				'RANGE_NAME_COLOR' => $range->{COLOR},
-				'RANGE_NAME' => "$start_quote$range->{NAME}$end_quote",
-				} ;
-				
-			$line->{NEW_LINE} ++ ;
-			push @lines, $line ;
-			$line = {};
+				$display_range_name++ if $self->{DISPLAY_COMMENT_RANGE} ;
+				}
+			else
+				{
+				$display_range_name++ if $self->{DISPLAY_ZERO_SIZE_RANGE} ;
+				}
+					
+			if($display_range_name)
+				{
+				push @{$line->{RANGE_NAME}},
+					{
+					'RANGE_NAME_COLOR' => $range->{COLOR},
+					'RANGE_NAME' => "$start_quote$range->{NAME}$end_quote",
+					} ;
+					
+				$line->{NEW_LINE} ++ ;
+				push @lines, $line ;
+				$line = {};
+				}
 			}
 			
 		if($range->{IS_SKIP}) 
