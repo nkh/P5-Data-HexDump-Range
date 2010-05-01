@@ -136,8 +136,8 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => ['bright_green', 'bright_yellow','bright_cyan', 'bright_red', 'bright_white'],
-		HTML => ['bright_green', 'bright_yellow','bright_cyan', 'bright_red', 'bright_white' ],
+		ANSI => ['bright_green', 'bright_yellow','bright_cyan', 'bright_red', 'bright_white', 'bright_yellow','bright_red', 'bright_white', 'bright_cyan', ],
+		HTML => ['bright_green', 'bright_yellow','bright_cyan', 'bright_red', 'bright_white', 'bright_yellow','bright_red', 'bright_white', 'bright_cyan', ],
 		},
 		
 	OFFSET_FORMAT => 'hex',
@@ -166,7 +166,7 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 
 	DISPLAY_BITFIELDS => undef,
 	DISPLAY_BITFIELD_SOURCE => 1,
-	MAXIMUM_BITFIELD_SOURCE_SIZE => 12,
+	MAXIMUM_BITFIELD_SOURCE_SIZE => 8,
 	BIT_ZERO_ON_LEFT => 0,
 	
 	ORIENTATION => 'horizontal',

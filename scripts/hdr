@@ -98,7 +98,7 @@ use Readonly ;
 Readonly my $SIZE_IF_RANGE_ERROR=> 256 ;
 Readonly my $DEFAULT_SIZE => 16 ;
 Readonly my $DEFAULT_USER_INFORMATION_SIZE => 20 ;
-Readonly my $DEFAULT_BITFIELD_SOURCE_SIZE => 12 ;
+Readonly my $DEFAULT_BITFIELD_SOURCE_SIZE => 8 ;
 
 #------------------------------------------------------------------------------------------------------------------------
 

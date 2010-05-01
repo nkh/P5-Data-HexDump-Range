@@ -584,16 +584,156 @@ The parser below will alternatively return a 'from 0' or 'from 1' range descript
 
 =end html
 
-=head3 Convoluted example
+=head3 IPV4 header
 
-I<sub_as_definition_returning_array_to_flatten_or_string.pl> is in the I<t/> directory of the module distribution. It's an example of how complex
-a range generator could be.
+Below is the range description for an IPV4 header:
+
+ use strict ;
+ use warnings ;
+ 
+ my $IPV4_header =
+	[
+	['IPV4_header', '#', 'bright_white on_red'],
+		[
+			['Version, Header length,  Differentiated Services, Total Length', '#', 'blue on_cyan'],
+			['First 32 bits', 4], 
+			['Version', 'b4'],
+			['Header length', 'x4b4'],
+			['Differentiated Services', 'x8b8'],
+				# Differentiated Services (DS) 
+				# # bit 3: 0 = Normal Delay, 1 = Low Delay
+				# # bit 4: 0 = Normal Throughput, 1 = High Throughput
+				# # bit 5: 0 = Normal Reliability, 1 = High Reliability
+				# # bit 6: 0 = Normal Cost, 1 = Minimize Monetary Cost
+				# (defined by RFC 1349)
+				# # bit 7: never defined
+			['Total length', 'x16b16'],
+		],
+
+		[
+			['Identification, Flags, Fragment Offset', '#', 'blue on_cyan'],
+			['Second 32 bits', 4], 
+			['Identification', 'b16'],
+			
+			['reserved', 'x16b1'],
+			["Don't Fragment", 'x17b1'],
+			['More Fragments', 'x18b1'],
+				# bit 0: Reserved; must be zero. As an April Fools joke, proposed for use in RFC 3514 as the "Evil bit".
+				# bit 1: Don't Fragment (DF)
+				# bit 2: More Fragments (MF)
+
+			['Fragment Offset', 'x19b13'],
+		],
+
+		[
+			['Time to Live, Protocol, Header Checksum', '#', 'blue on_cyan'],
+			['Third 32 bits', 4], 
+			['Time to Live', 'b8'],
+			['Protocol', 'x8b8'],
+			['Header Checksum', 'x16b16'],
+			[],
+		],
+		
+		['Addresses and options', '#', 'blue on_cyan'],
+		['Source Address', 4],
+		['Destination Address', 4], 
+		[
+		sub
+			{
+			my ($self, $data, $offset, $size, $range) = @_ ;
+			
+			my ($header_length_chunk) = grep {$_->{NAME} eq 'Header length'} @{$self->{GATHERED}} ;
+			my $header_length = ord(substr($header_length_chunk->{DATA}, 0, 1)) & 0x0f  ;
+			
+			if($header_length > 5)
+				{
+				return ['Options', 4, undef ,'header length > 5, extracting options'] ;
+				}
+			else
+				{
+				# Note that we could choose to return a comment range instead
+				#~ return ['header length < 5, no options', '#', undef, undef] ;
+				
+				return undef, 'Skipping option field header length < 5';
+				}
+			}
+		],
+		['Data', '#', 'blue on_cyan'],
+		['Data', 128] # display some of the data
+	] ;
+
+Note that the B<Options> field  is an optional field that is present when the B<Header length> is  greater than 5. For the B<Options> field, we 
+define subroutine which verifies the value of the B<Header length> and selectively returns a range description or nothing.
+
+In vertical mode
+
+ $> hdr -r t/parse_ipv4.pl -display_ascii_dump 0 -bit_zero_on_left -o ver
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;"> 
+<span style = 'color:#fff;  color:#fff;  background-color:#a00; '>&quot;IPV4_header&quot;</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#00a;  background-color:#0aa; '>&quot;Version, Header length,  Differentiated Services, Total Length&quot;</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0f0; '>First 32 bits   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>71 5f 63 68                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>                                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#ff0; '>.Version        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>00 .. 03</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>-- -- -- 07    0111---------------------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0ff; '>.Header length  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>04 .. 07</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>-- -- -- 01    ----0001------------------------ </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#f00; '>.Differentiated </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>08 .. 15</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 5f    --------01011111---------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#fff; '>.Total length   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>16 .. 31</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- 63 68    ----------------0110001101101000 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#00a;  background-color:#0aa; '>&quot;Identification, Flags, Fragment Offset&quot;</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0f0; '>Second 32 bits  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000004</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>61 6e 67 65                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>                                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#ff0; '>.Identification </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>00 .. 15</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>-- -- 61 6e    0110000101101110---------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0ff; '>.reserved       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>16 .. 16</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>-- -- -- 00    ----------------0--------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#f00; '>.Don&apos;t Fragment </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>17 .. 17</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 01    -----------------1-------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#fff; '>.More Fragments </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>18 .. 18</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- -- 01    ------------------1------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0f0; '>.Fragment Offset</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>19 .. 31</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>-- -- 07 65    -------------------0011101100101 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#00a;  background-color:#0aa; '>&quot;Time to Live, Protocol, Header Checksum&quot;</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#ff0; '>Third 32 bits   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000008</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>5f 6f 5f 74                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>                                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0ff; '>.Time to Live   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 .. 07</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>-- -- -- 5f    01011111------------------------ </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#f00; '>.Protocol       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>08 .. 15</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 6f    --------01101111---------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#fff; '>.Header Checksum</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>16 .. 31</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- 5f 74    ----------------0101111101110100 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>                    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#00a;  background-color:#0aa; '>&quot;Addresses and options&quot;</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0f0; '>Source Address  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000000c</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>6f 5f 71 5f                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>                                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#ff0; '>Destination Addr</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>62 6c 61 68                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>                                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#00a;  background-color:#0aa; '>&quot;Data&quot;</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0ff; '>128-&gt;26:Data    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000014</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>5f 62 6c 61 68 5f 62 6c 61 68 5f 62 6c 61 68 5f </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>                                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0ff; '>128-&gt;26:Data    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000024</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>62 6c 61 68 5f 62 6c 61 68 0a                   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>                                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span> 
+</pre> 
+
+=end html
+
+In horizontal mode
+
+ $> hdr -r t/parse_ipv4.pl -display_ascii_dump 0 -bit_zero_on_left -display_bitfields 1 -display_comment_range 0
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;"> 
+<span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>71 5f 63 68 </span><span style = 'color:#fff;  color:#ff0; '>61 6e 67 65 </span><span style = 'color:#fff;  color:#0ff; '>5f 6f 5f 74 </span><span style = 'color:#fff;  color:#f00; '>6f 5f 71 5f </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>First 32 bits</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>Second 32 bits</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0ff; '>Third 32 bits</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#f00; '>Source Address</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#ff0; '>00 .. 03</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>First 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>-- -- -- 07    0111---------------------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>.Version        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0ff; '>04 .. 07</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>First 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>-- -- -- 01    ----0001------------------------ </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.Header length  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#f00; '>08 .. 15</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>First 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 5f    --------01011111---------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.Differentiated </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#fff; '>16 .. 31</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>First 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- 63 68    ----------------0110001101101000 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>.Total length   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#f00; '>00 .. 15</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>Second 3</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- 61 6e    0110000101101110---------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.Identification </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#fff; '>16 .. 16</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>Second 3</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- -- 00    ----------------0--------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>.reserved       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0ff; '>17 .. 17</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>Second 3</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>-- -- -- 01    -----------------1-------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.Don&apos;t Fragment </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#0f0; '>18 .. 18</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>Second 3</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>-- -- -- 01    ------------------1------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.More Fragments </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#ff0; '>19 .. 31</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>Second 3</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>-- -- 07 65    -------------------0011101100101 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>.Fragment Offset</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#f00; '>00 .. 07</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>Third 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 5f    01011111------------------------ </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.Time to Live   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#fff; '>08 .. 15</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>Third 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- -- 6f    --------01101111---------------- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>.Protocol       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff;  color:#ff0; '>16 .. 31</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>Third 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>-- -- 5f 74    ----------------0101111101110100 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>.Header Checksum</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>62 6c 61 68 </span><span style = 'color:#fff;  color:#0ff; '>5f 62 6c 61 68 5f 62 6c 61 68 5f 62 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>Destination Addr</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0ff; '>128-&gt;26:Data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>6c 61 68 5f 62 6c 61 68 5f 62 6c 61 68 0a       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>128-&gt;26:Data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '> 
+</span> 
+</pre> 
+
+=end html
 
 =head3 Comments that help
 
 Remember that you can, while generating your ranges, assign the comment field
 
-  [range_name, 4, red, this comment can be of great help (but will truncated)]
+  ['range_name', 4, 'red', 'comment of great help']
   
 You can also pass a sub reference in place of the comment. The sub will be called just before the range is displayed. It is passed information
 about the data to be displayed (data and offset). This allows you to dynamically generate a comment string.
@@ -673,7 +813,7 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker
 
-Please report any bugs or feature requests to  L <bug-data-hexdump-range@rt.cpan.org>.
+Please report any bugs or feature requests to  L<bug-data-hexdump-range@rt.cpan.org>.
 
 =back
 

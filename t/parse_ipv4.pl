@@ -1,4 +1,3 @@
-#
 use strict ;
 use warnings ;
 
@@ -64,12 +63,13 @@ my $IPV4_header =
 				{
 				# Note that we could choose to return a comment range instead
 				#~ return ['header length < 5, no options', '#', undef, undef] ;
+				
 				return undef, 'Skipping option field header length < 5';
 				}
 			}
 		],
 		['Data', '#', 'blue on_cyan'],
-		['Data', 200] # Total Length bytes - header size
+		['Data', 128] # display some of the data
 	] ;
 	
 
