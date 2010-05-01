@@ -441,10 +441,45 @@ a subroutine definition.
 
 =head4 'range' sub ref
 
-  sub whole_range(['whole range', 5, 'on_yellow']}
+  sub define_range(['whole range', 5, 'on_yellow']}
   
-  $hdr->dump([\&whole_range], $data) ; #note this is very different from L<User defined range generator>
+  $hdr->dump([\&define_range], $data) ;
 
+
+=head2 define_range($data, $offset)
+
+Returns a range description for the next range to dump
+
+I<Arguments> - See L<gather>
+
+=over 2
+
+=item * $self - A Data::HexDump::Range object
+
+=item * $data - Binary string - the data passed to the I<dump> method
+
+=item * $offset - Integer - current offset in $data
+
+=back
+
+I<Returns> - 
+
+=over 2
+
+=item * $range - An array reference containing a name, size and color and user_information
+
+OR
+
+=item * undef - Ignore this range
+
+=item * $comment - String - an optional comment that will be displayed if DUMP_RANGE_DESCRIPTION is set.
+
+=back
+
+=head4
+
+Note this is, very, different from L<User defined range generator> below.
+ 
 =head3  User defined range generator
 
 A subroutine reference can be passed as a range definition. The subroutine will be called repetitively
@@ -473,6 +508,8 @@ Returns a range description for the next range to dump
 I<Arguments> - See L<gather>
 
 =over 2
+
+=item * $self - A Data::HexDump::Range object
 
 =item * $data - Binary string - the data passed to the I<dump> method
 
