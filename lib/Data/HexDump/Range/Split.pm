@@ -18,7 +18,6 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.02';
 }
 
 #-------------------------------------------------------------------------------
@@ -82,6 +81,7 @@ my $total_dumped_data = 0 ;
 my $room_left = $self->{DATA_WIDTH} ;
 
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
+my $user_information_size = $self->{MAXIMUM_USER_INFORMATION_SIZE} ;
 my $range_source = ['?', 'white'] ;
 
 my @found_bitfields ;
@@ -338,7 +338,7 @@ for my $range (@{$collected_data})
 				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $self->{DATA_WIDTH}],
 				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @{ $_[0] }}, $range->{COLOR}, 4 * $self->{DATA_WIDTH}],
 				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @{$_[0]}}, $range->{COLOR}, $self->{DATA_WIDTH}],
-                                ['USER_INFORMATION', sub { sprintf '%-20.20s', $range->{USER_INFORMATION} || ''}, $range->{COLOR}, 20],
+                                ['USER_INFORMATION', sub { sprintf "%-${user_information_size}.${user_information_size}s", $range->{USER_INFORMATION} || ''}, $range->{COLOR}, $user_information_size],
 				)
 				{
 				my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;

@@ -2,6 +2,19 @@
 # This is Todo.txt #
 #------------------#
 
+in hor + display_bitfields, all bf have the same color?! white
+options to not show comment ranges (except zero size option)
+
+make the already gathered ranges available to $range_provider 
+	show example
+	
+dynamic comment range example
+	show example or error message and the usage of -d to see when things go wrong
+	
+user info max width options
+
+
+
 refactoring
 	do not cary the data in the ranges
 	type instead for IS_COMMENT, IS_BITFIELD, IS_SKIP

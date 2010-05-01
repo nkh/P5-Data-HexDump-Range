@@ -18,7 +18,6 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.01';
 }
 
 #-------------------------------------------------------------------------------
@@ -108,12 +107,59 @@ my $range_provider = $self->create_range_provider($range_description);
 
 while(my $range  = $range_provider->($self, $data, $used_data))
 	{
+	if($self->{DUMP_RANGE_DESCRIPTION})
+		{
+		$self->{INTERACTION}{INFO}
+			(
+			DumpTree $range, 'Original range description', QUOTE_VALUES => 1, DISPLAY_ADDRESS => 0, DISPLAY_PERL_DATA => 1, DISPLAY_INHERITANCE => 1
+			) ;
+		}
+		
+	if('CODE' eq ref($range->[0]) && ! defined $range->[1] && ! defined $range->[2] && ! defined $range->[3]) # eek!
+		{
+		my ($range_from_sub, $comment) = $range->[0]($self, $data, $used_data)  ;
+		
+		if(defined $range_from_sub)
+			{
+			if('ARRAY' eq ref($range))
+				{
+				if( @{$range} == 4) 
+					{
+					$range = $range_from_sub ;
+					}
+				else
+					{
+					$self->{INTERACTION}{DIE}->
+						(
+						"Error: Sub range definition did not return 4 elements array reference, ["
+						. join(', ', map {defined $_ ? $_ : 'undef'}@{$range_from_sub})  
+						. "] at '$location'." 
+						)  ;
+					}
+				}
+			else
+				{
+				$self->{INTERACTION}{DIE}->("Error: Sub range definition did not return an array reference at '$location'." )  ;
+				}
+			}
+		else
+			{
+			if($self->{DUMP_RANGE_DESCRIPTION})
+				{
+				$comment ||= 'No comment returned from sub' ;
+				$self->{INTERACTION}{INFO}("Information: Sub range definition returned no range at '$location'. $comment.\n" ) ;
+				}
+				
+			next ;
+			}
+		}
+		
 	my ($range_name, $range_size_definition, $range_color, $range_user_information) = @{$range} ;
 	my $range_size = $range_size_definition; 
 
 	for my $range_field ($range_name, $range_size, $range_color, $range_user_information)
 		{
-		$range_field =  $range_field->($data, $used_data, $size, $range) if 'CODE' eq ref($range_field) ;
+		$range_field =  $range_field->($self, $data, $used_data, $size, $range) if 'CODE' eq ref($range_field) ;
 		}
 
 	my ($is_comment, $is_bitfield, $is_skip, $unpack_format) ;
@@ -567,15 +613,8 @@ map
 					}
 				else
 					{
-					@{$description} = $description->[0]() ;
-					
-					$self->{INTERACTION}{DIE}->
-						(
-						"Error: single sub range definition returned ["
-						. join(', ', map {defined $_ ? $_ : 'undef'}@{$description})  
-						. "] at '$location'." 
-						) 
-						unless (@{$description} == 4) ;
+					# OK, will be called at gahter time
+					push @{$description}, undef, undef, undef ;
 					}
 				}
 			elsif(@{$description} == 2)

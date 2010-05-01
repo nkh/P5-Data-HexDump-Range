@@ -21,7 +21,7 @@ sub my_parser
 	}
 
 my $data = '01' x 20 ;
-my $hdr = Data::HexDump::Range->new(ORIENTATION => 'hor', FORMAT => 'HTML') ;
+my $hdr = Data::HexDump::Range->new(ORIENTATION => 'hor') ;
 
 print $hdr->dump(\&my_parser, $data) ;
 

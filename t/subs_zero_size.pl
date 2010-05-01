@@ -7,14 +7,15 @@ use Data::TreeDumper ;
 
 use Data::HexDump::Range  qw() ;
  
-sub generate_user_info {my ($data, $used_data, $size, $range) = @_ ;  "offset:$used_data left:$size"} ;
+sub generate_user_info {my ($self, $data, $used_data, $size, $range) = @_ ;  "offset:$used_data left:$size"} ;
 
 my $range = # definition to re-use
 	[
 	  [sub{'generated name'}, 5, 'blue on_cyan',  \&generate_user_info ],
 	  ['size_zero', sub {0}, 'green', \&generate_user_info ],
 	  ['generated_color', 20, sub{'red'}, \&generate_user_info ],
-	  [sub{ 'generated', sub {5}, 'red on_bright_yellow', \&generate_user_info} ],
+	  [sub{ ['generated', sub {5}, 'red on_bright_yellow', \&generate_user_info]} ],
+	  ['end', 4],
 	] ;
 			
 my $hdr = Data::HexDump::Range->new
