@@ -97,13 +97,20 @@ for my $range (@{$collected_data})
 		
 	if($self->{ORIENTATION} =~ /^hor/)
 		{
+		$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+		
 		if($range->{IS_BITFIELD}) 
 			{
 			push @found_bitfields, $self->get_bitfield_lines($range) ;
+			
 			next ;
 			}
-			
-		$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+		
+		if($room_left == $self->{DATA_WIDTH})
+			{
+			push @lines,  @found_bitfields ;
+			@found_bitfields = () ;
+			}
 		
 		# remember what range we process in case next range is bitfield
 		unless($range->{IS_COMMENT})
@@ -422,6 +429,7 @@ $offset ||= 0 ;
 $size ||= 1 ;
 
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
+my $max_bitfield_source_size = $self->{MAXIMUM_BITFIELD_SOURCE_SIZE} ;
 
 my %always_display_field = map {$_ => 1} qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET BITFIELD_SOURCE USER_INFORMATION) ;
 
@@ -432,7 +440,7 @@ for my  $field_type
 	['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", '.' . $_[0]->{NAME} ; }, undef, $max_range_name_size ] ,
 	['OFFSET', sub {sprintf '%02u .. %02u', $offset, ($offset + $size) - 1}, undef, 8],
 	['CUMULATIVE_OFFSET', sub {''}, undef, 8],
-	['BITFIELD_SOURCE', sub {sprintf '%-8.8s', $_[0]->{SOURCE}[0]}, $bitfield_description->{SOURCE}[1], 8],
+	['BITFIELD_SOURCE', sub {sprintf "%-${max_bitfield_source_size}.${max_bitfield_source_size}s", $_[0]->{SOURCE}[0]}, $bitfield_description->{SOURCE}[1], 8],
 	['HEX_DUMP', 
 		sub 
 		{

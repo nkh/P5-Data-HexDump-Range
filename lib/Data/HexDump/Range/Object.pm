@@ -50,7 +50,7 @@ Subroutines prefixed with B<[P]> are not part of the public API and shall not be
 
 #-------------------------------------------------------------------------------
 
-Readonly my $NEW_ARGUMENTS => 	
+Readonly my $NEW_ARGUMENTS => 
 	[
 	qw(
 	NAME INTERACTION VERBOSE
@@ -74,13 +74,18 @@ Readonly my $NEW_ARGUMENTS =>
 	DISPLAY_RANGE_NAME
 	MAXIMUM_RANGE_NAME_SIZE
 	DISPLAY_RANGE_SIZE
+	
 	DISPLAY_ASCII_DUMP
 	DISPLAY_HEX_DUMP
 	DISPLAY_DEC_DUMP
+	
 	DISPLAY_USER_INFORMATION
 	MAXIMUM_USER_INFORMATION_SIZE
+	
 	DISPLAY_BITFIELDS
 	DISPLAY_BITFIELD_SOURCE
+	MAXIMUM_BITFIELD_SOURCE_SIZE
+	
 	BIT_ZERO_ON_LEFT
 	COLOR_NAMES 
 	ORIENTATION 
@@ -158,6 +163,7 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 
 	DISPLAY_BITFIELDS => undef,
 	DISPLAY_BITFIELD_SOURCE => 1,
+	MAXIMUM_BITFIELD_SOURCE_SIZE => 12,
 	BIT_ZERO_ON_LEFT => 0,
 	
 	ORIENTATION => 'horizontal',

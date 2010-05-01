@@ -107,7 +107,7 @@ my $range_provider = $self->create_range_provider($range_description);
 
 while(my $range  = $range_provider->($self, $data, $used_data))
 	{
-	if($self->{DUMP_RANGE_DESCRIPTION})
+	if($self->{DUMP_ORIGINAL_RANGE_DESCRIPTION})
 		{
 		$self->{INTERACTION}{INFO}
 			(

@@ -60,6 +60,8 @@ use Carp ;
  
  display_bitfields                1 == display bitfields
  display_source                   1 == display source for bitfields 
+ maximum_bitfield_source_size     truncate bitfield source name if longer
+ 
  bit_zero_on_left                 1 == bit index zero is on the left
  
  h|help                           display this scripts help page
@@ -95,6 +97,7 @@ use Readonly ;
 Readonly my $SIZE_IF_RANGE_ERROR=> 256 ;
 Readonly my $DEFAULT_SIZE => 16 ;
 Readonly my $DEFAULT_USER_INFORMATION_SIZE => 20 ;
+Readonly my $DEFAULT_BITFIELD_SOURCE_SIZE => 12 ;
 
 #------------------------------------------------------------------------------------------------------------------------
 
@@ -141,6 +144,8 @@ my @options =
 
 	'display_bitfields=i' => \my $display_bitfields,
 	'display_bitfield_source=i' => \my $display_bitfield_source,
+	'maximum_bitfield_source_size=i' => \my $maximum_bitfield_source_size,
+	
 	'bit_zero_on_left' => \my $bit_zero_on_left,
 
 	'h|help' => \&display_help, 
@@ -263,6 +268,8 @@ my $hdr = Data::HexDump::Range->new
 			
 			DISPLAY_BITFIELDS => $display_bitfields,
 			DISPLAY_BITFIELD_SOURCE => defined $display_bitfield_source ? $display_bitfield_source : 1,
+			MAXIMUM_BITFIELD_SOURCE_SIZE => defined $maximum_bitfield_source_size ? $maximum_bitfield_source_size: $DEFAULT_BITFIELD_SOURCE_SIZE,
+			
 			BIT_ZERO_ON_LEFT =>  defined $bit_zero_on_left ? $bit_zero_on_left : 0,
 			@color_file
 			) ;

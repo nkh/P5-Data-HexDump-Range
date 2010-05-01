@@ -632,7 +632,13 @@ in base 10. Default is 'hex'.
 
 =item * DISPLAY_DEC_DUMP - Boolean - If set, the decimall dump column is displayed. Default is I<false>
 
-=item * DISPLAY_BITFIELD_SOURCE - Boolean - if set an extra column indicataing the source of bitfields is displayed
+=item * DISPLAY_BITFIELD_SOURCE - Boolean - if set an extra column indicating the source of bitfields is displayed
+
+=item * MAXIMUM_BITFIELD_SOURCE_SIZE - Integer - maximum size of the bifield source column 
+
+=item * DISPLAY_USER_INFORMATION - Boolean - if set an extra column displaying user supplied information is shown
+
+=item * MAXIMUM_USER_INFORMATION_SIZE - Integer - maximum size of theuser information column 
 
 =item * DISPLAY_BITFIELDS - Boolean - if set the bitfields are displayed
 

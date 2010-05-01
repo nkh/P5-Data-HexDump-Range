@@ -4,20 +4,18 @@
 
 ?? unpack("B*",  $_[0]->{DATA}) ; shouldn't we use b* when bit 0 is on the right
 
-sync with ranfom color index
+sync with random color index from a range color definition
 
-in hor + display_bitfields, all bf have the same color?! white
+let range modify display options on the fly
+	displaying a lot of data , width 32 other wise 4
+
 options to not show comment ranges (except zero size option)
 
-make the already gathered ranges available to $range_provider 
-	show example
-	
-dynamic comment range example
-	show example or error message and the usage of -d to see when things go wrong
-	
-user info max width options
-
-
+update hdr_user_documentation
+	make the already gathered ranges available to $range_provider 
+		dynamic ipv4 header
+	dynamic comment range example
+		show example or error message and the usage of -d to see when things go wrong
 
 refactoring
 	do not cary the data in the ranges
