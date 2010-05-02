@@ -19,7 +19,7 @@ name: Data-HexDump-Range
 provides:
   Data::HexDump::Range:
     file: lib/Data/HexDump/Range.pm
-    version: 0.09
+    version: 0.10
 requires:
   Data::TreeDumper: 0
   Getopt::Long: 0
@@ -29,6 +29,7 @@ requires:
   Scalar::Util: 0
   Sub::Exporter: 0
   Term::Bash::Completion::Generator: 0
+  Text::Colorizer: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.09.40
+version: v0.10.45

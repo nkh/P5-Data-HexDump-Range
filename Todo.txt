@@ -2,18 +2,10 @@
 # This is Todo.txt #
 #------------------#
 
-?? unpack("B*",  $_[0]->{DATA}) ; shouldn't we use b* when bit 0 is on the right
+make hdr_examples.pod pro-eminent on wikipedia and pod docs
 
-sync with random color index from a range color definition
-
-let range modify display options on the fly
-	displaying a lot of data , width 32 otherwise 4
-
-update hdr_user_documentation
-	make the already gathered ranges available to $range_provider 
-		dynamic ipv4 header
-	dynamic comment range example
-		show example or error message and the usage of -d to see when things go wrong
+MSB/LSB
+	shouldn't we use b* when bit 0 is on the right
 
 refactoring
 	do not cary the data in the ranges
