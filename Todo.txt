@@ -2,8 +2,6 @@
 # This is Todo.txt #
 #------------------#
 
-make hdr_examples.pod pro-eminent on wikipedia and pod docs
-
 MSB/LSB
 	shouldn't we use b* when bit 0 is on the right
 
@@ -18,30 +16,3 @@ refactoring
 		cleaner
 		more effective
 	data flow and architectural overview
-
-# --------------------------------------------------------
-# IPV4_header:
-# BF: Version 4, Header length 4, Differentiated Services 2, Total Length 30
-# BF: Identification 16, Flags 2,	Fragment Offset 30
-# BF: Time to Live 8, Protocol 8, Header Checksum 16
-# BF: source Address 32
-# BF: Destination Address 32
-#
-# if Header Length > 5 
-# 	data 192+
-# 	else
-# 		data 160
-# 			
-#
-# 			display extra info about the bit fields(done through a
-# 			range sub) (this could also be done for any range)
-# 			 
-# 			 Differentiated Services (DS) 
-# 			 # bit 3: 0 = Normal Delay, 1 = Low Delay
-# 			 # bit 4: 0 = Normal Throughput, 1 = High Throughput
-# 			 # bit 5: 0 = Normal Reliability, 1 = High Reliability
-# 			 # bit 6: 0 = Normal Cost, 1 = Minimize Monetary Cost
-# 			 (defined by RFC 1349)
-# 			 # bit 7: never defined
-#
-#

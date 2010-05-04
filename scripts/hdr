@@ -69,6 +69,10 @@ use Carp ;
  generate_completion_script|bash  generates a completion script on STDOUT
  
 
+=head1 EXAMPLES
+
+See L<hdr_examples.pod> in the distribution.
+
 =head1 EXIT STATUS
 
 Non zero if an error occured.

@@ -533,7 +533,7 @@ OR
 
 =head1 EXAMPLES
 
-See I<hdr_examples.pod> in the distribution.
+See L<hdr_examples.pod> in the distribution.
 
 =head1 SUBROUTINES/METHODS
 

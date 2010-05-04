@@ -1,7 +1,7 @@
 
 =head1 HDR EXAMPLES
 
-This document will help you understand how to use the I<hdr> command which is a part of the L<Data::HexDump::Range> module.
+This document will help you understand how to use the I<hdr> command which is a part of the B<Data::HexDump::Range> module.
 Some advanced examples use the module directly.
 
 The latest version is  at L<http://search.cpan.org/search?query=Data%3A%3AHexDump%3A%3ARange>.
@@ -737,6 +737,32 @@ Remember that you can, while generating your ranges, assign the comment field
   
 You can also pass a sub reference in place of the comment. The sub will be called just before the range is displayed. It is passed information
 about the data to be displayed (data and offset). This allows you to dynamically generate a comment string.
+
+	['size', 1, undef, 
+		sub
+			{
+			my ($self, $data, $offset, $size, $range) = @_ ;
+			
+			my $size = ord(substr($data, $offset, 1))  ;
+			
+			for($size)
+				{
+				$_ == 1 and do {return 'size is: S' } ;
+				$_ == 2 and do {return  'size is: M'} ;
+				$_ == 3 and do {return 'size is: L'} ;
+				$_ == 4 and do {return  'size is: XL'} ;
+				
+				return 'Error in size range!' ;
+				}
+			}
+	],
+	
+Which would generate :
+
+ ...
+ size             00000022 00000000 32                                               2                Error in size range!
+ size             00000023 00000000 01                                               .                size is: S
+ ...
 
 =head2 Let the computer do the heavy lifting
 
