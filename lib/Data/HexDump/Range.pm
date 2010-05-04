@@ -239,12 +239,12 @@ Example:
 
 The size field is used to defined if the range is a normal range, a comment, a bitfield or a skip range. The formats are a s follows:
 
-                  format                complete range example
+                  format                          range example
 		  
-  normal range => integer               header, 4, bright_blue     
-  comment      => #                     data section start, # 
-  bitfield     => [xInteger]bInteger    bitfield, x8b4 
-  skip range   => xInteger              boring, x256,, comment
+  normal range => integer                         header, 4, bright_blue
+  comment      => #                               data section start, # 
+  bitfield     => [XInteger][xInteger]bInteger    bitfield, X2x4b4         # X is byte offset, x is bit offset
+  skip range   => xInteger                        boring, X256,, comment
 
 =head3 Coloring
 
@@ -360,12 +360,12 @@ By default bitfields are not displayed  in horizontal mode.
 
 =head3 Skip ranges
 
-If the size format is 'x' + number, that number of bytes is skipped from the data. B<Data::HexDump::Range>
+If the size format is 'X' + number, that number of bytes is skipped from the data. B<Data::HexDump::Range>
 will display the skip range in the dump but not the data.
 
 In the command below, the range 'skip' removes 32 bytes from the display. '>>' is prepended to the range name.
 
-Command: I<hdr -r 'magic cookie, 5   :other,37  :bf,b8   :skip,x32,, I skipped :more, 20'  -rul -col -o ver>
+Command: I<hdr -r 'magic cookie, 5   :other,37  :bf,b8   :skip,X32,, I skipped :more, 20'  -rul -col -o ver>
 
  RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP
                                     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345

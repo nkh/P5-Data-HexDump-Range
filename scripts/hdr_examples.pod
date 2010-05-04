@@ -69,18 +69,18 @@ B<ANSI> can only be rendered on a terminal but it look like the HTML format belo
 
 =head2 Range descritption
 
-                  format                complete range example
+                  format                          range example
 		  
-  normal range => integer               header, 4, bright_blue     
-  comment      => #                     data section start, # 
-  bitfield     => [xInteger]bInteger    bitfield, x8b4 
-  skip range   => xInteger              boring, x256,, a comment
+  normal range => integer                         header, 4, bright_blue
+  comment      => #                               data section start, # 
+  bitfield     => [XInteger][xInteger]bInteger    bitfield, X2x4b4         # X is byte offset, x is bit offset
+  skip range   => XInteger                        boring, X256,, comment
 
 =head3 Direct command line defintion
 
 You can define your range description on the command line by passing a string to  the I<--range_description> (short I<-r>) option.
 
-  hdr -r 'magic, 5,   :other,37  :bf,b8   :skip,x32,, I skipped :more, 20'
+  hdr -r 'magic, 5,   :other,37  :bf,b8   :skip,X32,, I skipped :more, 20'
 
 =head3 Definition from a file
 
@@ -455,6 +455,45 @@ If you define an offset and a bit amout that sets the bitfields outside the data
 
 =end html
 
+=head3 Bitfield offset
+
+The format for a bitfield is I<[XInteger][xInteger]>B<b>I<[integer]>. you can use I<X> for  byte offset and I<x> for bit offset. If no size is given after I<b>, the bitfield consists of a single bit
+
+Examples:
+
+=over 2
+
+=item * X1x1b  - second bit of the second byte
+
+=item * X3x8b4 - 4 first bits of the fifth byte
+
+=item * X4b8 - fifth byte
+
+=item * X1x0b8 - second byte
+
+=back
+
+Remember that bit zero is on the right side by default. Also notice that since we have no fifth byte, the corrsponding bitfields are displayed with a '?'.
+
+ RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       USER_INFORMATION
+ 4:data           00000000 00000000 41 05 30 31                                      A.01
+ .X1x1b           09 .. 09          -- -- -- 00    ----------------------0---------  .bitfield: ---.
+ .X3x8b4          32 .. 35          ?                                                ?
+ .X4b8            32 .. 39          ?                                                ?
+ .X1x0b8          08 .. 15          -- -- -- 30    ----------------00110000--------  .bitfield: ---0
+ 8:the end        00000004 00000000 32 33 34 35 36 37 38 39                          23456789
+
+With B<BIT_ZERO_ON_LEFT> set
+
+ RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       USER_INFORMATION
+ 4:data           00000000 00000000 41 05 30 31                                      A.01
+ .X1x1b           09 .. 09          -- -- -- 00    ---------0----------------------  .bitfield: ---.
+ .X3x8b4          32 .. 35          ?                                                ?
+ .X4b8            32 .. 39          ?                                                ?
+ .X1x0b8          08 .. 15          -- -- -- 05    --------00000101----------------  .bitfield: ---.
+ 8:the end        00000004 00000000 32 33 34 35 36 37 38 39                          23456789
+
+
 =head2 Skip Ranges
 
 Say you have data with data that you are not interrested in seeing in the hexdump.
@@ -478,7 +517,7 @@ Say you have data with data that you are not interrested in seeing in the hexdum
 
 Change the I<uninterresting> range definition to skip the data.
 
-  $>hdr -r 'magic, 5  :other,37  :uninterresting,x45     :more, 20'
+  $>hdr -r 'magic, 5  :other,37  :uninterresting,X45     :more, 20'
 
 =begin html
 

@@ -451,9 +451,15 @@ return unless $self->{DISPLAY_BITFIELDS} ;
 
 my ($line, @lines) = ({}) ;
 
-my ($offset, $size) = $bitfield_description->{IS_BITFIELD} =~ m/x?(.*)b(.*)/ ;
+my ($byte_offset, $offset, $size) = $bitfield_description->{IS_BITFIELD} =~ m/(X\d*?)?(x\d*?)?(b\d*?)$/ ;
+ 
+substr($byte_offset, 0, 1, '')  if defined $byte_offset ;
+substr($offset, 0, 1, '') if defined $offset ;
+substr($size, 0, 1, '') if defined $size ;
 
-$offset ||= 0 ;
+$byte_offset ||= 0 ;
+$offset ||= 0 ; $offset += $byte_offset * 8 ;
+
 $size ||= 1 ;
 
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;

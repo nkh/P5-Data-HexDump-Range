@@ -419,13 +419,13 @@ if('#' eq  $size)
 	$range_size = 0 ;
 	$unpack_format = '#' ;
 	}
-elsif($size =~ '^\s*(x\d*)?\s*b\d*\s*$')
+elsif($size =~ '^\s*(X\d*)?(x\d*)?\s*b\d*\s*$')
 	{
 	$is_bitfield++ ;
 	$range_size = 0 ;
 	$unpack_format = '#' ;
 	}
-elsif($size =~ '^\s*x(\d+)\s*$')
+elsif($size =~ '^\s*x|X(\d+)\s*$')
 	{
 	$is_skip++ ;
 	$range_size = $1 ;
