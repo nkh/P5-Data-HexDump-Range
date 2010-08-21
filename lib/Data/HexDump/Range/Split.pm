@@ -466,6 +466,7 @@ my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 my $max_bitfield_source_size = $self->{MAXIMUM_BITFIELD_SOURCE_SIZE} ;
 
 my %always_display_field = map {$_ => 1} qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET BITFIELD_SOURCE USER_INFORMATION) ;
+my $not_enough_bits_warning_displayed = 0 ;
 
 #~ print DumpTree {length => length($bitfield_description->{DATA}), offset => $offset, size => $size, BF => $bitfield_description} ;
 
@@ -592,7 +593,16 @@ for my  $field_type
 		
 		if($not_enough_data && ! $always_display_field{$field_name})
 			{
-			$field_text = '?' ;
+			my $bits_missing_message = ($offset + $size) . " bits needed but only " . length($bitfield_description->{DATA}) * 8 . ' bits available' ;
+			
+			$self->{INTERACTION}{WARN}
+				(
+				"Warning: bitfield description '$bitfield_description->{NAME}' can't be applied "
+				. "to source '$bitfield_description->{SOURCE}[0]':\n"
+				. "\t$bits_missing_message\n"
+				)  if $not_enough_bits_warning_displayed ++ ;
+			
+			$field_text = sprintf("%.${field_text_size}s", 'Error: ' . $bits_missing_message) ;
 			}
 		else
 			{

@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.10';
+$VERSION     = '0.11';
 }
 
 #-------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ use Data::HexDump::Range::Format ;
 
 =head1 NAME
 
-Data::HexDump::Range - Hexadecial Range Dumper with, color, bitfields and skip ranges
+Data::HexDump::Range - Hexadecimal Range Dumper with color, bitfields and skip ranges
 
 =head1 SYNOPSIS
 
@@ -90,7 +90,7 @@ with Andrew Rodland <arodland@cpan.org> aka I<hobbs>. I<priodev>, I<tm604>, I<Kh
 B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/> is nice tools that inspired me to write this module. This module offers many
 more options but B<hexd> may be a better  alternative If you need very fast dump generation.
 
-B<Data::HexDump::Range> splits binary data according to user defined I<ranges> and rendered as a B<hex> or/and B<decimal> data dump.
+B<Data::HexDump::Range> splits binary data according to user defined I<ranges> and renderes them as a B<hex> or/and B<decimal> data dump.
 The data dump can be rendered in ANSI, ASCII or HTML.
 
 =head2 Rendered Columns
@@ -413,7 +413,7 @@ a subroutine definition.
 
   sub cloth_size
   {
-  my ($data, $offset, $size) = @_ ;
+  my ($self, $data, $used_data, $size, $range) = @_ ;
   my %types = (O => 'S', 1 => 'M', 2 => 'L',) ;
   return 'size:' . ($types{$data} // '?') ;
   }
@@ -424,7 +424,7 @@ a subroutine definition.
 
   sub cloth_size
   {
-  my ($data, $offset, $size) = @_ ;
+  my ($self, $data, $used_data, $size, $range) = @_ ;
   return unpack "a", $data ;
   }
   
@@ -478,7 +478,7 @@ OR
 
 =head4
 
-Note this is, very, different from L<User defined range generator> below.
+B<Note> this is, very, different from L<User defined range generator> below.
  
 =head3  User defined range generator
 
@@ -536,8 +536,6 @@ OR
 See L<hdr_examples.pod> in the distribution.
 
 =head1 SUBROUTINES/METHODS
-
-Subroutines prefixed with B<[P]> are not part of the public API and shall not be used directly.
 
 =cut
 

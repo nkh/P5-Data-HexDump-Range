@@ -163,7 +163,7 @@ my $build = $class->new
 	
 	script_files => 'scripts/hdr',
 	dist_author  => 'Nadim ibn hamouda el Khemir. <nkh@cpan.org>',
-	dist_abstract => 'Hexadecial Range Dumper',
+	dist_abstract => 'Hexadecimal Range Dumper with color, bitfields and skip ranges',
 	);
 	
 $build->create_build_script;

@@ -249,8 +249,6 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		push @{$collected_data}, $chunk ;	
 		}
 	
-	# todo dump the stuff that the gathered callback returned
-	
 	if($self->{DUMP_RANGE_DESCRIPTION})
 		{
 		$self->{INTERACTION}{INFO}
@@ -291,7 +289,7 @@ I<Arguments> -
 
 =back
 
-I<Returns> - Array ference - ranges in internal format
+I<Returns> - Array reference - ranges in internal format
 
 I<Exceptions> - None
 
@@ -506,10 +504,26 @@ my ($self, $range_description) = @_ ;
 my @ranges = 
 	map
 	{
-		[ map {s/^\s+// ; s/\s+$//; $_} split /,/ ] ;
+		'' eq $_
+			? []
+			: [ map {s/^\s+// ; s/\s+$//; $_} split /,/ ] ;
 	} split /:/, $range_description ;
 
-my @flattened = $self->flatten(\@ranges) ;
+my @flattened ;
+
+eval
+	{
+	@flattened = $self->flatten(\@ranges) ;
+	} ;
+
+if($EVAL_ERROR)
+	{
+	chomp $EVAL_ERROR ;
+
+	use Data::TreeDumper ;
+	$self->{INTERACTION}{DIE}->(DumpTree \@ranges, $EVAL_ERROR) ;
+	}
+
 @ranges = () ;
 
 while(@flattened)
@@ -544,7 +558,20 @@ I<Exceptions> - Croaks with an error messge if the input data is invalid
 
 my ($self, $range_description) = @_ ;
 
-my @flattened = $self->flatten($range_description) ;
+my @flattened ;
+
+eval
+        {
+        @flattened = $self->flatten($range_description) ;
+        } ;
+
+if($EVAL_ERROR)
+        {
+	chomp $EVAL_ERROR ;
+
+        use Data::TreeDumper ;
+        $self->{INTERACTION}{DIE}->(DumpTree $range_description, $EVAL_ERROR) ;
+        }
 
 my @ranges ;
 
@@ -580,6 +607,7 @@ I<Exceptions> - Croaks with an error messge if the input data is invalid
 =cut
 
 my $self = shift ;
+my $location = "$self->{FILE}:$self->{LINE}" ;
 
 map 
 	{
@@ -587,17 +615,18 @@ map
 	
 	if(ref($description) eq 'ARRAY')
 		{
+		if(@{$description} == 0)
+			{
+			$self->{INTERACTION}{DIE}->("Error: no elements in range description at '$location'.") ;
+			}
+			
 		if(all {'' eq ref($_) || 'CODE' eq ref($_) } @{$description} )
 			{
-			my $location = "$self->{FILE}:$self->{LINE}" ;
-			
 			if(@{$description} == 0)
 				{
 				$self->{INTERACTION}{DIE}->
 					(
-					"Error: too few elements in range description [" 
-					. join(', ', map {defined $_ ? $_ : 'undef'} @{$description})  
-					. "] at '$location'." 
+					"Error: no elements in range description at '$location'." 
 					) ;
 				}
 			elsif(@{$description} == 1)
@@ -613,7 +642,7 @@ map
 					}
 				else
 					{
-					# OK, will be called at gahter time
+					# OK, will be called at gather time
 					push @{$description}, undef, undef, undef ;
 					}
 				}

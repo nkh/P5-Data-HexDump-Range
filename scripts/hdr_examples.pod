@@ -8,9 +8,9 @@ The latest version is  at L<http://search.cpan.org/search?query=Data%3A%3AHexDum
 
 This document contains many embeded examples in HTML format. It is mean to be processed by I<pod2html> or equivalent.
 
-=head2 When in the hexdump land, do as hexdumper do
+=head2 When in the hexdump land, do as hexdump does
 
-Without range definition I<hdr> act like I<hexdump>.
+Without range definition I<hdr> acts like I<hexdump>.
 
  >$ hdr file_name
 
@@ -84,7 +84,7 @@ You can define your range description on the command line by passing a string to
 
 =head3 Definition from a file
 
-The I<--range_description> option also accept a file namewhich contain a range description written in Perl.
+The I<--range_description> option also accept a file name for a range description written in Perl format.
 
   hdr -r my_range_description_file
 
@@ -457,7 +457,7 @@ If you define an offset and a bit amout that sets the bitfields outside the data
 
 =head3 Bitfield offset
 
-The format for a bitfield is I<[XInteger][xInteger]>B<b>I<[integer]>. you can use I<X> for  byte offset and I<x> for bit offset. If no size is given after I<b>, the bitfield consists of a single bit
+The format for a bitfield is I<[XInteger][xInteger]>B<b>I<[Integer]>. You can use I<X> for  byte offset and I<x> for bit offset. If no size is given after I<b>, the bitfield consists of a single bit
 
 Examples:
 

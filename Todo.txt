@@ -2,6 +2,24 @@
 # This is Todo.txt #
 #------------------#
 
+range error location is not very helpful as the location is the line where the object is defined not the line where the array is defined. It also doesn't help much to know that a structure with tens of lines failed, it would be good to pinpoint a location in the array.
+
+	do not accept '::' as a valid range
+
+	dump the whole range definition with DTD
+		colorize the failing range
+		colorize all ranges that would fail ?
+
+	Text::Context
+	PBS::Output::GetLineWithContext
+	Carp::source
+
+
+tests
+	Can we get to Error: too few elements in range description 
+	\&parser vs [\&parser]
+
+
 MSB/LSB
 	shouldn't we use b* when bit 0 is on the right
 
@@ -16,3 +34,5 @@ refactoring
 		cleaner
 		more effective
 	data flow and architectural overview
+		specially for complex ranges
+	remove ugly goto
