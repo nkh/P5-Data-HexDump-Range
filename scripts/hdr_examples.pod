@@ -436,7 +436,7 @@ with I<--display_bitfields> option set to true:
 
 =head3 Not enough data for the bitfield
 
-If you define an offset and a bit amout that sets the bitfields outside the data range, or you define a bitfield with more than 32 bits, The bitfields will be displayed as a B<'?'>
+If you define an offset and a bit amout that sets the bitfields outside the data range, or you define a bitfield with more than 32 bits, The bitfields will be displayed as an error message.
 
    hdr  -r 'data,1 :DATA,4  :c,b50  :d,x30b3 :e,x4b5  :the end,8' -o ver
 
@@ -473,7 +473,7 @@ Examples:
 
 =back
 
-Remember that bit zero is on the right side by default. Also notice that since we have no fifth byte, the corrsponding bitfields are displayed with a '?'.
+Remember that bit zero is on the right side by default. Also notice that since we have no fifth byte.
 
  RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       USER_INFORMATION
  4:data           00000000 00000000 41 05 30 31                                      A.01

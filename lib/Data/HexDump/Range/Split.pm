@@ -466,7 +466,7 @@ my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 my $max_bitfield_source_size = $self->{MAXIMUM_BITFIELD_SOURCE_SIZE} ;
 
 my %always_display_field = map {$_ => 1} qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET BITFIELD_SOURCE USER_INFORMATION) ;
-my $not_enough_bits_warning_displayed = 0 ;
+my $bitfield_warning_displayed = 0 ;
 
 #~ print DumpTree {length => length($bitfield_description->{DATA}), offset => $offset, size => $size, BF => $bitfield_description} ;
 
@@ -586,27 +586,45 @@ for my  $field_type
 	
 	if($self->{"DISPLAY_$field_name"})
 		{
-		my $field_text ;
+		my ($bitfield_error, $field_text) = (0) ;
 		
-		my $not_enough_data = $EMPTY_STRING eq $bitfield_description->{DATA} ;
-		$not_enough_data += length($bitfield_description->{DATA}) * 8 < ($offset + $size) ;
-		
-		if($not_enough_data && ! $always_display_field{$field_name})
+		if($always_display_field{$field_name})
 			{
-			my $bits_missing_message = ($offset + $size) . " bits needed but only " . length($bitfield_description->{DATA}) * 8 . ' bits available' ;
-			
-			$self->{INTERACTION}{WARN}
-				(
-				"Warning: bitfield description '$bitfield_description->{NAME}' can't be applied "
-				. "to source '$bitfield_description->{SOURCE}[0]':\n"
-				. "\t$bits_missing_message\n"
-				)  if $not_enough_bits_warning_displayed ++ ;
-			
-			$field_text = sprintf("%.${field_text_size}s", 'Error: ' . $bits_missing_message) ;
+			$field_text = $field_data_formater->($bitfield_description) ;
 			}
 		else
 			{
-			$field_text = $field_data_formater->($bitfield_description) ;
+			if($size > 32)
+				{
+				$self->{INTERACTION}{WARN}
+					(
+					"Warning: bitfield description '$bitfield_description->{NAME}' is more than 32 bits long ($size)\n"
+					)  unless $bitfield_warning_displayed++ ;
+					
+				$field_text = sprintf("%.${field_text_size}s", "Error: bitfield is more than 32 bits long ($size)") ;
+				}
+			elsif($EMPTY_STRING eq $bitfield_description->{DATA})
+				{
+				$self->{INTERACTION}{WARN}
+					(
+					"Warning: bitfield description '$bitfield_description->{NAME}' can't be applied to empty source\n"
+					)  unless $bitfield_warning_displayed++ ;
+					
+				$field_text = sprintf("%.${field_text_size}s", "Error: Empty source") ;
+				}
+			elsif(length($bitfield_description->{DATA}) * 8 < ($offset + $size))
+				{
+				my $bits_missing_message = ($offset + $size) . " bits needed but only " . length($bitfield_description->{DATA}) * 8 . ' bits available' ;
+				
+				$self->{INTERACTION}{WARN}
+					(
+					"Warning: bitfield description '$bitfield_description->{NAME}' can't be applied "
+					. "to source '$bitfield_description->{SOURCE}[0]':\n"
+					. "\t$bits_missing_message\n"
+					)  unless $bitfield_warning_displayed++ ;
+					
+				$field_text = sprintf("%.${field_text_size}s", 'Error: ' . $bits_missing_message) ;
+				}
 			}
 		
 		my $pad_size = $field_text_size -  length($field_text) ;
