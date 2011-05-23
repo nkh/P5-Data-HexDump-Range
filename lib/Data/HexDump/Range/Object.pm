@@ -133,11 +133,13 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	COLOR => 'cycle',
 	CURRENT_COLOR_INDEX => 0,
 	START_COLOR	=> undef,
+	
+	# --color bw will use the last defined color as color
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => ['bright_green', 'bright_yellow','bright_cyan', 'bright_red', 'bright_white', 'bright_yellow','bright_red', 'bright_white', 'bright_cyan', ],
-		HTML => ['bright_green', 'bright_yellow','bright_cyan', 'bright_red', 'bright_white', 'bright_yellow','bright_red', 'bright_white', 'bright_cyan', ],
+		ANSI => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_white', ],
+		HTML => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_white', ],
 		},
 		
 	OFFSET_FORMAT => 'hex',

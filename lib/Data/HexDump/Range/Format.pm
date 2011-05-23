@@ -74,7 +74,7 @@ my $default_color ;
 
 if($self->{COLOR} eq 'bw')
 	{
-	$default_color = $self->{COLORS}{$self->{FORMAT}}[0] ;
+	$default_color = $self->{COLORS}{$self->{FORMAT}}[-1] ;
 	}
 else
 	{
