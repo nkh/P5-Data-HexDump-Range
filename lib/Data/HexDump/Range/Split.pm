@@ -90,7 +90,9 @@ my @found_bitfields ;
 
 my $last_range = (grep {!  $_->{IS_BITFIELD}}@{$collected_data})[-1] ;
 
-for my $range (@{$collected_data})
+my @collected_data_to_dump = @{$collected_data} ;
+
+while (my $range = shift @collected_data_to_dump)
 	{
 	my $data_length = defined $range->{DATA} ? length($range->{DATA}) : 0 ;
 	my ($start_quote, $end_quote) = $range->{IS_COMMENT} ? ('"', '"') : ('<', '>') ;
@@ -153,63 +155,60 @@ for my $range (@{$collected_data})
 				}
 			}
 			
-		if(exists $self->{DISPLAY_HEADER_EVERY} && $lines_since_header > $self->{DISPLAY_HEADER_EVERY} && ! $range->{IS_HEADER})
+		if($range->{IS_HEADER}) 
 			{
-			# inser a header
-			}
-		
-		if($range->{IS_SKIP} || $range->{IS_HEADER}) 
-			{
-			my $range_glyph = $range->{IS_SKIP} ? '>>' : '@' ;
-			$range->{NAME} =  $range_glyph . $range->{NAME} ;
+			$range->{NAME} =  '@' . $range->{NAME} ;
+			$range->{DATA} = '0' x $self->{DATA_WIDTH} ;
 			
-			#dump nothing
-			my $size_to_dump = 0 ;
-			
-			for my  $field_type 
-				(
-				['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $current_offset + $self->{OFFSET_START}}, undef, 0],
-				['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
-				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
-				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
-				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $range->{COLOR}, 1],
-				['RANGE_NAME',sub {sprintf "%.${max_range_name_size}s", $range->{NAME}}, $range->{COLOR}, 0],
-				)
-				{
-				my ($field_name, $field_data_formater, $color, $pad_size) = @{$field_type} ;
-				
-				if($self->{"DISPLAY_$field_name"})
-					{
-					my $field_text = $field_data_formater->() ;
-					
-					my $pad = $pad_size  ? ' ' x ($room_left * $pad_size) : ''  ;
-					
-					push @{$line->{$field_name}},
-						{
-						$field_name . '_COLOR' => $color,
-						$field_name => $field_text . $pad,
-						} ;
-					}
-				}
-			
+			# justify on the right
+			$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset, $dumped_data, $room_left, $room_left) ;
 			$line->{NEW_LINE}++ ;
 			push @lines, $line ;
-				
-			push @lines,  @found_bitfields ;
-			@found_bitfields = () ;
-			
-			if($range->{IS_HEADER}) 
-				{
-				push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
-				}
-			
-			# start a fresh line
+
+			# display header
 			$line = {} ;
-			$room_left = $self->{DATA_WIDTH} ;
-				
-			#justify offset for next range
-			$current_offset += $data_length ;
+			push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
 			
+			# justify on the left
+			$line = {} ;
+				
+			my $left_pad_size = $self->{DATA_WIDTH} - $room_left ;
+			$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset -$left_pad_size , $dumped_data, $left_pad_size, $self->{DATA_WIDTH}) ;
+			
+			next ;
+			}
+			
+		if($range->{IS_SKIP}) 
+			{
+			$range->{NAME} =  '>>' . $range->{NAME} ;
+			$range->{DATA} = ' '  x $self->{DATA_WIDTH} ;
+			
+			my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
+			$room_left -= $size_to_dump ;
+
+			# justify on the right
+			$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset, $dumped_data, $size_to_dump, $room_left) ;
+			
+			my $data_left = $data_length - $size_to_dump ;
+			$current_offset += $size_to_dump ;
+			
+			if ($data_left)
+				{
+				# justify on the left
+				$line->{NEW_LINE}++ ;
+				push @lines, $line ;
+				
+				my $lines_to_skip = int($data_left / $self->{DATA_WIDTH}) ;
+				my $data_bytes_on_line = $data_left - ($lines_to_skip * $self->{DATA_WIDTH}) ;
+				my $left_data_offset = $current_offset + ($lines_to_skip * $self->{DATA_WIDTH}) ;
+				
+				$line = {} ;
+				$self->_dump_range_horizontal(0, $range, $line, $last_range, $left_data_offset, $dumped_data, $data_bytes_on_line, $self->{DATA_WIDTH}) ;
+				
+				$room_left = $self->{DATA_WIDTH} - $data_bytes_on_line ;
+				$current_offset += $data_left ;
+				}
+				
 			next ;
 			}
 			
@@ -219,35 +218,8 @@ for my $range (@{$collected_data})
 			
 			$room_left -= $size_to_dump ;
 			
-			my @range_unpacked_data = unpack("x$dumped_data C$size_to_dump", $range->{DATA}) ;
-		
-			for my  $field_type 
-				(
-				['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $current_offset + $self->{OFFSET_START}}, undef, 0],
-				['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
-				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
-				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
-				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $range->{COLOR}, 1],
-				['RANGE_NAME',sub {sprintf "%.${max_range_name_size}s", $range->{NAME}}, $range->{COLOR}, 0],
-				['RANGE_NAME', sub {', '}, undef, 0],
-				)
-				{
-				my ($field_name, $field_data_formater, $color, $pad_size) = @{$field_type} ;
-				
-				if($self->{"DISPLAY_$field_name"})
-					{
-					my $field_text = $field_data_formater->(@range_unpacked_data) ;
-					
-					my $pad = $last_range == $range ? $pad_size  ? ' ' x ($room_left * $pad_size) : '' : '' ;
-					
-					push @{$line->{$field_name}},
-						{
-						$field_name . '_COLOR' => $color,
-						$field_name => $field_text . $pad,
-						} ;
-					}
-				}
-				
+			$self->_dump_range_horizontal(1, $range, $line, $last_range, $current_offset, $dumped_data, $size_to_dump, $room_left) ;
+			
 			$dumped_data += $size_to_dump ;
 			$current_offset += $size_to_dump ;
 			
@@ -311,14 +283,10 @@ for my $range (@{$collected_data})
 		
 		if($range->{IS_SKIP}) 
 			{
-			my $size_to_dump = $data_length ;
 			my $next_data_offset = $total_dumped_data + $data_length - 1 ;
 			
 			$range->{NAME} = '>>' . $range->{NAME} ;
 		
-			#dump nothing
-			$size_to_dump = 0 ;
-			
 			for my  $field_type 
 				(
 				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} }, $range->{COLOR}, $max_range_name_size] ,
@@ -369,7 +337,7 @@ for my $range (@{$collected_data})
 			$line->{NEW_LINE} ++ ;
 			push @lines, $line ;
 			$line = {};
-				
+			
 			next ;
 			}
 			
@@ -377,34 +345,29 @@ for my $range (@{$collected_data})
 			{ 
 			last if($range->{IS_BITFIELD}) ;
 
-			my $size_to_dump = min($self->{DATA_WIDTH}, length($range->{DATA}) - $dumped_data) ;
-			my @range_data = unpack("x$dumped_data C$size_to_dump", $range->{DATA}) ;
+			my $left_offset = $total_dumped_data % $self->{DATA_WIDTH} ;
 			
-			for my  $field_type 
-				(
-				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
-				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data + $self->{OFFSET_START}}, undef, 8],
-				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}, undef, 8],
-				['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
-				['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $self->{DATA_WIDTH}],
-				['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @{ $_[0] }}, $range->{COLOR}, 4 * $self->{DATA_WIDTH}],
-				['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @{$_[0]}}, $range->{COLOR}, $self->{DATA_WIDTH}],
-                                ['USER_INFORMATION', sub { sprintf "%-${user_information_size}.${user_information_size}s", $range->{USER_INFORMATION} || ''}, $range->{COLOR}, $user_information_size],
-				)
+			if($left_offset)
 				{
-				my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
+				# previous range did not end on DATA_WIDTH offset, align
+				local $range->{DATA} = '0' x $self->{DATA_WIDTH} ;
 				
-				if($self->{"DISPLAY_$field_name"})
-					{
-					my $field_text = $field_data_formater->(\@range_data) ;
-					my $pad = ' ' x ($field_text_size -  length($field_text)) ;
+				$self->_dump_range_vertical(0, $range, $line, 0, 0, $left_offset) ;
 					
-					push @{$line->{$field_name}},
-						{
-						$field_name . '_COLOR' => $color,
-						$field_name =>  $field_text .  $pad,
-						} ;
-					}
+				$room_left -= $left_offset ;
+				}
+				
+			my $size_to_dump = min($room_left, length($range->{DATA}) - $dumped_data) ;
+			$room_left -= $size_to_dump ;
+			$self->_dump_range_vertical(1, $range, $line, $dumped_data, $total_dumped_data, $size_to_dump) ;
+			
+			if($room_left)
+				{
+				local $range->{DATA} = '0' x $self->{DATA_WIDTH} ;
+				
+				$self->_dump_range_vertical(0, $range, $line, 0, 0, $room_left) ;
+					
+				$room_left = 0 ;
 				}
 				
 			$dumped_data += $size_to_dump ;
@@ -413,6 +376,7 @@ for my $range (@{$collected_data})
 			$line->{NEW_LINE} ++ ;
 			push @lines, $line ;
 			$line = {};
+			$room_left = $self->{DATA_WIDTH} ;
 			}
 			
 		if($range->{IS_BITFIELD})
@@ -434,6 +398,171 @@ if(@found_bitfields)
 
 return \@lines ;
 }
+
+#-------------------------------------------------------------------------------
+
+sub _dump_range_horizontal
+{
+=head2 [P] _dump_range_horizontal(...)
+
+Splits a range into a structure used for horizontal display
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $self - 
+
+=item * $visible - Boolean - wether the range elements will be visible or not. used for alignment
+
+=item * $range - the range structure created by Gather
+
+=item * $line - container for the range strings to be displayed
+
+=item * $last_range - Boolean - wether the range is the last one to be displayed
+
+=item * $total_dumped_data - Integer -  the amount of total data dumped so far
+
+=item * $dumped_data - Integer - the amount of byte dumped from the range so far
+
+=item *  $size_to_dump - Integer - the amount of data to extract from the range
+
+=item * $room_left - Integer - the amount of space left in the line for the dimped data
+
+=back
+
+I<Returns> -  Nothing. Stores the result in the $line argument
+
+I<Exceptions>
+
+=cut
+
+my ($self, $visible, $range, $line, $last_range, $total_dumped_data, $dumped_data, $size_to_dump, $room_left) = @_ ;
+
+my @range_unpacked_data = unpack("x$dumped_data C$size_to_dump", $range->{DATA}) ;
+my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
+		
+for my  $field_type 
+	(
+	['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $total_dumped_data + $self->{OFFSET_START}}, undef, 0],
+	['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
+	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
+	['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
+	['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $range->{COLOR}, 1],
+	['RANGE_NAME',sub {sprintf "%.${max_range_name_size}s", $range->{NAME}}, $range->{COLOR}, 0],
+	['RANGE_NAME', sub {', '}, undef, 0],
+	)
+	{
+	my ($field_name, $field_data_formater, $color, $pad_size) = @{$field_type} ;
+	
+	if($self->{"DISPLAY_$field_name"})
+		{
+		my $field_text = $field_data_formater->(@range_unpacked_data) ;
+		
+		my $pad = $last_range == $range ? $pad_size  ? ' ' x ($room_left * $pad_size) : '' : '' ;
+		
+		my $text = $field_text . $pad ;
+
+		unless($visible)
+			{
+			if($field_name eq 'ASCII_DUMP' || $field_name eq 'HEX_DUMP'  || $field_name eq 'DEC_DUMP' )
+				{
+				$text = ' ' x length($text)
+				}
+			}
+		
+		push @{$line->{$field_name}},
+			{
+			$field_name . '_COLOR' => $color,
+			$field_name => $text
+			} ;
+		}
+	}
+}
+
+#-------------------------------------------------------------------------------
+
+sub _dump_range_vertical
+{
+=head2 [P] _dump_range_vertical()
+
+Splits a range into a structure used for vertical display
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $self - 
+
+=item * $visible - Boolean - wether the range elements will be visible or not. used for alignment
+
+=item * $range - the range structure created by Gather
+
+=item * $line - container for the range strings to be displayed
+
+=item * $dumped_data - Integer - the amount of byte dumped from the range so far
+
+=item * $total_dumped_data - Integer -  the amount of total data dumped so far
+
+=item *  $size_to_dump - Integer - the amount of data to extract from the range
+
+=back
+
+I<Returns> -  
+
+I<Exceptions>
+
+=cut
+
+my ($self, $visible, $range, $line, $dumped_data, $total_dumped_data, $size_to_dump) = @_ ;
+
+my @range_data = unpack("x$dumped_data C$size_to_dump", $range->{DATA}) ;
+my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
+my $user_information_size = $self->{MAXIMUM_USER_INFORMATION_SIZE} ;
+
+for my  $field_type 
+	(
+	['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
+	['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data + $self->{OFFSET_START}}, undef, 8],
+	['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}, undef, 8],
+	['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
+	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $size_to_dump],
+	['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @{ $_[0] }}, $range->{COLOR}, 4 * $size_to_dump],
+	['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @{$_[0]}}, $range->{COLOR}, $size_to_dump],
+	['USER_INFORMATION', sub { sprintf "%-${user_information_size}.${user_information_size}s", $range->{USER_INFORMATION} || ''}, $range->{COLOR}, $user_information_size],
+	)
+	{
+	my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
+	
+	if($self->{"DISPLAY_$field_name"})
+		{
+		my $field_text = $field_data_formater->(\@range_data) ;
+		my $pad = ' ' x ($field_text_size -  length($field_text)) ;
+		
+		my $text = $field_text .  $pad ;
+		
+		unless($visible)
+			{
+			if($field_name eq 'ASCII_DUMP' || $field_name eq 'HEX_DUMP'  || $field_name eq 'DEC_DUMP' )
+				{
+				$text = ' ' x length($text) ;
+				}
+			else
+				{
+				$text = '' ;
+				}
+			}
+			
+		push @{$line->{$field_name}},
+			{
+			$field_name . '_COLOR' => $color,
+			$field_name =>  $text,
+			} ;
+		}
+	}
+}
+
+#-------------------------------------------------------------------------------
 
 sub get_bitfield_lines
 {
