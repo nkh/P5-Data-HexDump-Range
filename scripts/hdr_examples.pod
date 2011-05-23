@@ -73,6 +73,7 @@ B<ANSI> can only be rendered on a terminal but it look like the HTML format belo
 		  
   normal range => integer                         header, 4, bright_blue
   comment      => #                               data section start, # 
+  extra header => @                               header, @, red 
   bitfield     => [XInteger][xInteger]bInteger    bitfield, X2x4b4         # X is byte offset, x is bit offset
   skip range   => XInteger                        boring, X256,, comment
 
@@ -173,6 +174,21 @@ You can also have both dumps simulteanously. Check the display option of the I<h
 </pre>
 
 =end html
+
+You can also insert a header anywhere, except as a first range since -col and -rul are made for that, by adding a header range in your
+range definition.
+
+  $> hdr -r 'zzz,50: show_header,@,red: data,20' -o ver -col -rul some_file
+  RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP      
+                                     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                       
+  zzz              00000000 00000000 0a 75 73 65 20 73 74 72 69 63 74 20 3b 0a 75 73  .use strict ;.us                      
+  zzz              00000010 00000010 65 20 77 61 72 6e 69 6e 67 73 20 3b 0a 0a 75 73  e warnings ;..us                      
+  zzz              00000020 00000020 65 20 4d 6f 64 75 6c 65 3a 3a 42 75 69 6c 64 3b  e Module::Build;                      
+  zzz              00000030 00000030 0a 0a                                            ..                                    
+  RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP      
+                                     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                       
+  data             00000032 00000000 6d 79 20 25 61 6c 6c 5f 6d 6f 64 75 6c 65 73 20  my %all_modules 
+  data             00000042 00000010 3b 0a 6d 79                                      ;.my            
 
 =head3 Defining your own colors
 
@@ -438,20 +454,19 @@ with I<--display_bitfields> option set to true:
 
 If you define an offset and a bit amout that sets the bitfields outside the data range, or you define a bitfield with more than 32 bits, The bitfields will be displayed as an error message.
 
-   hdr  -r 'data,1 :DATA,4  :c,b50  :d,x30b3 :e,x4b5  :the end,8' -o ver
+   hdr  -r 'x,b3 :A, 1 : y,X3x2b16 :z, b33'
 
 =begin html
 
 <pre style ="font-family: monospace; background-color: #000 ;">
-<span style = 'color:#fff;  color:#0f0; '>data            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>0a                                              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
-</span><span style = 'color:#fff;  color:#ff0; '>DATA            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000001</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>70 61 63 6b                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>pack            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
-</span><span style = 'color:#fff;  color:#0ff; '>.c              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 .. 49</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>?                                               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>?               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
-</span><span style = 'color:#fff;  color:#f00; '>.d              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>30 .. 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>?                                               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>?               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
-</span><span style = 'color:#fff;  color:#fff; '>.e              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>04 .. 08</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- -- 16    -----------------------10110---- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
-</span><span style = 'color:#fff;  color:#0f0; '>the end         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000005</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>61 67 65 20 44 61 74 61                         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>age Data        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+<span style = 'color:#fff;  color:#fff; '>RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>                                   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>.x              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>00 .. 02</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>Error: Empty source                             </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>Error: Empty sou</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>A               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>2e                                              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>.               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>.y              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>26 .. 41</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>Error: 42 bits needed but only 8 bits available </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>Error: 42 bits n</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>.z              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>00 .. 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>Error: bitfield is more than 32 bits long (33)  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>Error: bitfield </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
 </span>
 </pre>
-
 
 =end html
 
@@ -473,13 +488,13 @@ Examples:
 
 =back
 
-Remember that bit zero is on the right side by default. Also notice that since we have no fifth byte.
+Remember that bit zero is on the right side by default. Also notice that since we have no fifth byte an error is displayed.
 
  RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       USER_INFORMATION
  4:data           00000000 00000000 41 05 30 31                                      A.01
  .X1x1b           09 .. 09          -- -- -- 00    ----------------------0---------  .bitfield: ---.
- .X3x8b4          32 .. 35          ?                                                ?
- .X4b8            32 .. 39          ?                                                ?
+ .X3x8b4          32 .. 35          Error                                             Error
+ .X4b8            32 .. 39          Error                                             Error
  .X1x0b8          08 .. 15          -- -- -- 30    ----------------00110000--------  .bitfield: ---0
  8:the end        00000004 00000000 32 33 34 35 36 37 38 39                          23456789
 
@@ -488,8 +503,8 @@ With B<BIT_ZERO_ON_LEFT> set
  RANGE_NAME       OFFSET   CUMULATI HEX_DUMP                                         ASCII_DUMP       USER_INFORMATION
  4:data           00000000 00000000 41 05 30 31                                      A.01
  .X1x1b           09 .. 09          -- -- -- 00    ---------0----------------------  .bitfield: ---.
- .X3x8b4          32 .. 35          ?                                                ?
- .X4b8            32 .. 39          ?                                                ?
+ .X3x8b4          32 .. 35          Error                                            Error
+ .X4b8            32 .. 39          Error                                            Error
  .X1x0b8          08 .. 15          -- -- -- 05    --------00000101----------------  .bitfield: ---.
  8:the end        00000004 00000000 32 33 34 35 36 37 38 39                          23456789
 

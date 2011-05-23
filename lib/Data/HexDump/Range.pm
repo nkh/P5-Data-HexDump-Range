@@ -243,6 +243,7 @@ The size field is used to defined if the range is a normal range, a comment, a b
 		  
   normal range => integer                         header, 4, bright_blue
   comment      => #                               data section start, # 
+  extra header => @                               header, @, red 
   bitfield     => [XInteger][xInteger]bInteger    bitfield, X2x4b4         # X is byte offset, x is bit offset
   skip range   => xInteger                        boring, X256,, comment
 
@@ -315,6 +316,11 @@ If the size of a range is the string '#', the whole range is considered a commen
 	    ['data', 100, 'blue'],
 	  ],
 	] ;
+
+=head4 Extra header
+
+If the size of a range is the string '@', and extra header is inserted in the output. This is useful when 
+you have very long  output and want an extra header.
 
 =head3 Bitfields
 

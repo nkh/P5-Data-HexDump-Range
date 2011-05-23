@@ -2,6 +2,10 @@
 # This is Todo.txt #
 #------------------#
 
+Rewind command
+	allows to see the same data in different way
+		Easy to implement but what are the use cases?
+
 range error location is not very helpful as the location is the line where the object is defined not the line where the array is defined. It also doesn't help much to know that a structure with tens of lines failed, it would be good to pinpoint a location in the array.
 
 	do not accept '::' as a valid range
@@ -24,7 +28,7 @@ MSB/LSB
 	shouldn't we use b* when bit 0 is on the right
 
 refactoring
-	do not cary the data in the ranges
+	do not cary a copy of the data in the ranges
 	type instead for IS_COMMENT, IS_BITFIELD, IS_SKIP
 	split should use $self->{FIELD_LENGTH}
 	author tests

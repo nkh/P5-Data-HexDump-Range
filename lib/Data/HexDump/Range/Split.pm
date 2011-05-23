@@ -151,7 +151,7 @@ for my $range (@{$collected_data})
 				}
 			}
 			
-		if($range->{IS_SKIP}) 
+		if($range->{IS_SKIP} || $range->{IS_HEADER}) 
 			{
 			# skip range don't display any data
 			my $size_to_dump = $data_length ;
@@ -159,7 +159,8 @@ for my $range (@{$collected_data})
 			#justify offset for next range
 			$current_offset += $size_to_dump ;
 			
-			$range->{NAME} = '>>' . $range->{NAME} ;
+			my $range_glyph = $range->{IS_SKIP} ? '>>' : '@' ;
+			$range->{NAME} =  $range_glyph . $range->{NAME} ;
 			
 			#dump nothing
 			$size_to_dump = 0 ;
@@ -197,6 +198,11 @@ for my $range (@{$collected_data})
 			@found_bitfields = () ;
 			
 			# start a fresh line
+			
+			if($range->{IS_HEADER}) 
+				{
+				push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
+				}
 			
 			$line = {} ;
 			$room_left = $self->{DATA_WIDTH} ;
@@ -293,6 +299,14 @@ for my $range (@{$collected_data})
 				}
 			}
 			
+		if($range->{IS_HEADER}) 
+			{
+			# display the header
+			push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
+				
+			next ;
+			}
+		
 		if($range->{IS_SKIP}) 
 			{
 			my $size_to_dump = $data_length ;
@@ -393,7 +407,7 @@ for my $range (@{$collected_data})
 				
 			$dumped_data += $size_to_dump ;
 			$total_dumped_data += $size_to_dump ;
-			
+
 			$line->{NEW_LINE} ++ ;
 			push @lines, $line ;
 			$line = {};
@@ -666,7 +680,38 @@ I<Exceptions> - None
 
 =cut
 
+
 my ($self, $split_data) = @_ ;
+
+unshift @{$split_data}, $self->get_information($split_data) ;
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_information
+{
+
+=head2 [P] get_information($split_data)
+
+Returns information, according to the options passed to the constructor, to the internal data.
+
+I<Arguments> - See L<gather>
+
+=over 2
+
+=item * $split_data - data returned by _gather()
+
+=back
+
+I<Returns> - Nothing
+
+I<Exceptions> - None
+
+=cut
+
+my ($self, $split_data, $range_color) = @_ ;
+$range_color ||= '' ,
 
 my @information ;
 
@@ -686,7 +731,7 @@ if($self->{DISPLAY_COLUMN_NAMES})
 		
 	push @information,
 		{
-		INFORMATION => [ {INFORMATION_COLOR => 'bright_white', INFORMATION => $information} ], 
+		INFORMATION => [ {INFORMATION_COLOR => $range_color, INFORMATION => $information} ], 
 		NEW_LINE => 1,
 		} ;
 	}
@@ -729,13 +774,12 @@ if($self->{DISPLAY_RULER})
 		
 	push @information,
 		{
-		RULER => [ {RULER_COLOR => 'bright_white', RULER=> $information} ], 
+		RULER => [ { RULER_COLOR => $range_color, RULER=> $information} ], 
 		NEW_LINE => 1,
 		} ;
 	}
 	
-unshift @{$split_data}, @information ;
-
+return @information ;
 }
 
 #-------------------------------------------------------------------------------

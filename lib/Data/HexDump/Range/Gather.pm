@@ -162,16 +162,16 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		$range_field =  $range_field->($self, $data, $used_data, $size, $range) if 'CODE' eq ref($range_field) ;
 		}
 
-	my ($is_comment, $is_bitfield, $is_skip, $unpack_format) ;
+	my ($is_header, $is_comment, $is_bitfield, $is_skip, $unpack_format) ;
 
 	# handle maximum_size
 	if($EMPTY_STRING eq ref($range_size))
 		{
-		($is_comment, $is_bitfield, $is_skip, $range_size, undef) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
+		($is_header, $is_comment, $is_bitfield, $is_skip, $range_size, undef) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
 		}
 	elsif('CODE' eq ref($range_size))
 		{
-		($is_comment, $is_bitfield, $is_skip, $range_size, undef) = $self->unpack_range_size($range_name, $range_size->(), $used_data) ;
+		($is_header, $is_comment, $is_bitfield, $is_skip, $range_size, undef) = $self->unpack_range_size($range_name, $range_size->(), $used_data) ;
 		}
 	else
 		{
@@ -184,14 +184,14 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		$range_size = $truncated_size = max($maximum_size - $used_data, 0) ;
 		$skip_remaining_ranges++ ;
 		}
-	#third, get the unpack format with the justified size
+	# get the unpack format with the justified size
 	# note that we keep $is_comment and $is_bitfield from first run
 	# as the those are extracted from the size field and we have modified it
-	(undef, undef, undef, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
+	(undef,undef, undef, undef, $range_size, $unpack_format) = $self->unpack_range_size($range_name, $range_size, $used_data) ;
 	
 	if($maximum_size == $used_data)
 		{
-		if($is_comment || $is_bitfield)
+		if($is_header || $is_comment || $is_bitfield)
 			{
 			# display bitfields even for ranges that pass maximim_size (truncated ranges)
 			}
@@ -204,7 +204,7 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 			}
 		}
 		
-	if(! $is_comment && ! $is_bitfield)
+	if(!$is_header && ! $is_comment && ! $is_bitfield)
 		{
 		if($range_size == 0 && $self->{DISPLAY_ZERO_SIZE_RANGE_WARNING}) 
 			{
@@ -234,6 +234,7 @@ while(my $range  = $range_provider->($self, $data, $used_data))
 		OFFSET => $used_data,
 		DATA =>  $is_comment ? undef : $last_data,
 		IS_BITFIELD => $is_bitfield ? $range_size_definition : 0,
+		IS_HEADER => $is_header,
 		IS_SKIP => $is_skip,
 		IS_COMMENT => $is_comment,
 		USER_INFORMATION => $range_user_information,
@@ -393,6 +394,8 @@ I<Returns> - A list
 
 =over 2 
 
+=item * $is_header - Boolean -
+
 =item * $is_comment - Boolean -
 
 =item * $is_bitfield - Boolean -
@@ -409,11 +412,19 @@ I<Exceptions> - Croaks with an error messge if the input data is invalid
 
 my ($self, $range_name, $size, $used_data) = @_ ;
 
-my ($is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format) = (0, 0, 0, -1, '');
+my ($is_header, $is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format) = (0, 0, 0, 0, -1, '');
+
+my $digits_or_hex = '(\d+)|(0[xX][0-9a-fA-F]+)' ;
 
 if('#' eq  $size)
 	{
 	$is_comment++ ;
+	$range_size = 0 ;
+	$unpack_format = '#' ;
+	}
+elsif('@' eq  $size)
+	{
+	$is_header++ ;
 	$range_size = 0 ;
 	$unpack_format = '#' ;
 	}
@@ -423,8 +434,9 @@ elsif($size =~ '^\s*(X\d*)?(x\d*)?\s*b\d*\s*$')
 	$range_size = 0 ;
 	$unpack_format = '#' ;
 	}
-elsif($size =~ '^\s*x|X(\d+)\s*$')
+elsif($size =~ /^\s*x|X$digits_or_hex\s*$/)
 	{
+	print "$1\n" ;
 	$is_skip++ ;
 	$range_size = $1 ;
 	$unpack_format = '#' ;
@@ -441,7 +453,7 @@ else
 	$self->{INTERACTION}{DIE}("Error: size '$size' doesn't look valid in range '$range_name' at '$location'.\n")
 	}
 
-return ($is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format) ;
+return ($is_header, $is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format) ;
 }
 
 #-------------------------------------------------------------------------------
