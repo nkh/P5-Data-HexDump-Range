@@ -138,8 +138,8 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_white', ],
-		HTML => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_white', ],
+		ANSI => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_yellow', 'bright_cyan', 'bright_green', 'bright_cyan', 'bright_red','bright_magenta','bright_white', ],
+		HTML => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_yellow', 'bright_cyan', 'bright_green', 'bright_cyan', 'bright_red','bright_magenta','bright_white', ],
 		},
 		
 	OFFSET_FORMAT => 'hex',

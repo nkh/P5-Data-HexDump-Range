@@ -41,7 +41,6 @@ my $IPV4_header =
 			['Time to Live', 'b8'],
 			['Protocol', 'x8b8'],
 			['Header Checksum', 'x16b16'],
-			[],
 		],
 		
 		['Addresses and options', '#', 'blue on_cyan'],

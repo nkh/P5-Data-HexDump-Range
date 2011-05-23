@@ -16,7 +16,7 @@ my $range = # definition to re-use
 			{
 			my ($self, $data, $offset, $size, $range) = @_ ;
 			
-			my $size = ord(substr($data, $offset, 1))  ;
+			$size = ord(substr($data, $offset, 1))  ;
 			
 			for($size)
 				{
@@ -35,7 +35,7 @@ my $range = # definition to re-use
 			{
 			my ($self, $data, $offset, $size, $range) = @_ ;
 			
-			my $size = ord(substr($data, $offset, 1))  ;
+			$size = ord(substr($data, $offset, 1))  ;
 			print "$size ****\n" ;
 			for($size)
 				{
