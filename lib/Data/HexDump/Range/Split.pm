@@ -80,6 +80,8 @@ my $current_offset = 0 ;
 my $total_dumped_data = 0 ;
 my $room_left = $self->{DATA_WIDTH} ;
 
+my $lines_since_header = 0 ;
+
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 my $user_information_size = $self->{MAXIMUM_USER_INFORMATION_SIZE} ;
 my $range_source = ['?', 'white'] ;
@@ -151,19 +153,18 @@ for my $range (@{$collected_data})
 				}
 			}
 			
+		if(exists $self->{DISPLAY_HEADER_EVERY} && $lines_since_header > $self->{DISPLAY_HEADER_EVERY} && ! $range->{IS_HEADER})
+			{
+			# inser a header
+			}
+		
 		if($range->{IS_SKIP} || $range->{IS_HEADER}) 
 			{
-			# skip range don't display any data
-			my $size_to_dump = $data_length ;
-			
-			#justify offset for next range
-			$current_offset += $size_to_dump ;
-			
 			my $range_glyph = $range->{IS_SKIP} ? '>>' : '@' ;
 			$range->{NAME} =  $range_glyph . $range->{NAME} ;
 			
 			#dump nothing
-			$size_to_dump = 0 ;
+			my $size_to_dump = 0 ;
 			
 			for my  $field_type 
 				(
@@ -197,16 +198,18 @@ for my $range (@{$collected_data})
 			push @lines,  @found_bitfields ;
 			@found_bitfields = () ;
 			
-			# start a fresh line
-			
 			if($range->{IS_HEADER}) 
 				{
 				push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
 				}
 			
+			# start a fresh line
 			$line = {} ;
 			$room_left = $self->{DATA_WIDTH} ;
 				
+			#justify offset for next range
+			$current_offset += $data_length ;
+			
 			next ;
 			}
 			
@@ -303,7 +306,6 @@ for my $range (@{$collected_data})
 			{
 			# display the header
 			push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
-				
 			next ;
 			}
 		

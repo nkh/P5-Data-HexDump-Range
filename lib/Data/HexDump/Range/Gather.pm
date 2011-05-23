@@ -436,7 +436,6 @@ elsif($size =~ '^\s*(X\d*)?(x\d*)?\s*b\d*\s*$')
 	}
 elsif($size =~ /^\s*x|X$digits_or_hex\s*$/)
 	{
-	print "$1\n" ;
 	$is_skip++ ;
 	$range_size = $1 ;
 	$unpack_format = '#' ;
