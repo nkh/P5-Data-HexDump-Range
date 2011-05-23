@@ -727,6 +727,7 @@ for my  $field_type
 	{
 	my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
 	
+	#~ print "($field_name, $field_data_formater, $color, $field_text_size)\n";
 	$color ||= $bitfield_description->{COLOR} ;
 	
 	if($self->{"DISPLAY_$field_name"})
@@ -770,10 +771,13 @@ for my  $field_type
 					
 				$field_text = sprintf("%.${field_text_size}s", 'Error: ' . $bits_missing_message) ;
 				}
+			else
+				{
+				$field_text = $field_data_formater->($bitfield_description) ;
+				}
 			}
 		
 		my $pad_size = $field_text_size -  length($field_text) ;
-		
 		push @{$line->{$field_name}},
 			{
 			$field_name . '_COLOR' => $color,

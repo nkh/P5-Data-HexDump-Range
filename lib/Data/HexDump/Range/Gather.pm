@@ -434,10 +434,10 @@ elsif($size =~ '^\s*(X\d*)?(x\d*)?\s*b\d*\s*$')
 	$range_size = 0 ;
 	$unpack_format = '#' ;
 	}
-elsif($size =~ /^\s*x|X$digits_or_hex\s*$/)
+elsif($size =~ /^\s*(x|X)$digits_or_hex\s*$/)
 	{
 	$is_skip++ ;
-	$range_size = $1 ;
+	$range_size = $2 ;
 	$unpack_format = '#' ;
 	}
 elsif(looks_like_number($size))
