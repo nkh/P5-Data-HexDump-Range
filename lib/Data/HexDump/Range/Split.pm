@@ -595,16 +595,30 @@ my ($self, $bitfield_description) = @_ ;
 return unless $self->{DISPLAY_BITFIELDS} ;
 
 my ($line, @lines) = ({}) ;
+my $digits_or_hex = '(?:(?:0x[0-9a-fA-F]+)|(?:\d+))' ;
 
-my ($byte_offset, $offset, $size) = $bitfield_description->{IS_BITFIELD} =~ m/(X\d*?)?(x\d*?)?(b\d*?)$/ ;
- 
-substr($byte_offset, 0, 1, '')  if defined $byte_offset ;
-substr($offset, 0, 1, '') if defined $offset ;
-substr($size, 0, 1, '') if defined $size ;
+my ($byte_offset, $offset, $size) = $bitfield_description->{IS_BITFIELD} =~ /^\s*(X$digits_or_hex)?\s*(x$digits_or_hex)?\s*(b$digits_or_hex)\s*$/ ;
+
+ if(defined $byte_offset)
+	{
+	substr($byte_offset, 0, 1, '')  ;
+	$byte_offset = hex($byte_offset) if  $byte_offset=~ /^0x/ ;
+	}
+	
+ if(defined $offset)
+	{
+	substr($offset, 0, 1, '')  ;
+	$offset = hex($offset) if  $offset=~ /^0x/ ;
+	}
+	
+ if(defined $size)
+	{
+	substr($size, 0, 1, '')  ;
+	$size = hex($size) if  $size =~ /^0x/ ;
+	}
 
 $byte_offset ||= 0 ;
 $offset ||= 0 ; $offset += $byte_offset * 8 ;
-
 $size ||= 1 ;
 
 my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;

@@ -414,7 +414,7 @@ my ($self, $range_name, $size, $used_data) = @_ ;
 
 my ($is_header, $is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format) = (0, 0, 0, 0, -1, '');
 
-my $digits_or_hex = '(\d+)|(0[xX][0-9a-fA-F]+)' ;
+my $digits_or_hex = '(?:(?:0x[0-9a-fA-F]+)|(?:\d+))' ;
 
 if('#' eq  $size)
 	{
@@ -428,22 +428,26 @@ elsif('@' eq  $size)
 	$range_size = 0 ;
 	$unpack_format = '#' ;
 	}
-elsif($size =~ '^\s*(X\d*)?(x\d*)?\s*b\d*\s*$')
+elsif($size =~ /^\s*(X$digits_or_hex)?\s*(x$digits_or_hex)?\s*b$digits_or_hex\s*$/)
 	{
 	$is_bitfield++ ;
 	$range_size = 0 ;
 	$unpack_format = '#' ;
 	}
-elsif($size =~ /^\s*(x|X)$digits_or_hex\s*$/)
+elsif($size =~ /^\s*(x|X)($digits_or_hex)\s*$/)
 	{
 	$is_skip++ ;
 	$range_size = $2 ;
+	
+	$range_size = hex($range_size) if  $range_size =~ /^0x/ ;
 	$unpack_format = '#' ;
 	}
-elsif(looks_like_number($size))
+elsif($size =~ /^\s*($digits_or_hex)\s*$/)
 	{
-	$unpack_format = "x$used_data a$size"  ;
-	$range_size = $size ;
+	$range_size = $1 ;
+	$range_size = hex($range_size) if  $range_size =~ /^0x/ ;
+	
+	$unpack_format = "x$used_data a$range_size"  ;
 	}
 else
 	{
@@ -451,6 +455,8 @@ else
 
 	$self->{INTERACTION}{DIE}("Error: size '$size' doesn't look valid in range '$range_name' at '$location'.\n")
 	}
+
+#~ print "$range_name => $is_header, $is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format\n";
 
 return ($is_header, $is_comment, $is_bitfield, $is_skip, $range_size, $unpack_format) ;
 }
