@@ -72,12 +72,281 @@ I<Exceptions>
 
 my ($self, $collected_data) = @_ ;
 
+if($self->{ORIENTATION} =~ /^hor/)
+	{
+	return $self->_split_horizontal($collected_data) ;
+	}
+else
+	{
+	return $self->_split_vertical($collected_data) ;
+	}
+}
+
+#-------------------------------------------------------------------------------
+
+sub _split_horizontal
+{
+
+=head2 [P] _split_horizontal($collected_data)
+
+Split the collected data into horizontal lines
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $container - Collected data
+
+=back
+
+I<Returns> -  An Array  containing column elements
+
+I<Exceptions>
+
+=cut
+
+
+my ($self, $collected_data) = @_ ;
+
 my @lines ;
 my $line = {} ;
 my $wrapped_line = 0 ;
 
 my $current_offset = 0 ;
-my $total_dumped_data = 0 ;
+my $total_dumped_data =  $self->{OFFSET_START} ;
+my $room_left = $self->{DATA_WIDTH} ;
+
+my $lines_since_header = 0 ;
+
+my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
+my $user_information_size = $self->{MAXIMUM_USER_INFORMATION_SIZE} ;
+my $range_source = ['?', 'white'] ;
+
+my @found_bitfields ;
+
+my $last_range = (grep {!  $_->{IS_BITFIELD}}@{$collected_data})[-1] ;
+
+my @collected_data_to_dump = @{$collected_data} ;
+
+	if($self->{OFFSET_START}) 
+		{
+		my $range = {} ;
+		$range->{NAME} =  '>>' ;
+		$range->{DATA} = '?' x $self->{DATA_WIDTH} ;
+		
+		my $left_pad_size = $self->{OFFSET_START} % $self->{DATA_WIDTH} ;
+		my $aligned_start_offset = $self->{OFFSET_START} - $left_pad_size ;
+
+=pod 
+
+=item * $self - 
+
+=item * $visible - Boolean - wether the range elements will be visible or not. used for alignment
+
+=item * $range - the range structure created by Gather
+
+=item * $line - container for the range strings to be displayed
+
+=item * $last_range - Boolean - wether the range is the last one to be displayed
+
+=item * $total_dumped_data - Integer -  the amount of total data dumped so far
+
+=item * $dumped_data - Integer - the amount of byte dumped from the range so far
+
+=item *  $size_to_dump - Integer - the amount of data to extract from the range
+
+=item * $room_left - Integer - the amount of space left in the line for the dimped data
+
+=cut
+
+		$self->_dump_range_horizontal(0, $range, $line, 0, $aligned_start_offset, 0, $left_pad_size, $self->{DATA_WIDTH}) ;
+	
+		$current_offset += $self->{OFFSET_START} ;
+		$room_left = $self->{DATA_WIDTH} - $left_pad_size ;
+		}
+		
+while (my $range = shift @collected_data_to_dump)
+	{
+	my $data_length = defined $range->{DATA} ? length($range->{DATA}) : 0 ;
+	my ($start_quote, $end_quote) = $range->{IS_COMMENT} ? ('"', '"') : ('<', '>') ;
+		
+	$range->{SOURCE} = $range_source  if $range->{IS_BITFIELD} ;
+		
+	$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+	
+	if($range->{IS_BITFIELD}) 
+		{
+		push @found_bitfields, $self->get_bitfield_lines($range) ;
+		
+		next ;
+		}
+	
+	if($room_left == $self->{DATA_WIDTH})
+		{
+		push @lines,  @found_bitfields ;
+		@found_bitfields = () ;
+		}
+	
+	# remember what range we process in case next range is bitfield
+	unless($range->{IS_COMMENT})
+		{
+		$range_source = [$range->{NAME}, $range->{COLOR}]  ;
+		}
+	
+	my $dumped_data = 0 ;
+	
+	if(0 == $data_length && $self->{DISPLAY_RANGE_NAME})
+		{
+		my $display_range_name = 0 ;
+		
+		if($range->{IS_COMMENT})
+			{
+			$display_range_name++ if $self->{DISPLAY_COMMENT_RANGE} ;
+			}
+		else
+			{
+			$display_range_name++ if $self->{DISPLAY_ZERO_SIZE_RANGE} ;
+			}
+				
+		if($display_range_name)
+			{
+			my $name_size_quoted = $max_range_name_size - 2 ;
+			$name_size_quoted =  2 if $name_size_quoted < 2 ;
+			
+			push @{$line->{RANGE_NAME}},
+				{
+				'RANGE_NAME' => $start_quote . sprintf("%.${name_size_quoted}s", $range->{NAME}) . $end_quote,
+				'RANGE_NAME_COLOR' => $range->{COLOR},
+				},
+				{
+				'RANGE_NAME_COLOR' => undef,
+				'RANGE_NAME' => ', ',
+				} ;
+			}
+		}
+		
+	if($range->{IS_HEADER}) 
+		{
+		$range->{NAME} =  '@' . $range->{NAME} ;
+		$range->{DATA} = '0' x $self->{DATA_WIDTH} ;
+		
+		# justify on the right
+		$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset, $dumped_data, $room_left, $room_left) ;
+		$line->{NEW_LINE}++ ;
+		push @lines, $line ;
+
+		# display header
+		$line = {} ;
+		push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
+		
+		# justify on the left
+		$line = {} ;
+			
+		my $left_pad_size = $self->{DATA_WIDTH} - $room_left ;
+		$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset -$left_pad_size , $dumped_data, $left_pad_size, $self->{DATA_WIDTH}) ;
+		
+		next ;
+		}
+		
+	if($range->{IS_SKIP}) 
+		{
+		$range->{NAME} =  '>>' . $range->{NAME} ;
+		$range->{DATA} = ' '  x $self->{DATA_WIDTH} ;
+		
+		my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
+		$room_left -= $size_to_dump ;
+
+		# justify on the right
+		$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset, $dumped_data, $size_to_dump, $room_left) ;
+		
+		my $data_left = $data_length - $size_to_dump ;
+		$current_offset += $size_to_dump ;
+		
+		if ($data_left)
+			{
+			# justify on the left
+			$line->{NEW_LINE}++ ;
+			push @lines, $line ;
+			
+			my $lines_to_skip = int($data_left / $self->{DATA_WIDTH}) ;
+			my $data_bytes_on_line = $data_left - ($lines_to_skip * $self->{DATA_WIDTH}) ;
+			my $left_data_offset = $current_offset + ($lines_to_skip * $self->{DATA_WIDTH}) ;
+			
+			$line = {} ;
+			$self->_dump_range_horizontal(0, $range, $line, $last_range, $left_data_offset, $dumped_data, $data_bytes_on_line, $self->{DATA_WIDTH}) ;
+			
+			$room_left = $self->{DATA_WIDTH} - $data_bytes_on_line ;
+			$current_offset += $data_left ;
+			}
+			
+		next ;
+		}
+		
+	while ($dumped_data < $data_length)
+		{
+		my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
+		
+		$room_left -= $size_to_dump ;
+		
+		$self->_dump_range_horizontal(1, $range, $line, $last_range, $current_offset, $dumped_data, $size_to_dump, $room_left) ;
+		
+		$dumped_data += $size_to_dump ;
+		$current_offset += $size_to_dump ;
+		
+		if($room_left == 0 || $last_range == $range)
+			{
+			$line->{NEW_LINE}++ ;
+			push @lines, $line ;
+			
+			$line = {} ;
+			$room_left = $self->{DATA_WIDTH} ;
+			
+			push @lines,  @found_bitfields ;
+			@found_bitfields = () ;
+			}
+		}
+	}
+
+if(@found_bitfields)
+	{
+	push @lines,  @found_bitfields ;
+	@found_bitfields = () ;
+	}
+
+return \@lines ;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _split_vertical
+{
+
+=head2 [P] _split_vertical($collected_data)
+
+Split the collected data into vertical lines
+
+I<Arguments> - 
+
+=over 2 
+
+=item * $container - Collected data
+
+=back
+
+I<Returns> -  An Array  containing column elements
+
+I<Exceptions>
+
+=cut
+
+my ($self, $collected_data) = @_ ;
+
+my @lines ;
+my $line = {} ;
+my $wrapped_line = 0 ;
+
+my $current_offset = 0 ;
+my $total_dumped_data =  $self->{OFFSET_START} ;
 my $room_left = $self->{DATA_WIDTH} ;
 
 my $lines_since_header = 0 ;
@@ -99,294 +368,154 @@ while (my $range = shift @collected_data_to_dump)
 		
 	$range->{SOURCE} = $range_source  if $range->{IS_BITFIELD} ;
 		
-	if($self->{ORIENTATION} =~ /^hor/)
+	# vertical mode
+		
+	$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+	
+	$line = {} ;
+
+	my $dumped_data = 0 ;
+	my $current_range = '' ;
+	
+	if(!$range->{IS_BITFIELD} && 0 == $data_length && $self->{DISPLAY_RANGE_NAME}) # && $self->{DISPLAY_RANGE_NAME})
 		{
-		$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+		my $display_range_name = 0 ;
 		
-		if($range->{IS_BITFIELD}) 
+		if($range->{IS_COMMENT})
 			{
-			push @found_bitfields, $self->get_bitfield_lines($range) ;
-			
-			next ;
-			}
-		
-		if($room_left == $self->{DATA_WIDTH})
-			{
-			push @lines,  @found_bitfields ;
-			@found_bitfields = () ;
-			}
-		
-		# remember what range we process in case next range is bitfield
-		unless($range->{IS_COMMENT})
-			{
-			$range_source = [$range->{NAME}, $range->{COLOR}]  ;
-			}
-		
-		my $dumped_data = 0 ;
-		my $data_length = defined $range->{DATA} ? length($range->{DATA}) : 0 ;
-		
-		if(0 == $data_length && $self->{DISPLAY_RANGE_NAME})
-			{
-			my $display_range_name = 0 ;
-			
-			if($range->{IS_COMMENT})
-				{
-				$display_range_name++ if $self->{DISPLAY_COMMENT_RANGE} ;
-				}
-			else
-				{
-				$display_range_name++ if $self->{DISPLAY_ZERO_SIZE_RANGE} ;
-				}
-					
-			if($display_range_name)
-				{
-				my $name_size_quoted = $max_range_name_size - 2 ;
-				$name_size_quoted =  2 if $name_size_quoted < 2 ;
-				
-				push @{$line->{RANGE_NAME}},
-					{
-					'RANGE_NAME' => $start_quote . sprintf("%.${name_size_quoted}s", $range->{NAME}) . $end_quote,
-					'RANGE_NAME_COLOR' => $range->{COLOR},
-					},
-					{
-					'RANGE_NAME_COLOR' => undef,
-					'RANGE_NAME' => ', ',
-					} ;
-				}
-			}
-			
-		if($range->{IS_HEADER}) 
-			{
-			$range->{NAME} =  '@' . $range->{NAME} ;
-			$range->{DATA} = '0' x $self->{DATA_WIDTH} ;
-			
-			# justify on the right
-			$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset, $dumped_data, $room_left, $room_left) ;
-			$line->{NEW_LINE}++ ;
-			push @lines, $line ;
-
-			# display header
-			$line = {} ;
-			push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
-			
-			# justify on the left
-			$line = {} ;
-				
-			my $left_pad_size = $self->{DATA_WIDTH} - $room_left ;
-			$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset -$left_pad_size , $dumped_data, $left_pad_size, $self->{DATA_WIDTH}) ;
-			
-			next ;
-			}
-			
-		if($range->{IS_SKIP}) 
-			{
-			$range->{NAME} =  '>>' . $range->{NAME} ;
-			$range->{DATA} = ' '  x $self->{DATA_WIDTH} ;
-			
-			my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
-			$room_left -= $size_to_dump ;
-
-			# justify on the right
-			$self->_dump_range_horizontal(0, $range, $line, $last_range, $current_offset, $dumped_data, $size_to_dump, $room_left) ;
-			
-			my $data_left = $data_length - $size_to_dump ;
-			$current_offset += $size_to_dump ;
-			
-			if ($data_left)
-				{
-				# justify on the left
-				$line->{NEW_LINE}++ ;
-				push @lines, $line ;
-				
-				my $lines_to_skip = int($data_left / $self->{DATA_WIDTH}) ;
-				my $data_bytes_on_line = $data_left - ($lines_to_skip * $self->{DATA_WIDTH}) ;
-				my $left_data_offset = $current_offset + ($lines_to_skip * $self->{DATA_WIDTH}) ;
-				
-				$line = {} ;
-				$self->_dump_range_horizontal(0, $range, $line, $last_range, $left_data_offset, $dumped_data, $data_bytes_on_line, $self->{DATA_WIDTH}) ;
-				
-				$room_left = $self->{DATA_WIDTH} - $data_bytes_on_line ;
-				$current_offset += $data_left ;
-				}
-				
-			next ;
-			}
-			
-		while ($dumped_data < $data_length)
-			{
-			my $size_to_dump = min($room_left, $data_length - $dumped_data) || 0 ;
-			
-			$room_left -= $size_to_dump ;
-			
-			$self->_dump_range_horizontal(1, $range, $line, $last_range, $current_offset, $dumped_data, $size_to_dump, $room_left) ;
-			
-			$dumped_data += $size_to_dump ;
-			$current_offset += $size_to_dump ;
-			
-			if($room_left == 0 || $last_range == $range)
-				{
-				$line->{NEW_LINE}++ ;
-				push @lines, $line ;
-				
-				$line = {} ;
-				$room_left = $self->{DATA_WIDTH} ;
-				
-				push @lines,  @found_bitfields ;
-				@found_bitfields = () ;
-				}
-			}
-		}
-	else
-		{ 
-		# vertical mode
-			
-		$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
-		
-		$line = {} ;
-
-		my $dumped_data = 0 ;
-		my $current_range = '' ;
-		
-		if(!$range->{IS_BITFIELD} && 0 == $data_length && $self->{DISPLAY_RANGE_NAME}) # && $self->{DISPLAY_RANGE_NAME})
-			{
-			my $display_range_name = 0 ;
-			
-			if($range->{IS_COMMENT})
-				{
-				$display_range_name++ if $self->{DISPLAY_COMMENT_RANGE} ;
-				}
-			else
-				{
-				$display_range_name++ if $self->{DISPLAY_ZERO_SIZE_RANGE} ;
-				}
-					
-			if($display_range_name)
-				{
-				push @{$line->{RANGE_NAME}},
-					{
-					'RANGE_NAME_COLOR' => $range->{COLOR},
-					'RANGE_NAME' => "$start_quote$range->{NAME}$end_quote",
-					} ;
-					
-				$line->{NEW_LINE} ++ ;
-				push @lines, $line ;
-				$line = {};
-				}
-			}
-			
-		if($range->{IS_HEADER}) 
-			{
-			# display the header
-			push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
-			next ;
-			}
-		
-		if($range->{IS_SKIP}) 
-			{
-			my $next_data_offset = $total_dumped_data + $data_length - 1 ;
-			
-			$range->{NAME} = '>>' . $range->{NAME} ;
-		
-			for my  $field_type 
-				(
-				['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} }, $range->{COLOR}, $max_range_name_size] ,
-				['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data + $self->{OFFSET_START}}, undef, 8],
-				['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $next_data_offset}, undef, 8],
-				['BITFIELD_SOURCE', sub {' ' x 8}, undef, 8],
-				[
-				'HEX_DUMP', 
-				sub 
-					{
-					my @bytes = unpack("(H2)*", pack("N", $data_length));
-					"@bytes bytes skipped" ;
-					},
-				$range->{COLOR},
-				3 * $self->{DATA_WIDTH},
-				],
-				[
-				'DEC_DUMP', 
-				sub 
-					{
-					my @values = map {sprintf '%03u', $_} unpack("(C3)*", pack("N", $data_length));
-					join(' ',  @values) . " skipped: $data_length bytes"  ;
-					},
-				$range->{COLOR},
-				4 * $self->{DATA_WIDTH}
-				],
-				['ASCII_DUMP', sub {$EMPTY_STRING}, $range->{COLOR}, $self->{DATA_WIDTH}],
-                                ['USER_INFORMATION', sub { sprintf '%-20.20s', $range->{USER_INFORMATION} || ''}, $range->{COLOR}, 20],
-				)
-				{
-				my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
-				
-				if($self->{"DISPLAY_$field_name"})
-					{
-					my $field_text = $field_data_formater->([]) ;
-					my $pad = ' ' x ($field_text_size -  length($field_text)) ;
-					
-					push @{$line->{$field_name}},
-						{
-						$field_name . '_COLOR' => $color,
-						$field_name =>  $field_text .  $pad,
-						} ;
-					}
-				}
-			
-			$total_dumped_data += $data_length ;
-			
-			$line->{NEW_LINE} ++ ;
-			push @lines, $line ;
-			$line = {};
-			
-			next ;
-			}
-			
-		while ($dumped_data < $data_length)
-			{ 
-			last if($range->{IS_BITFIELD}) ;
-
-			my $left_offset = $total_dumped_data % $self->{DATA_WIDTH} ;
-			
-			if($left_offset)
-				{
-				# previous range did not end on DATA_WIDTH offset, align
-				local $range->{DATA} = '0' x $self->{DATA_WIDTH} ;
-				
-				$self->_dump_range_vertical(0, $range, $line, 0, 0, $left_offset) ;
-					
-				$room_left -= $left_offset ;
-				}
-				
-			my $size_to_dump = min($room_left, length($range->{DATA}) - $dumped_data) ;
-			$room_left -= $size_to_dump ;
-			$self->_dump_range_vertical(1, $range, $line, $dumped_data, $total_dumped_data, $size_to_dump) ;
-			
-			if($room_left)
-				{
-				local $range->{DATA} = '0' x $self->{DATA_WIDTH} ;
-				
-				$self->_dump_range_vertical(0, $range, $line, 0, 0, $room_left) ;
-					
-				$room_left = 0 ;
-				}
-				
-			$dumped_data += $size_to_dump ;
-			$total_dumped_data += $size_to_dump ;
-
-			$line->{NEW_LINE} ++ ;
-			push @lines, $line ;
-			$line = {};
-			$room_left = $self->{DATA_WIDTH} ;
-			}
-			
-		if($range->{IS_BITFIELD})
-			{
-			push @lines, $self->get_bitfield_lines($range)  ;
+			$display_range_name++ if $self->{DISPLAY_COMMENT_RANGE} ;
 			}
 		else
 			{
-			$range_source = [$range->{NAME}, $range->{COLOR}]  ;
+			$display_range_name++ if $self->{DISPLAY_ZERO_SIZE_RANGE} ;
 			}
+				
+		if($display_range_name)
+			{
+			push @{$line->{RANGE_NAME}},
+				{
+				'RANGE_NAME_COLOR' => $range->{COLOR},
+				'RANGE_NAME' => "$start_quote$range->{NAME}$end_quote",
+				} ;
+				
+			$line->{NEW_LINE} ++ ;
+			push @lines, $line ;
+			$line = {};
+			}
+		}
+		
+	if($range->{IS_HEADER}) 
+		{
+		# display the header
+		push @lines, $self->get_information(\@lines, $range->{COLOR}) ;
+		next ;
+		}
+	
+	if($range->{IS_SKIP}) 
+		{
+		my $next_data_offset = $total_dumped_data + $data_length - 1 ;
+		
+		$range->{NAME} = '>>' . $range->{NAME} ;
+	
+		for my  $field_type 
+			(
+			['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} }, $range->{COLOR}, $max_range_name_size] ,
+			['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, undef, 8],
+			['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $next_data_offset}, undef, 8],
+			['BITFIELD_SOURCE', sub {' ' x 8}, undef, 8],
+			[
+			'HEX_DUMP', 
+			sub 
+				{
+				my @bytes = unpack("(H2)*", pack("N", $data_length));
+				"@bytes bytes skipped" ;
+				},
+			$range->{COLOR},
+			3 * $self->{DATA_WIDTH},
+			],
+			[
+			'DEC_DUMP', 
+			sub 
+				{
+				my @values = map {sprintf '%03u', $_} unpack("(C3)*", pack("N", $data_length));
+				join(' ',  @values) . " skipped: $data_length bytes"  ;
+				},
+			$range->{COLOR},
+			4 * $self->{DATA_WIDTH}
+			],
+			['ASCII_DUMP', sub {$EMPTY_STRING}, $range->{COLOR}, $self->{DATA_WIDTH}],
+							['USER_INFORMATION', sub { sprintf '%-20.20s', $range->{USER_INFORMATION} || ''}, $range->{COLOR}, 20],
+			)
+			{
+			my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
+			
+			if($self->{"DISPLAY_$field_name"})
+				{
+				my $field_text = $field_data_formater->([]) ;
+				my $pad = ' ' x ($field_text_size -  length($field_text)) ;
+				
+				push @{$line->{$field_name}},
+					{
+					$field_name . '_COLOR' => $color,
+					$field_name =>  $field_text .  $pad,
+					} ;
+				}
+			}
+		
+		$total_dumped_data += $data_length ;
+		
+		$line->{NEW_LINE} ++ ;
+		push @lines, $line ;
+		$line = {};
+		
+		next ;
+		}
+		
+	while ($dumped_data < $data_length)
+		{ 
+		last if($range->{IS_BITFIELD}) ;
+
+		my $left_offset = $total_dumped_data % $self->{DATA_WIDTH} ;
+		
+		if($left_offset)
+			{
+			# previous range did not end on DATA_WIDTH offset, align
+			local $range->{DATA} = '0' x $self->{DATA_WIDTH} ;
+			
+			$self->_dump_range_vertical(0, $range, $line, 0, 0, $left_offset) ;
+				
+			$room_left -= $left_offset ;
+			}
+			
+		my $size_to_dump = min($room_left, length($range->{DATA}) - $dumped_data) ;
+		$room_left -= $size_to_dump ;
+		$self->_dump_range_vertical(1, $range, $line, $dumped_data, $total_dumped_data, $size_to_dump) ;
+		
+		if($room_left)
+			{
+			local $range->{DATA} = '0' x $self->{DATA_WIDTH} ;
+			
+			$self->_dump_range_vertical(0, $range, $line, 0, 0, $room_left) ;
+				
+			$room_left = 0 ;
+			}
+			
+		$dumped_data += $size_to_dump ;
+		$total_dumped_data += $size_to_dump ;
+
+		$line->{NEW_LINE} ++ ;
+		push @lines, $line ;
+		$line = {};
+		$room_left = $self->{DATA_WIDTH} ;
+		}
+		
+	if($range->{IS_BITFIELD})
+		{
+		push @lines, $self->get_bitfield_lines($range)  ;
+		}
+	else
+		{
+		$range_source = [$range->{NAME}, $range->{COLOR}]  ;
 		}
 	}
 
@@ -444,7 +573,7 @@ my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 		
 for my  $field_type 
 	(
-	['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $total_dumped_data + $self->{OFFSET_START}}, undef, 0],
+	['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, undef, 0],
 	['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
 	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
 	['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
@@ -523,7 +652,7 @@ my $user_information_size = $self->{MAXIMUM_USER_INFORMATION_SIZE} ;
 for my  $field_type 
 	(
 	['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
-	['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data + $self->{OFFSET_START}}, undef, 8],
+	['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, undef, 8],
 	['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}, undef, 8],
 	['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
 	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $size_to_dump],

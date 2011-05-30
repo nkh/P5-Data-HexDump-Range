@@ -50,3 +50,4 @@ xt/author/dist/000_prereq.t
 scripts/hdr
 scripts/hdr_examples.pod
 
+META.json

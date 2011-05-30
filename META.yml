@@ -1,5 +1,5 @@
 ---
-abstract: 'Hexadecial Range Dumper with color, bitfields and skip ranges'
+abstract: 'Hexadecimal Range Dumper with color, bitfields and skip ranges'
 author:
   - 'Nadim ibn hamouda el Khemir. <nkh@cpan.org>'
 build_requires:
@@ -9,8 +9,9 @@ build_requires:
   Test::Warn: 0
   Text::Diff: 0
 configure_requires:
-  Module::Build: 0.36
-generated_by: 'Module::Build version 0.3603'
+  Module::Build: 0.38
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.110930'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -19,7 +20,7 @@ name: Data-HexDump-Range
 provides:
   Data::HexDump::Range:
     file: lib/Data/HexDump/Range.pm
-    version: 0.11
+    version: 0.12
 requires:
   Data::TreeDumper: 0
   Getopt::Long: 0
@@ -32,4 +33,4 @@ requires:
   Text::Colorizer: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.11.48
+version: v0.12.57
