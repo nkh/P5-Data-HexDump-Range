@@ -1026,21 +1026,29 @@ if($self->{DISPLAY_RULER})
 				{
 				/HEX_DUMP/ and do
 					{
-					$information .= join '', map {sprintf '%x  ' , $ _ % 16} (0 .. $self->{DATA_WIDTH} - 1) ;
+					$information .= $self->{OFFSET_FORMAT} =~ /x$/
+							? join '', map {sprintf '%x  ' , $ _ % 16} (0 .. $self->{DATA_WIDTH} - 1)
+							: join '', map {sprintf '%d  ' , $ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
+
 					$information .= ' ' ;
 					last ;
 					} ;
 					
 				/DEC_DUMP/ and do
 					{
-					$information .= join '', map {sprintf '%d   ' , $ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
+					$information .= $self->{OFFSET_FORMAT} =~ /x$/
+							? join '', map {sprintf '%x   ' , $ _ % 16} (0 .. $self->{DATA_WIDTH} - 1)
+							: join '', map {sprintf '%d   ' , $ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
+
 					$information .= ' ' ;
 					last ;
 					} ;
 					
 				/ASCII_DUMP/ and do
 					{
-					$information .= join '', map {$ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
+					$information .= $self->{OFFSET_FORMAT} =~ /x$/
+							? join '', map {sprintf '%x', $ _ % 16} (0 .. $self->{DATA_WIDTH} - 1)
+							: join '', map {$ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
 					$information .= ' ' ;
 					last ;
 					} ;

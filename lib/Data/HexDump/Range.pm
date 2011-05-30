@@ -18,7 +18,7 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.12';
+$VERSION     = '0.13';
 }
 
 #-------------------------------------------------------------------------------
@@ -250,6 +250,8 @@ The size field is used to defined if the range is a normal range, a comment, a b
   extra header => @                               header, @, red 
   bitfield     => [XInteger][xInteger]bInteger    bitfield, X2x4b4         # X is byte offset, x is bit offset
   skip range   => xInteger                        boring, X256,, comment
+
+Note that the integer part can be a hexadecimal value starting with I<0x>
 
 =head3 Coloring
 

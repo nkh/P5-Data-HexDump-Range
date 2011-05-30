@@ -7,15 +7,29 @@ use Carp ;
 
 =head1 NAME 
 
- $>hdr - hexdump range
+ $>hdr - hexadecimal [decimal] ascii, colorizing, range dump
 
 =head1 USAGE
 
  $> hdr -r range_definitions file_to_dump
  
- $> hdr file_to_dump -r 'header,40, yellow:padding,24:magic,16,red:size,4:data,100:footer,16' -o ver
+ $> hdr file_to_dump -r 'cookie,10,yellow :padding,8 :size,4:data,100' -o ver
+
+The integer part can of a range definition and offset values can be hexadecimal value starting with I<0x>
+
+=head1 RANGE DEFINITION 
+
+                  format                          range example
+		  
+  normal range => integer                         header, 4, bright_blue
+  comment      => #                               data section start, # 
+  extra header => @                               header, @, red 
+  bitfield     => [XInteger][xInteger]bInteger    bitfield, X2x4b4 (offset: X byte, x bit)
+  skip range   => XInteger                        boring, X256,, your comment
 
 =head1 OPTIONS
+
+Options can be given before or after the name of the file to dump.
 
  range_description|r              file name containing a description
                                   or a string description formated as:
@@ -112,10 +126,10 @@ my @options =
 	'dump_range_description|d' =>\my $dump_range_description,
 	'dump_original_range_description' =>\my $dump_original_range_description,
 	
-	'offset=i' =>  \my $offset,
-	'offset_start=i' => \my $offset_start,
+	'offset=o' =>  \my $offset,
+	'offset_start=o' => \my $offset_start,
 	
-	'maximum_size=i' =>  \my $maximum_size,
+	'maximum_size=o' =>  \my $maximum_size,
 	'orientation|o=s' => \my $orientation,
 	'display_column_names|col' => \my $display_column_names,
 	'display_ruler|rul' => \my $display_ruler,
@@ -129,7 +143,7 @@ my @options =
 	'start_tag=s' => \my $start_tag,
 	'end_tag=s' => \my $end_tag,
 	
-	'data_width=i' =>  \my $data_width,
+	'data_width=o' =>  \my $data_width,
 
 	'offset_format=s' => \my $offset_format,
 	'display_offset=i' => \my $display_offset,
