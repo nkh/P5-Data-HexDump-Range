@@ -1,0 +1,684 @@
+
+=head1 HDR EXAMPLES
+
+This document will help you understand how to use the I<hdr> command which is a part of the L<Data::HexDump::Range> module.
+Some advanced examples use the module directly.
+
+The latest version is  at L<http://search.cpan.org/search?query=Data%3A%3AHexDump%3A%3ARange>.
+
+This document contains many embeded examples in HTML format. It is mean to be processed by I<pod2html> or equivalent.
+
+=head2 When in the hexdump land, do as hexdumper do
+
+Without range definition I<hdr> act like I<hexdump>.
+
+ >$ hdr file_name
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+
+<span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>63 6f 6d 6d 69 74 20 38 38 30 39 63 38 65 38 34 </span> <span style='color:#0f0;'>commit 8809c8e84</span> 
+<span style='color:#fff;'>00000010</span> <span style='color:#0f0;'>65 62 33 32 33 62 62 61 61 33 36 36 39 65 39 34 </span> <span style='color:#0f0;'>eb323bbaa3669e94</span> 
+<span style='color:#fff;'>00000020</span> <span style='color:#0f0;'>38 62 36 38 35 30 32 36 63 33 35 66 61 35 39 20 </span> <span style='color:#0f0;'>8b685026c35fa59 </span> 
+<span style='color:#fff;'>00000030</span> <span style='color:#0f0;'>28 48 45 41 44 2c 20 6d 61 73 74 65 72 29 0a 41 </span> <span style='color:#0f0;'>(HEAD, master).A</span> 
+<span style='color:#fff;'>00000040</span> <span style='color:#0f0;'>75 74 68 6f 72 3a 20 6e 61 64 69 6d 20 6b 68 65 </span> <span style='color:#0f0;'>uthor: nadim khe</span> 
+<span style='color:#fff;'>00000050</span> <span style='color:#0f0;'>6d 69 72 20 3c 6e 6b 68 40 63 70 61 6e 2e 6f 72 </span> <span style='color:#0f0;'>mir <nkh@cpan.or</span> 
+<span style='color:#fff;'>00000060</span> <span style='color:#0f0;'>67 3e 0a 44 61 74 65 3a 20 20 20 53 75 6e 20 41 </span> <span style='color:#0f0;'>g>.Date:   Sun A</span> 
+<span style='color:#fff;'>00000070</span> <span style='color:#0f0;'>70 72 20 31 38 20 30 33 3a 33 32 3a 30 33 20 32 </span> <span style='color:#0f0;'>pr 18 03:32:03 2</span> 
+<span style='color:#fff;'>00000080</span> <span style='color:#0f0;'>30 31 30 20 2b 30 32 30 30 0a 0a 20 20 20 20 41 </span> <span style='color:#0f0;'>010 +0200..    A</span> 
+</pre>
+
+=end html
+
+=head2 Output format
+
+The default output format is B<ANSI>. B<ASCII> is like B<ANSI> without the colors.
+
+=head3 ASCII
+
+  00000000 63 6f 6d 6d 69 74 20 38 38 30 39 63 38 65 38 34  commit 8809c8e84
+  00000010 65 62 33 32 33 62 62 61 61 33 36 36 39 65 39 34  eb323bbaa3669e94
+  00000020 38 62 36 38 35 30 32 36 63 33 35 66 61 35 39 20  8b685026c35fa59
+  00000030 28 48 45 41 44 2c 20 6d 61 73 74 65 72 29 0a 41  (HEAD, master).A
+  00000040 75 74 68 6f 72 3a 20 6e 61 64 69 6d 20 6b 68 65  uthor: nadim khe
+  00000050 6d 69 72 20 3c 6e 6b 68 40 63 70 61 6e 2e 6f 72  mir <nkh@cpan.or
+  00000060 67 3e 0a 44 61 74 65 3a 20 20 20 53 75 6e 20 41  g>.Date:   Sun A
+  00000070 70 72 20 31 38 20 30 33                          pr 18 03
+
+=head3 ANSI
+
+B<ANSI> can only be rendered on a terminal but it look like the HTML format below
+
+=head3 HTML
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>63 6f 6d 6d 69 74 20 38 38 30 39 63 38 65 38 34 </span> <span style='color:#0f0;'>commit 8809c8e84</span> 
+<span style='color:#fff;'>00000010</span> <span style='color:#0f0;'>65 62 33 32 33 62 62 61 61 33 36 36 39 65 39 34 </span> <span style='color:#0f0;'>eb323bbaa3669e94</span> 
+<span style='color:#fff;'>00000020</span> <span style='color:#0f0;'>38 62 36 38 35 30 32 36 63 33 35 66 61 35 39 20 </span> <span style='color:#0f0;'>8b685026c35fa59 </span> 
+<span style='color:#fff;'>00000030</span> <span style='color:#0f0;'>28 48 45 41 44 2c 20 6d 61 73 74 65 72 29 0a 41 </span> <span style='color:#0f0;'>(HEAD, master).A</span> 
+<span style='color:#fff;'>00000040</span> <span style='color:#0f0;'>75 74 68 6f 72 3a 20 6e 61 64 69 6d 20 6b 68 65 </span> <span style='color:#0f0;'>uthor: nadim khe</span> 
+<span style='color:#fff;'>00000050</span> <span style='color:#0f0;'>6d 69 72 20 3c 6e 6b 68 40 63 70 61 6e 2e 6f 72 </span> <span style='color:#0f0;'>mir <nkh@cpan.or</span> 
+<span style='color:#fff;'>00000060</span> <span style='color:#0f0;'>67 3e 0a 44 61 74 65 3a 20 20 20 53 75 6e 20 41 </span> <span style='color:#0f0;'>g>.Date:   Sun A</span> 
+<span style='color:#fff;'>00000070</span> <span style='color:#0f0;'>70 72 20 31 38 20 30 33                         </span> <span style='color:#0f0;'>pr 18 03        </span> 
+</pre>
+
+=end html
+
+=head2 Range descritption
+
+                  format                complete range example
+		  
+  normal range => integer               header, 4, bright_blue     
+  comment      => #                     data section start, # 
+  bitfield     => [xInteger]bInteger    bitfield, x8b4 
+  skip range   => xInteger              boring, x256,, a comment
+
+=head3 Direct command line defintion
+
+You can define your range description on the command line by passing a string to  the I<--range_description> (short I<-r>) option.
+
+  hdr -r 'magic, 5,   :other,37  :bf,b8   :skip,x32,, I skipped :more, 20'
+
+=head3 Definition from a file
+
+The I<--range_description> option also accept a file namewhich contain a range description written in Perl.
+
+  hdr -r my_range_description_file
+
+=head4 simple file
+
+ 	[
+ 	  ['data header', 5, 'blue on_cyan'],
+ 	  ['data', 20, 'blue on_bright_yellow'],
+ 	] ;
+
+=head4 more structured file
+
+ use strict ;
+ use warnings ;
+ 
+ # any perl code you may need to generate your range definition
+ 
+ my $data_range = # definition to re-use
+ 	[
+ 	  ['data header', 5, 'blue on_cyan'],
+ 	  ['data', 20, 'blue on_bright_yellow'],
+ 	] ;
+ 
+ my $structured_range = 
+ 	[
+ 	  ['zero size', 0],
+ 	  [
+ 	    ['magic cookie', 12, 'red'],
+ 	    ['padding', 32, 'yellow'],
+ 	    $data_range, 
+ 	  ],
+          ['A comment', '#'],		
+ 	  [
+ 	    ['extra data', 18, undef],
+ 	      [
+ 	      $data_range, 
+ 	      ['footer', 4, 'bright_yellow on_red'],
+  	    ]
+   	  ],
+  	] ; 
+ 	
+ $structured_range ; # return the range description
+
+See Also L<Advanced usage>
+
+=head2 Decimal dump
+
+You can get a decimal dump instead for an hexidecimal dump.
+
+ hdr  -r 'header,20 :DATA,4  :c,b24  :e,x4b5 :uninterresting, x16  :more,20' -display_dec_dump 1 -display_hex_dump 0 -rul -col -o ver 
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>RANGE_NAME       OFFSET   CUMULATI DEC_DUMP                                                         ASCII_DUMP       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>                                   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5    0123456789012345 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>header          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>010 112 097 099 107 097 103 101 032 068 097 116 097 058 058 072 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.package Data::H</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>header          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>101 120 068 117                                                 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>exDu            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>DATA            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000014</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>109 112 058 058                                                 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>mp::            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>.c              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 .. 23</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>--- 112 058 058 value: 7354938                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.bitfield: -p:: </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>.e              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>04 .. 08</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>--- --- --- 003 value: 3                                        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>&gt;&gt;uninterresting</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000018</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000027</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>000 000 000 016 skipped: 16 bytes                               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>                </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000028</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>105 099 116 059 010 117 115 101 032 119 097 114 110 105 110 103 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>ict;.use warning</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000038</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>115 032 059 010                                                 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>s ;.            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+You can also have both dumps simulteanously. Check the display option of the I<hdr> command.
+
+=head2 Colors and Headers
+
+=head3 Showing the column header and the rulers
+
+  $>hdr -col -rul your_file
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style='color:#fff;'>OFFSET   HEX_DUMP                                         ASCII_DUMP       </span> 
+<span style='color:#fff;'>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345 </span> 
+<span style='color:#fff;'>00000000</span> <span style='color:#0f0;'>63 6f 6d 6d 69 74 20 38 38 30 39 63 38 65 38 34 </span> <span style='color:#0f0;'>commit 8809c8e84</span> 
+<span style='color:#fff;'>00000010</span> <span style='color:#0f0;'>65 62 33 32 33 62 62 61 61 33 36 36 39 65 39 34 </span> <span style='color:#0f0;'>eb323bbaa3669e94</span> 
+<span style='color:#fff;'>00000020</span> <span style='color:#0f0;'>38 62 36 38 35 30 32 36 63 33 35 66 61 35 39 20 </span> <span style='color:#0f0;'>8b685026c35fa59 </span> 
+</pre>
+
+=end html
+
+=head3 Defining your own colors
+
+Define a custom color file containing a data in the format below andd pass it as argument to option I<--colors>
+
+  {
+  HTML =>
+	{
+	# custom color name
+	custom => 'color:#f00; background-color:#ff0; ',
+	
+	# the normal ansi color
+	reset => '',
+	white => 'color:#aaa; ',
+	black => 'color:#000; ',
+	green => 'color:#0a0; ',
+	...
+	},
+  ANSI =>
+	{
+	# custom color name, it's a good idea to define them on both formats
+	custom => 'bright_red on_bright_yellow; ',
+	
+	reset => '',
+	white => 'white',
+	...
+	},
+  }
+
+=head3 Colorize only the range you give color to
+
+By default I<hdr> will assign colors to ranges you don't give a color to. 
+
+  hdr -r 'A,10:B,10,red:C,10:D,10,green' -col -rul
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>OFFSET   HEX_DUMP                                         ASCII_DUMP       RANGE_ </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 6f 6d 6d 69 74 20 31 39 39 </span><span style = 'color:#fff;  color:#a00; '>61 34 62 31 32 37 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>commit 199</span><span style = 'color:#fff;  color:#a00; '>a4b127</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#a00; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#a00; '>62 32 39 66 </span><span style = 'color:#fff;  color:#ff0; '>39 31 64 32 65 36 33 66 39 35 </span><span style = 'color:#fff;  color:#0a0; '>66 38 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#a00; '>b29f</span><span style = 'color:#fff;  color:#ff0; '>91d2e63f95</span><span style = 'color:#fff;  color:#0a0; '>f8</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#a00; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0a0; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0a0; '>63 34 30 62 64 65 31 39                         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0a0; '>c40bde19        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0a0; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+If you only want the ranges you gave a color to to be colorized,use the I<--color bw> option
+
+  hdr -r 'A,10:B,10,red:C,10:D,10,green' -col -rul -color bw
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>OFFSET   HEX_DUMP                                         ASCII_DUMP       RANGE_ </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>63 6f 6d 6d 69 74 20 31 39 39 </span><span style = 'color:#fff;  color:#a00; '>61 34 62 31 32 37 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>commit 199</span><span style = 'color:#fff;  color:#a00; '>a4b127</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#a00; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#a00; '>62 32 39 66 </span><span style = 'color:#fff;  color:#fff; '>39 31 64 32 65 36 33 66 39 35 </span><span style = 'color:#fff;  color:#0a0; '>66 38 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#a00; '>b29f</span><span style = 'color:#fff;  color:#fff; '>91d2e63f95</span><span style = 'color:#fff;  color:#0a0; '>f8</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#a00; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#fff; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0a0; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0a0; '>63 34 30 62 64 65 31 39                         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0a0; '>c40bde19        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0a0; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+=head2 Input 
+
+=head3 from file or stdin
+
+  hdr -r 'magic cooookie, 5,  ...'  -rul -o ver -col my_file
+
+or pipe your data into I<hdr>
+
+  cat my_file | hdr -r 'magic, 5,  ...' -rul -o ver -col
+
+=head3 Too little data
+
+I<hdr> will display one or more warnings is there is not enough data for all the defined ranges.
+
+  Warning: range 'xxx' size 32 was shortened to 8 due to maximum size limit
+  Warning: More ranges to display but no more data.
+
+=head3 Too much data
+
+I<hdr> only uses the  part that is used by your range descriptions. The rest is ignored.
+
+If you want to use an existing range description that contains many range definitions, you can use the I<--maximum_size> option
+to limit the amount of data I<hdr> will use.
+
+  $>hdr -r 'A,50:B,50:C,50:D,50' --maximum_size 100
+
+will display a warning:
+
+  Warning: More ranges to display but no more data.
+
+and this dump:
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>OFFSET   HEX_DUMP                                         ASCII_DUMP       RAN </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 6f 6d 6d 69 74 20 31 39 39 61 34 62 31 32 37 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>commit 199a4b127</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>62 32 39 66 39 31 64 32 65 36 33 66 39 35 66 38 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>b29f91d2e63f95f8</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 34 30 62 64 65 31 39 62 61 31 33 38 63 34 20 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>c40bde19ba138c4 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000030</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>28 48 </span><span style = 'color:#fff;  color:#ff0; '>45 41 44 2c 20 6d 61 73 74 65 72 29 0a 41 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>(H</span><span style = 'color:#fff;  color:#ff0; '>EAD, master).A</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000040</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>75 74 68 6f 72 3a 20 6e 61 64 69 6d 20 6b 68 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>uthor: nadim khe</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000050</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>6d 69 72 20 3c 6e 6b 68 40 63 70 61 6e 2e 6f 72 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>mir <nkh@cpan.or</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000060</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>67 3e 0a 44                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>g>.D            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+=head3 Offset and Offset start
+
+Say you have the following hexdump
+
+  hdr -r 'A,55:B,5:bf,x3b5:C,18:D,10' -col -rul
+
+=begin html
+
+</pre>
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>OFFSET   HEX_DUMP                                         ASCII_DUMP       RANGE_NAME       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 6f 6d 6d 69 74 20 31 39 39 61 34 62 31 32 37 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>commit 199a4b127</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>62 32 39 66 39 31 64 32 65 36 33 66 39 35 66 38 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>b29f91d2e63f95f8</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 34 30 62 64 65 31 39 62 61 31 33 38 63 34 20 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>c40bde19ba138c4 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000030</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>28 48 45 41 44 2c 20 </span><span style = 'color:#fff;  color:#ff0; '>6d 61 73 74 65 </span><span style = 'color:#fff;  color:#f00; '>72 29 0a 41 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>(HEAD, </span><span style = 'color:#fff;  color:#ff0; '>maste</span><span style = 'color:#fff;  color:#f00; '>r).A</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>A</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#f00; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000040</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>75 74 68 6f 72 3a 20 6e 61 64 69 6d 20 6b </span><span style = 'color:#fff;  color:#fff; '>68 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>uthor: nadim k</span><span style = 'color:#fff;  color:#fff; '>he</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#fff; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000050</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>6d 69 72 20 3c 6e 6b 68                         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>mir &lt;nkh        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+Range B<A> is of no interrest to you so you decide to remove it and the dump to start at range B<B>.
+
+  hdr -r 'B,5:bf,x3b5:C,18:D,10' -col -rul -offset 55
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>OFFSET   HEX_DUMP                                         ASCII_DUMP       RANGE_NAME       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>6d 61 73 74 65 </span><span style = 'color:#fff;  color:#0ff; '>72 29 0a 41 75 74 68 6f 72 3a 20 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>maste</span><span style = 'color:#fff;  color:#0ff; '>r).Author: </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0ff; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>6e 61 64 69 6d 20 6b </span><span style = 'color:#fff;  color:#f00; '>68 65 6d 69 72 20 3c 6e 6b </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>nadim k</span><span style = 'color:#fff;  color:#f00; '>hemir &lt;nk</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#f00; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>68                                              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>h               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+If you want the displayed offset to correspond to the offset in your binary file use the I<--offset_start> option
+
+ hdr -r 'B,5:bf,x3b5:C,18:D,10'  Changes -col -rul -offset 55 -offset_start 55
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>OFFSET   HEX_DUMP                                         ASCII_DUMP       RANGE_NAME       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000037</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>6d 61 73 74 65 </span><span style = 'color:#fff;  color:#0ff; '>72 29 0a 41 75 74 68 6f 72 3a 20 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>maste</span><span style = 'color:#fff;  color:#0ff; '>r).Author: </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0ff; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000047</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>6e 61 64 69 6d 20 6b </span><span style = 'color:#fff;  color:#f00; '>68 65 6d 69 72 20 3c 6e 6b </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>nadim k</span><span style = 'color:#fff;  color:#f00; '>hemir &lt;nk</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#f00; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000057</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>68                                              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>h               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+=head3 Start color
+
+if you do not assign colors to your ranges, L<DATA::HexDump::Range> will conveniently assign a default color. Although this is what you want most of the time, in some cases you 
+want to control what default color is used first.
+
+In the above example, the first dump had range B<B> displayed in I<bright_yellow> and the second dump had it displayed in I<bright_green>.
+
+You can use option I<--start_color> to force the color to match the dump that included the B<A> range.
+
+  hdr -r 'B,5:bf,x3b5:C,18:D,10'  Changes -offset 55 -offset_start 55 -start_color bright_yellow
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#fff; '>OFFSET   HEX_DUMP                                         ASCII_DUMP       RANGE_NAME       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f   0123456789012345                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000037</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>6d 61 73 74 65 </span><span style = 'color:#fff;  color:#f00; '>72 29 0a 41 75 74 68 6f 72 3a 20 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>maste</span><span style = 'color:#fff;  color:#f00; '>r).Author: </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>B</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#f00; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000047</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>6e 61 64 69 6d 20 6b </span><span style = 'color:#fff;  color:#fff; '>68 65 6d 69 72 20 3c 6e 6b </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>nadim k</span><span style = 'color:#fff;  color:#fff; '>hemir &lt;nk</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>C</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#fff; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000057</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>68                                              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>h               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>D</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+See Also L<Skip Ranges>.
+
+=head2 Bitfields
+
+  $> hdr  -r 'header,1 :DATA,4  :c,b9  :d,b3 :e,x4b5  :the end,8 :x,b3 :data,47 :v,x90b8' -o ver
+
+=head3 Vertical mode
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#0f0; '>header          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>0a                                              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>DATA            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000001</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>70 61 63 6b                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>pack            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>.c              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 .. 08</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>-- -- 01 6b    -----------------------101101011 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.bitfield: --.k </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>.d              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>00 .. 02</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 03    -----------------------------011 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>.e              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>04 .. 08</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- -- 16    -----------------------10110---- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>the end         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000005</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>61 67 65 20 44 61 74 61                         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>age Data        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>.x              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>00 .. 02</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>-- -- -- 01    -----------------------------001 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>data            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000000d</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>3a 3a 48 65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>::HexDump::Range</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>data            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000001d</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>20 3b 0a 0a 75 73 65 20 73 74 72 69 63 74 3b 0a </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '> ;..use strict;.</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>data            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000002d</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>75 73 65 20 77 61 72 6e 69 6e 67 73 20 3b 0a    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>use warnings ;. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>.v              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>90 .. 97</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 48    01001000------------------------ </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.bitfield: ---H </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+=head3 Horizontal mode
+
+By default, bitmaps are not displayed in horizontal mode as they tend to clutter the display. You can force the display of bitfields in vertical
+mode by seting the I<--display_bitfields> option to true.
+
+without I<--display_bitfields> option set:
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>0a </span><span style = 'color:#fff;  color:#ff0; '>70 61 63 6b </span><span style = 'color:#fff;  color:#0f0; '>61 67 65 20 44 61 74 61 </span><span style = 'color:#fff;  color:#0ff; '>3a 3a 48 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.</span><span style = 'color:#fff;  color:#ff0; '>pack</span><span style = 'color:#fff;  color:#0f0; '>age Data</span><span style = 'color:#fff;  color:#0ff; '>::H</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>header</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>DATA</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0f0; '>the end</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0ff; '>data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>exDump::Range ;.</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.use strict;.use</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000030</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>20 77 61 72 6e 69 6e 67 73 20 3b 0a             </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '> warnings ;.    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+with I<--display_bitfields> option set to true:
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>0a </span><span style = 'color:#fff;  color:#ff0; '>70 61 63 6b </span><span style = 'color:#fff;  color:#0f0; '>61 67 65 20 44 61 74 61 </span><span style = 'color:#fff;  color:#0ff; '>3a 3a 48 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.</span><span style = 'color:#fff;  color:#ff0; '>pack</span><span style = 'color:#fff;  color:#0f0; '>age Data</span><span style = 'color:#fff;  color:#0ff; '>::H</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>header</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>DATA</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0f0; '>the end</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0ff; '>data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>00 .. 08</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>DATA    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>-- -- 01 6b    -----------------------101101011 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.bitfield: --.k </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.c              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>00 .. 02</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>DATA    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 03    -----------------------------011 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.d              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>04 .. 08</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>DATA    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- -- 16    -----------------------10110---- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>.e              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>00 .. 02</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>the end </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>-- -- -- 01    -----------------------------001 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>.x              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>65 78 44 75 6d 70 3a 3a 52 61 6e 67 65 20 3b 0a </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>exDump::Range ;.</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>0a 75 73 65 20 73 74 72 69 63 74 3b 0a 75 73 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>.use strict;.use</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000030</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>20 77 61 72 6e 69 6e 67 73 20 3b 0a             </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '> warnings ;.    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>data</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>90 .. 97</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>data    </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>-- -- -- 48    01001000------------------------ </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.bitfield: ---H </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>.v              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+
+=end html
+
+=head3 Not enough data for the bitfield
+
+If you define an offset and a bit amout that sets the bitfields outside the data range, or you define a bitfield with more than 32 bits, The bitfields will be displayed as a B<'?'>
+
+   hdr  -r 'data,1 :DATA,4  :c,b50  :d,x30b3 :e,x4b5  :the end,8' -o ver
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#0f0; '>data            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>0a                                              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>DATA            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000001</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>70 61 63 6b                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>pack            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>.c              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 .. 49</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>?                                               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>?               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>.d              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>30 .. 32</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>?                                               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>?               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>.e              </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>04 .. 08</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>-- -- -- 16    -----------------------10110---- </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>.bitfield: ---. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>the end         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000005</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>61 67 65 20 44 61 74 61                         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>age Data        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+
+=end html
+
+=head2 Skip Ranges
+
+Say you have data with data that you are not interrested in seeing in the hexdump.
+
+  $>hdr -r 'magic, 5  :other,37  :uninterresting,45     :more, 20'
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 6f 6d 6d 69 </span><span style = 'color:#fff;  color:#ff0; '>74 20 31 39 39 61 34 62 31 32 37 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>commi</span><span style = 'color:#fff;  color:#ff0; '>t 199a4b127</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>magic</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>other</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>62 32 39 66 39 31 64 32 65 36 33 66 39 35 66 38 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>b29f91d2e63f95f8</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>other</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>63 34 30 62 64 65 31 39 62 61 </span><span style = 'color:#fff;  color:#0ff; '>31 33 38 63 34 20 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>c40bde19ba</span><span style = 'color:#fff;  color:#0ff; '>138c4 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>other</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0ff; '>uninterresting</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000030</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>28 48 45 41 44 2c 20 6d 61 73 74 65 72 29 0a 41 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>(HEAD, master).A</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>uninterresting</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000040</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>75 74 68 6f 72 3a 20 6e 61 64 69 6d 20 6b 68 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>uthor: nadim khe</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>uninterresting</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000050</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>6d 69 72 20 3c 6e 6b </span><span style = 'color:#fff;  color:#f00; '>68 40 63 70 61 6e 2e 6f 72 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>mir <nk</span><span style = 'color:#fff;  color:#f00; '>h@cpan.or</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>uninterresting</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#f00; '>more</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000060</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>67 3e 0a 44 61 74 65 3a 20 20 20                </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>g>.Date:        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>more</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+Change the I<uninterresting> range definition to skip the data.
+
+  $>hdr -r 'magic, 5  :other,37  :uninterresting,x45     :more, 20'
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 6f 6d 6d 69 </span><span style = 'color:#fff;  color:#ff0; '>74 20 31 39 39 61 34 62 31 32 37 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>commi</span><span style = 'color:#fff;  color:#ff0; '>t 199a4b127</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>magic</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>other</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>62 32 39 66 39 31 64 32 65 36 33 66 39 35 66 38 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>b29f91d2e63f95f8</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>other</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>63 34 30 62 64 65 31 39 62 61 </span><span style = 'color:#fff;  color:#0ff; '>                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>c40bde19ba</span><span style = 'color:#fff;  color:#0ff; '>      </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>other</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0ff; '>>>uninterresting</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000057</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>68 40 63 70 61 6e 2e 6f 72 67 3e 0a 44 61 74 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>h@cpan.org>.Date</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>more</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000067</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>3a 20 20 20                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>:               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>more</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+In vertical mode
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#0f0; '>magic           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 6f 6d 6d 69                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>commi           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000005</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>74 20 31 39 39 61 34 62 31 32 37 62 32 39 66 39 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>t 199a4b127b29f9</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000015</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>31 64 32 65 36 33 66 39 35 66 38 63 34 30 62 64 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>1d2e63f95f8c40bd</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000025</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>65 31 39 62 61                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>e19ba           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>>>uninterresting</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000002a</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000056</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>00 00 00 2d bytes skipped                       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>                </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000057</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>68 40 63 70 61 6e 2e 6f 72 67 3e 0a 44 61 74 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>h@cpan.org>.Date</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000067</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>3a 20 20 20                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>:               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+=head2 Comment
+
+You can use comments to introduce the ranges that are going to be displayed next and thus make it easier to understand
+
+ 	[
+ 	  ['data header', 5, 'blue on_cyan'],
+ 	  ['Next is a very interresting data section', #, 'bright_white on_red'],
+ 	  ['data', 20, 'blue on_bright_yellow'],
+ 	] ;
+
+
+  $>hdr -o vertical -r 'magic, 5  :first interresting data section,#, black on_bright_cyan    :other,37  :something,45 :second interresting data section,#,black on_bright_cyan   :other,37  :something,45 :We are done, #, black on_bright_cyan  :more, 20'
+
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff;  color:#0f0; '>magic           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>63 6f 6d 6d 69                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>commi           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#000;  background-color:#0ff; '>"first interresting data section"</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000005</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>74 20 31 39 39 61 34 62 31 32 37 62 32 39 66 39 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>t 199a4b127b29f9</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000015</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>31 64 32 65 36 33 66 39 35 66 38 63 34 30 62 64 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>1d2e63f95f8c40bd</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#ff0; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000025</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>65 31 39 62 61                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>e19ba           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>something       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000002a</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>31 33 38 63 34 20 28 48 45 41 44 2c 20 6d 61 73 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>138c4 (HEAD, mas</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>something       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000003a</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>74 65 72 29 0a 41 75 74 68 6f 72 3a 20 6e 61 64 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>ter).Author: nad</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0ff; '>something       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000004a</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>69 6d 20 6b 68 65 6d 69 72 20 3c 6e 6b          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0ff; '>im khemir <nk   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#000;  background-color:#0ff; '>"second interresting data section"</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000057</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>68 40 63 70 61 6e 2e 6f 72 67 3e 0a 44 61 74 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>h@cpan.org>.Date</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000067</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>3a 20 20 20 54 75 65 20 41 70 72 20 32 30 20 30 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>:   Tue Apr 20 0</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#f00; '>other           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000077</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>31 3a 30 36 3a                                  </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#f00; '>1:06:           </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>something       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000007c</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>30 33 20 32 30 31 30 20 2b 30 32 30 30 0a 0a 20 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>03 2010 +0200.. </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>something       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000008c</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>20 20 20 46 49 58 45 44 3a 20 6d 61 78 69 6d 75 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>   FIXED: maximu</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#fff; '>something       </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>0000009c</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>6d 5f 73 69 7a 65 20 61 70 70 6c 69 65          </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#fff; '>m_size applie   </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#000;  background-color:#0ff; '>"We are done"</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>000000a9</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>64 20 77 69 74 68 69 6e 20 61 20 72 61 6e 67 65 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>d within a range</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff;  color:#0f0; '>more            </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>000000b9</span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>0a 20 20 20                                     </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#0f0; '>.               </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+=head2 Advanced Usage
+
+First, read the module documentation.
+
+=head3 dynamic range generation
+
+The parser below will alternatively return a 'from 0' or 'from 1' range description depending on the first byte of the data to display
+
+ sub my_parser 
+	{
+	my ($dumper, $data, $offset) = @_ ;
+	
+	my $first_byte = unpack ("x$offset C", $data) ;
+	
+	$offset < length($data)
+		?  $first_byte == ord(0)
+			? ['from "0"', 5, 'bright_yellow']
+			: ['from "1"', 3, 'bright_green']
+		: undef ;
+	}	
+ my $data = '01' x 20 ;
+ print $hdr->dump(\&my_parser, $data) ;
+
+=begin html
+
+<pre style ="font-family: monospace; background-color: #000 ;">
+<span style = 'color:#fff; '>00000000</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>30 31 30 31 30 </span><span style = 'color:#fff;  color:#0f0; '>31 30 31 </span><span style = 'color:#fff;  color:#ff0; '>30 31 30 31 30 </span><span style = 'color:#fff;  color:#0f0; '>31 30 31 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>01010</span><span style = 'color:#fff;  color:#0f0; '>101</span><span style = 'color:#fff;  color:#ff0; '>01010</span><span style = 'color:#fff;  color:#0f0; '>101</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>5:from "0"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0f0; '>3:from "1"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>5:from "0"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0f0; '>3:from "1"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000010</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>30 31 30 31 30 </span><span style = 'color:#fff;  color:#0f0; '>31 30 31 </span><span style = 'color:#fff;  color:#ff0; '>30 31 30 31 30 </span><span style = 'color:#fff;  color:#0f0; '>31 30 31 </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>01010</span><span style = 'color:#fff;  color:#0f0; '>101</span><span style = 'color:#fff;  color:#ff0; '>01010</span><span style = 'color:#fff;  color:#0f0; '>101</span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>5:from "0"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0f0; '>3:from "1"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#ff0; '>5:from "0"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0f0; '>3:from "1"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span><span style = 'color:#fff; '>00000020</span><span style = 'color:#fff; '></span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>30 31 30 31 30 </span><span style = 'color:#fff;  color:#0f0; '>31 30 31                         </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>01010</span><span style = 'color:#fff;  color:#0f0; '>101        </span><span style = 'color:#fff; '> </span><span style = 'color:#fff;  color:#ff0; '>5:from "0"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff;  color:#0f0; '>3:from "1"</span><span style = 'color:#fff; '>, </span><span style = 'color:#fff; '> </span><span style = 'color:#fff; '>
+</span>
+</pre>
+
+=end html
+
+=head3 Convoluted example
+
+I<sub_as_definition_returning_array_to_flatten_or_string.pl> is in the I<t/> directory of the module distribution. It's an example of how complex
+a range generator could be.
+
+=head3 Comments that help
+
+Remember that you can, while generating your ranges, assign the comment field
+
+  [range_name, 4, red, this comment can be of great help (but will truncated)]
+  
+You can also pass a sub reference in place of the comment. The sub will be called just before the range is displayed. It is passed information
+about the data to be displayed (data and offset). This allows you to dynamically generate a comment string.
+
+=head2 Let the computer do the heavy lifting
+
+B<hdr> may be a nice tool to run from the command line but you can also use it in shell scripts to generate reports. I generally write I<pod> so I let I<hdr> generate my pod 
+snippets with embeded html hexdumps.
+
+ printf "=head1 MY REPORT\n\n" > report.pod
+ printf "=head2 The data\n\n" >> report.pod
+ 
+ hdr -r 'A,55:B,5:bf,x3b5:C,18:D,10'  Changes -col -rul -format HTML -display_command_line -start_tag '=begin html' -end_tag '=end html' >> report.pod
+ hdr -r 'B,5:bf,x3b5:C,18:D,10'  Changes -col -rul -offset 55 -format HTML -display_command_line -start_tag '=begin html' -end_tag '=end html' >> report.pod
+ hdr -r 'B,5:bf,x3b5:C,18:D,10'  Changes -col -rul -offset 55 -offset_start 55 -format HTML -display_command_line -start_tag '=begin html' -end_tag '=end html' >> report.pod
+
+ echo "=head2 Nicely synchronized\n\n" >> report.pod 
+ hdr -r 'B,5:bf,x3b5:C,18:D,10'  Changes -col -rul -offset 55 -offset_start 55 -format HTML -display_command_line -start_color bright_yellow -start_tag '=begin html' -end_tag '=end html' >> report.pod
+ 
+ pod2html report.pod > report.html
+
+=head1 Bash completion script
+
+B<hdr> can generate a bash completion script 
+
+ $> hdr --generate_bash_completion > hdr_completion
+ $> source hdr_completion
+
+=head1 Helping out
+
+You contribute when you:
+
+=over 2
+
+=item * report errors
+
+=item * send some examples of your data/output
+
+=item * send parsers or other scripts in which you use hdr or B<Data::HexDump::Range>
+
+=item * send new requirement, patches, documentation enhancements
+
+=item * pass the word around so more people use hdr and I get more feedback
+
+=item * plant a tree, save a cat/dog or both, bike instead for driving, spread some love around you, :)
+
+=back
+
+=head1 AUTHOR
+
+	Nadim ibn hamouda el Khemir
+	CPAN ID: NKH
+	mailto: nadim@cpan.org
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2010 Nadim Khemir.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of either:
+
+=over 4
+
+=item * the GNU General Public License as published by the Free
+Software Foundation; either version 1, or (at your option) any
+later version, or
+
+=item * the Artistic License version 2.0.
+
+=back
+
+=head1 SUPPORT
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+Please report any bugs or feature requests to  L <bug-data-hexdump-range@rt.cpan.org>.
+
+=back
+
+=head1 SEE ALSO
+
+B<hexd> from libma L<http://www.ioplex.com/~miallen/libmba/>
+
+=cut

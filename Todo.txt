@@ -1,0 +1,62 @@
+#------------------#
+# This is Todo.txt #
+#------------------#
+
+refactoring
+	do not cary the data in the ranges
+	type instead for IS_COMMENT, IS_BITFIELD, IS_SKIP
+	split should use $self->{FIELD_LENGTH}
+	author tests
+	spelling
+	skip range code
+	bitfield column display code
+		cleaner
+		more effective
+
+examples
+	IPV4 header
+	http://en.wikipedia.org/wiki/S-record
+
+		
+Data::hexDump::Table
+	see IPV4 example on wikipedia
+
+Test::Hexdump::Range
+	alway use ANSI or ascii. or direct to file and accept any format
+	not user settable color (we cycle)
+	different bytes are displayed with red background
+		how do we tell DHR to change the color of only a few bytes within a range
+			./Build ; perl -Mblib scripts/hdr Todo.txt  -r 'header,40, yellow:padding,16:magic,16,red:size,4:data,10:data_got,10,on_red:data,80:footer,16'
+			./Build ; perl -Mblib scripts/hdr Todo.txt  -r 'header,40, yellow:padding,16:magic,16,red:size,4:data,10:data_exp,10,black on_green:data,80:footer,16'
+
+	cyclic colors must contain OK and error colors
+	user settable number of ranges to dispay after and before the diff in the binary data
+	side by side comparizon
+
+
+# --------------------------------------------------------
+# IPV4_header:
+# BF: Version 4, Header length 4, Differentiated Services 2, Total Length 30
+# BF: Identification 16, Flags 2,	Fragment Offset 30
+# BF: Time to Live 8, Protocol 8, Header Checksum 16
+# BF: source Address 32
+# BF: Destination Address 32
+#
+# if Header Length > 5 
+# 	data 192+
+# 	else
+# 		data 160
+# 			
+#
+# 			display extra info about the bit fields(done through a
+# 			range sub) (this could also be done for any range)
+# 			 
+# 			 Differentiated Services (DS) 
+# 			 # bit 3: 0 = Normal Delay, 1 = Low Delay
+# 			 # bit 4: 0 = Normal Throughput, 1 = High Throughput
+# 			 # bit 5: 0 = Normal Reliability, 1 = High Reliability
+# 			 # bit 6: 0 = Normal Cost, 1 = Minimize Monetary Cost
+# 			 (defined by RFC 1349)
+# 			 # bit 7: never defined
+#
+#
