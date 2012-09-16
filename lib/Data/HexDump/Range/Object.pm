@@ -1,5 +1,5 @@
 
-package Data::HexDump::Range ;
+package Data::HexDump::Range ; ## no critic (Modules::RequireFilenameMatchesPackage)
 
 use strict;
 use warnings ;
@@ -16,9 +16,6 @@ use Sub::Exporter -setup =>
 		all  => [ qw() ],
 		}
 	};
-	
-use vars qw ($VERSION);
-$VERSION     = '0.06';
 }
 
 #-------------------------------------------------------------------------------
@@ -40,6 +37,8 @@ Data::HexDump::Range::Object - Hexadecial Range Dumper object creation support m
 
 The main goal of this module is to remove non public APIs from the module documentation
 
+=head1 DOCUMENTATION
+
 =head1 SUBROUTINES/METHODS
 
 Subroutines prefixed with B<[P]> are not part of the public API and shall not be used directly.
@@ -49,12 +48,14 @@ Subroutines prefixed with B<[P]> are not part of the public API and shall not be
 
 #-------------------------------------------------------------------------------
 
-Readonly my $NEW_ARGUMENTS => 	
+Readonly my $NEW_ARGUMENTS => 
 	[
 	qw(
 	NAME INTERACTION VERBOSE
 	
 	DUMP_RANGE_DESCRIPTION
+	DUMP_ORIGINAL_RANGE_DESCRIPTION
+	GATHERED_CHUNK
 	
 	FORMAT 
 	COLOR 
@@ -68,15 +69,23 @@ Readonly my $NEW_ARGUMENTS =>
 	DISPLAY_CUMULATIVE_OFFSET
 	DISPLAY_ZERO_SIZE_RANGE_WARNING
 	DISPLAY_ZERO_SIZE_RANGE 
+	DISPLAY_COMMENT_RANGE
+	
 	DISPLAY_RANGE_NAME
 	MAXIMUM_RANGE_NAME_SIZE
 	DISPLAY_RANGE_SIZE
+	
 	DISPLAY_ASCII_DUMP
 	DISPLAY_HEX_DUMP
 	DISPLAY_DEC_DUMP
+	
 	DISPLAY_USER_INFORMATION
+	MAXIMUM_USER_INFORMATION_SIZE
+	
 	DISPLAY_BITFIELDS
 	DISPLAY_BITFIELD_SOURCE
+	MAXIMUM_BITFIELD_SOURCE_SIZE
+	
 	BIT_ZERO_ON_LEFT
 	COLOR_NAMES 
 	ORIENTATION 
@@ -87,7 +96,7 @@ Readonly my $NEW_ARGUMENTS =>
 sub Setup
 {
 
-=head2 [P] Setup(...)
+=head2 [P] Setup()
 
 Helper sub called by new. This is a private sub.
 
@@ -115,17 +124,20 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	
 	VERBOSE => 0,
 	DUMP_RANGE_DESCRIPTION => 0,
+	DUMP_ORIGINAL_RANGE_DESCRIPTION => 0,
 	
 	FORMAT => 'ANSI',
 	
 	COLOR => 'cycle',
 	CURRENT_COLOR_INDEX => 0,
 	START_COLOR	=> undef,
+	
+	# --color bw will use the last defined color as color
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => ['bright_green', 'bright_yellow','bright_cyan', 'bright_red', 'bright_white'],
-		HTML => ['bright_green', 'bright_yellow','bright_cyan', 'bright_red', 'bright_white' ],
+		ANSI => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_yellow', 'bright_cyan', 'bright_green', 'bright_cyan', 'bright_red','bright_magenta','bright_white', ],
+		HTML => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_yellow', 'bright_cyan', 'bright_green', 'bright_cyan', 'bright_red','bright_magenta','bright_white', ],
 		},
 		
 	OFFSET_FORMAT => 'hex',
@@ -135,6 +147,7 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	
 	DISPLAY_ZERO_SIZE_RANGE_WARNING => 1,
 	DISPLAY_ZERO_SIZE_RANGE => 1,
+	DISPLAY_COMMENT_RANGE => 1,
 	
 	DISPLAY_RANGE_NAME => 1,
 	MAXIMUM_RANGE_NAME_SIZE => 16,
@@ -149,9 +162,11 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	DISPLAY_DEC_DUMP => 0,
 	DISPLAY_ASCII_DUMP => 1,
 	DISPLAY_USER_INFORMATION => 0,
+	MAXIMUM_USER_INFORMATION_SIZE => 20,
 
 	DISPLAY_BITFIELDS => undef,
 	DISPLAY_BITFIELD_SOURCE => 1,
+	MAXIMUM_BITFIELD_SOURCE_SIZE => 8,
 	BIT_ZERO_ON_LEFT => 0,
 	
 	ORIENTATION => 'horizontal',
@@ -213,6 +228,11 @@ if(! defined $self->{FORMAT} || ($self->{FORMAT} ne 'ANSI' && $self->{FORMAT} ne
 	$self->{INTERACTION}{DIE}("Error: Invalid output format '$self->{FORMAT}'.\n")  ;
 	}
 
+if(defined $self->{GATHERED_CHUNK} && 'CODE' ne ref($self->{GATHERED_CHUNK}))
+	{
+	$self->{INTERACTION}{DIE}("Error: GATHERED_CHUNK is not a code reference.\n")  ;
+	}
+
 if(defined $self->{START_COLOR})
 	{
 	my $index = 0 ;
@@ -234,7 +254,7 @@ return ;
 sub CheckOptionNames
 {
 
-=head2 [P] CheckOptionNames(...)
+=head2 [P] CheckOptionNames()
 
 Verifies the named options passed to the members of this class. Calls B<{INTERACTION}{DIE}> in case
 of error. 
@@ -301,9 +321,9 @@ None so far.
 	CPAN ID: NKH
 	mailto: nadim@cpan.org
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2010 Nadim Khemir.
+Copyright Nadim Khemir 2010.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of either:

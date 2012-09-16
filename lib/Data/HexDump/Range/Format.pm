@@ -1,5 +1,5 @@
 
-package Data::HexDump::Range ;
+package Data::HexDump::Range ; ## no critic (Modules::RequireFilenameMatchesPackage)
 
 use strict;
 use warnings ;
@@ -18,7 +18,6 @@ use Sub::Exporter -setup =>
 	};
 	
 use vars qw ($VERSION);
-$VERSION     = '0.01';
 }
 
 #-------------------------------------------------------------------------------
@@ -69,7 +68,7 @@ my $default_color ;
 
 if($self->{COLOR} eq 'bw')
 	{
-	$default_color = $self->{COLORS}{$self->{FORMAT}}[0] ;
+	$default_color = $self->{COLORS}{$self->{FORMAT}}[-1] ;
 	}
 else
 	{
@@ -84,7 +83,7 @@ return $default_color ;
 
 #-------------------------------------------------------------------------------
 
-sub format
+sub format ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 {
 	
 =head2 [P] format($line_data)
@@ -130,11 +129,11 @@ for my $line (@{$line_data})
 				push @colored_lines, $range->{"${field}_COLOR"}, $range->{$field} ,
 				}
 				
-			push @colored_lines, $EMPTY_STRING, ' ' ;
+			push @colored_lines, $EMPTY_STRING, q{ } ;
 			}
 		}
 		
-	push @colored_lines, '', "\n" if $line->{NEW_LINE} ;
+	push @colored_lines, $EMPTY_STRING, "\n" if $line->{NEW_LINE} ;
 	}
 
 return $colorizer->color(@colored_lines) ;
@@ -154,9 +153,9 @@ None so far.
 	CPAN ID: NKH
 	mailto: nadim@cpan.org
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2010 Nadim Khemir.
+Copyright Nadim Khemir 2010-2012.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of either:

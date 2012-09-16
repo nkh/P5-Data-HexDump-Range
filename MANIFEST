@@ -33,6 +33,7 @@ t/test2.pl
 t/test3.pl
 t/test_colors.pl
 t/test_not_enough_data.pl
+t/parse_ipv4.pl
 
 xt/author/000_distribution.t
 xt/author/000_strict.t

@@ -155,6 +155,7 @@ my $build = $class->new
 		'Scalar::Util' => 0,
 		'Data::TreeDumper' => 0,
 		'Term::Bash::Completion::Generator' => 0,
+		'Text::Colorizer' => 0,
 		},
 		
 	pm_files     => \%all_modules,
@@ -162,7 +163,7 @@ my $build = $class->new
 	
 	script_files => 'scripts/hdr',
 	dist_author  => 'Nadim ibn hamouda el Khemir. <nkh@cpan.org>',
-	dist_abstract => 'Hexadecial Range Dumper',
+	dist_abstract => 'Hexadecimal Range Dumper with color, bitfields and skip ranges',
 	);
 	
 $build->create_build_script;
