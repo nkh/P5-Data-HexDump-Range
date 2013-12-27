@@ -630,10 +630,19 @@ transformed  into the format that is internally used by the module. These are fo
 
 Default is B<ANSI> which allows for colors. Other formats are 'ASCII' and 'HTML'.
 
-=item * COLOR - String 'bw' or 'cycle'.
+=item * COLOR - String 'cycle', 'no_cycle', 'bw'
 
-Ranges for which no color has been defined, in 'ANSI' or 'HTML' format mode, will be rendered in
-black and white or with a color picked from a cyclic color list. Default is 'bw'.
+Controls the coloring policy of ranges
+
+=over 2
+
+=item * cycle: if the range definition contains a color does not define a color, a color is automatically assigned
+
+=item * no_cycle: only ranges with a color defined are colorized
+
+=item * bw: no color is used even if the range contains a color definition
+
+=back
 
 =item * OFFSET_FORMAT - String - 'hex' or 'dec'
 

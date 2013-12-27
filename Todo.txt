@@ -2,7 +2,7 @@
 # This is Todo.txt #
 #------------------#
 
-option -bw means that only user defined colors are used not that the output is bw
+#option -bw means that only user defined colors are used not that the output is bw
 	- make bw option bw only
 	- add no-auto-color option
 
@@ -10,15 +10,15 @@ column order can be decided by user as well as if the column is displayed or not
 
 compact vertical mode where the hexdump is always aligned to the left
 
-btfield padding character '-', should be replaced by a character that disturbs the display less and maybe in a different color.
+! bitfield padding character '-', should be replaced by a character that disturbs the display less and maybe in a different color.
 
 give start offset on the command line (may be done)
 
 2/4/6/8 byte offset display depending on the offset of the actual data
 	- also depends on start offset when the input data is a fragment for which we know the start offset
 	- user can specify minimum with for offset display
-	- dimm offset to grey from white
-	- user offset color
+	! - dimm offset to grey from white
+	! - user offset color
 	- may interfere on bitfield display that requires 8 character display
 		- bit field is max 32 bits but can start at any offset in source data, how is the offset displayed
 		if the offset is more than 0xff? 
@@ -53,21 +53,22 @@ csv export, another format like ANSI, HTML, ...
 
 error in documentation MYDATA should be BITMAp
 
-replace "oxff oxff ... skiped" with "skipped 0xff 0xff bytes"
+# replace "oxff oxff ... skiped" with "skipped 0xff 0xff bytes"
 
-Do not show cumulative offset which is zero, first cumulative offset
+# Do not show cumulative offset which is zero, first cumulative offset
 
 Do not show extra zeroes in cumulative offset only the part that is necessary
 	 means that all the ranges cumulative offset must be knows before deciding on format
 
-when displaying moe than 2 lines of dump for the same range only the start on the last range name are displayed
+! when displaying more than 2 lines of dump for the same range only the start on the last range name are displayed
 	- continuation signs in the same color provide a clue
 
-color the offset as the data in vertical mode
+! color the offset as the data in vertical mode
 
 make data split by _gather available through the API so user can use it in own code
 
-range has color attributes for the comment
+!range has color attributes for the comment
+	=> uses range color
 
 range has a visibility field, a name
 	- name  is used to decide if the range is is to e displayed or skipped
@@ -91,7 +92,8 @@ range has a visibility field, a name
 
 full name for comment, skip and header ranges as well as shortcuts #, X, @
 
-ASCII ruler is always decimal and should be hexadecimal
+! ASCII ruler is always decimal and should be hexadecimal
+	=> already hex
 
 ruler and column name are displayed in a user definable color, today color is fixed to white
 

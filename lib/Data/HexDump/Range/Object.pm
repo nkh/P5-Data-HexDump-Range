@@ -221,11 +221,18 @@ else
 		 [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
 	}
 
-#Todo: verify FORMAT and COLOR_NAMES validity
+#Todo: verify FORMAT
+
+if(! defined $self->{COLOR} || ($self->{COLOR} ne 'cycle' && $self->{COLOR} ne 'no_cycle' && $self->{COLOR} ne 'bw'))
+	{
+	$self->{COLOR} ||= 'error!' ;
+	$self->{INTERACTION}{DIE}("Error: Invalid color format. Valid formats are 'cycle', 'no_cycle' and 'bw'.\n")  ;
+	}
+
 if(! defined $self->{FORMAT} || ($self->{FORMAT} ne 'ANSI' && $self->{FORMAT} ne 'HTML' && $self->{FORMAT} ne 'ASCII'))
 	{
-	$self->{FORMAT} ||= 'undef' ;
-	$self->{INTERACTION}{DIE}("Error: Invalid output format '$self->{FORMAT}'.\n")  ;
+	$self->{FORMAT} ||= 'error!' ;
+	$self->{INTERACTION}{DIE}("Error: Invalid output format. Valid formats are 'ANSI', 'HTML', and 'ASCII'.\n")  ;
 	}
 
 if(defined $self->{GATHERED_CHUNK} && 'CODE' ne ref($self->{GATHERED_CHUNK}))

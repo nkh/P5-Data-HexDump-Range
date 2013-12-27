@@ -45,14 +45,12 @@ Subroutines prefixed with B<[P]> are not part of the public API and shall not be
 
 #-------------------------------------------------------------------------------
 
-sub get_default_color
+sub get_bg_color
 {
 
-=head2 [P] get_default_color()
+=head2 [P] get_bg_color()
 
-Returns a color to use with a range that has none
-
-  my $default_color = $self->get_default_color() ;
+Returns the default bg color
 
 I<Arguments> - None
 
@@ -64,18 +62,50 @@ I<Exceptions> - None
 
 my ($self) = @_ ;
 
+return $self->{COLORS}{$self->{FORMAT}}[-1] ;  
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_default_color
+{
+
+=head2 [P] get_default_color($color)
+
+Returns a color to use with a range that has none, only if $color is not defined
+
+  my $default_color = $self->get_default_color($color) ;
+
+I<Arguments> - $color - scalar - a color name or undef
+
+I<Returns> - A string - a color according to the COLOR option and FORMAT
+
+I<Exceptions> - None
+
+=cut
+
+my ($self, $color) = @_ ;
+
 my $default_color ;
 
-if($self->{COLOR} eq 'bw')
+if($self->{COLOR} eq 'cycle')
+	{
+	$default_color = $color || $self->{COLORS}{$self->{FORMAT}}[$self->{CURRENT_COLOR_INDEX}] ;
+	
+	$self->{CURRENT_COLOR_INDEX}++ ;
+	$self->{CURRENT_COLOR_INDEX} = 0 if $self->{CURRENT_COLOR_INDEX} >= @{$self->{COLORS}{$self->{FORMAT}}} ;
+	}
+elsif($self->{COLOR} eq 'no_cycle')
+	{
+	$default_color = $color || $self->{COLORS}{$self->{FORMAT}}[-1] ;
+	}
+elsif($self->{COLOR} eq 'bw')
 	{
 	$default_color = $self->{COLORS}{$self->{FORMAT}}[-1] ;
 	}
 else
 	{
-	$default_color = $self->{COLORS}{$self->{FORMAT}}[$self->{CURRENT_COLOR_INDEX}] ;
-	
-	$self->{CURRENT_COLOR_INDEX}++ ;
-	$self->{CURRENT_COLOR_INDEX} = 0 if $self->{CURRENT_COLOR_INDEX} >= @{$self->{COLORS}{$self->{FORMAT}}} ;
+	$self->{INTERACTION}{DIE}("Error: Invalid COLOR format.\n") ;
 	}
 	
 return $default_color ;

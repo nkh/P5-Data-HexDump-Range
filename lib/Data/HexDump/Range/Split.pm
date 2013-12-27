@@ -172,8 +172,10 @@ while (my $range = shift @collected_data_to_dump)
 		
 	$range->{SOURCE} = $range_source  if $range->{IS_BITFIELD} ;
 		
-	$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
-	
+		{
+		$range->{COLOR} = $self->get_default_color($range->{COLOR}) ;
+		}
+
 	if($range->{IS_BITFIELD}) 
 		{
 		push @found_bitfields, $self->get_bitfield_lines($range) ;
@@ -370,7 +372,7 @@ while (my $range = shift @collected_data_to_dump)
 		
 	# vertical mode
 		
-	$range->{COLOR} = $self->get_default_color()  unless defined $range->{COLOR} ;
+	$range->{COLOR} = $self->get_default_color($range->{COLOR}) ;
 	
 	$line = {} ;
 
@@ -428,7 +430,7 @@ while (my $range = shift @collected_data_to_dump)
 			sub 
 				{
 				my @bytes = unpack("(H2)*", pack("N", $data_length));
-				"@bytes bytes skipped" ;
+				"Skipped @bytes bytes" ;
 				},
 			$range->{COLOR},
 			3 * $self->{DATA_WIDTH},
@@ -573,8 +575,8 @@ my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 		
 for my  $field_type 
 	(
-	['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, undef, 0],
-	['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, undef, 0],
+	['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, $self->get_bg_color(), 0],
+	['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, $self->get_bg_color(), 0],
 	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
 	['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
 	['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $range->{COLOR}, 1],
@@ -652,8 +654,8 @@ my $user_information_size = $self->{MAXIMUM_USER_INFORMATION_SIZE} ;
 for my  $field_type 
 	(
 	['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
-	['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, undef, 8],
-	['CUMULATIVE_OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $dumped_data}, undef, 8],
+	['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, $self->get_bg_color(), 8],
+	['CUMULATIVE_OFFSET', sub {$dumped_data ? sprintf($self->{OFFSET_FORMAT}, $dumped_data) : ''}, $self->get_bg_color(), 8],
 	['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
 	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $size_to_dump],
 	['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @{ $_[0] }}, $range->{COLOR}, 4 * $size_to_dump],

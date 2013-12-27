@@ -47,7 +47,7 @@ Options can be given before or after the name of the file to dump.
  format|f                         'ANSI' or 'ASCII' or 'HTML' 
  display_command_line             make the command line part of the output
  
- color                            'bw' or 'cycle',
+ color                            'cycle', 'no_cycle', or 'bw'
  colors                           file containing custom colors
  start_color                      name of the first random color to use
  start_tag/end_tag                text that is output before and after the dump
