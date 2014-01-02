@@ -76,6 +76,7 @@ Readonly my $NEW_ARGUMENTS =>
 	DISPLAY_RANGE_SIZE
 	
 	DISPLAY_ASCII_DUMP
+	DISPLAY_HEXASCII_DUMP
 	DISPLAY_HEX_DUMP
 	DISPLAY_DEC_DUMP
 	
@@ -136,8 +137,8 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_yellow', 'bright_cyan', 'bright_green', 'bright_cyan', 'bright_red','bright_magenta','bright_white', ],
-		HTML => ['bright_green', 'bright_yellow', 'bright_cyan', 'bright_magenta','bright_red', 'bright_yellow', 'bright_cyan', 'bright_green', 'bright_cyan', 'bright_red','bright_magenta','bright_white', ],
+		ANSI => [map {"bright_$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'white', ],
+		HTML => [map {"bright_$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'white', ],
 		},
 		
 	OFFSET_FORMAT => 'hex',
@@ -158,6 +159,9 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	
 	DISPLAY_OFFSET => 1,
 	DISPLAY_CUMULATIVE_OFFSET => 1,
+
+	DISPLAY_HEXASCII_DUMP => 0,
+
 	DISPLAY_HEX_DUMP => 1,
 	DISPLAY_DEC_DUMP => 0,
 	DISPLAY_ASCII_DUMP => 1,
@@ -196,6 +200,7 @@ $self->{FIELD_LENGTH} =
 	ASCII_DUMP =>  $self->{DATA_WIDTH},
 	HEX_DUMP =>  $self->{DATA_WIDTH} * 3,
 	DEC_DUMP =>  $self->{DATA_WIDTH} * 4,
+	HEXASCII_DUMP => $self->{DATA_WIDTH} * 5,
 	USER_INFORMATION =>  20,
 	BITFIELD_SOURCE => 8 ,
 	} ;
@@ -209,7 +214,7 @@ if($self->{ORIENTATION} =~ /^hor/)
 	
 	my @fields = qw(OFFSET) ;
 	push @fields, 'BITFIELD_SOURCE' if $self->{DISPLAY_BITFIELD_SOURCE} ;
-	push @fields, qw( HEX_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME) ;
+	push @fields, qw( HEX_DUMP HEXASCII_DUMP DEC_DUMP ASCII_DUMP RANGE_NAME) ;
 	
 	$self->{FIELDS_TO_DISPLAY} =  \@fields ;
 	}
@@ -218,7 +223,7 @@ else
 	$self->{DISPLAY_BITFIELDS} = 1 unless defined $self->{DISPLAY_BITFIELDS} ;
 	
 	$self->{FIELDS_TO_DISPLAY} =  
-		 [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
+		 [qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET HEX_DUMP HEXASCII_DUMP DEC_DUMP ASCII_DUMP USER_INFORMATION)] ;
 	}
 
 #Todo: verify FORMAT

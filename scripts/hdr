@@ -67,6 +67,7 @@ Options can be given before or after the name of the file to dump.
  display_range_size               1 == prepend the range size to the name
  
  display_hex_dump                 1 == display hexadecimal dump column
+ display_hexascii_dump            1 == display vombined HEX and ASCII dump column
  display_dec_dump                 1 == display decimal dump column
  display_ascii_dump               1 == display ASCII dump column
  display_user_information         1 == display user information columns
@@ -157,6 +158,7 @@ my @options =
 	'display_range_size=i' => \my $display_range_size,
 
 	'display_hex_dump=i' => \my $display_hex_dump,
+	'display_hexascii_dump=i' => \my $display_hexascii_dump,
 	'display_dec_dump=i' => \my $display_dec_dump,
 	'display_ascii_dump=i' => \my $display_ascii_dump,
 	'display_user_information=i' => \my $display_user_information,
@@ -278,6 +280,7 @@ my $hdr = Data::HexDump::Range->new
 			DISPLAY_OFFSET  => defined $display_offset ? $display_offset : 1 ,
 			DISPLAY_CUMULATIVE_OFFSET  => defined $display_cumulative_offset ? $display_cumulative_offset : 1 ,
 			DISPLAY_HEX_DUMP => defined $display_hex_dump ? $display_hex_dump : 1,
+			DISPLAY_HEXASCII_DUMP => defined $display_hexascii_dump ? $display_hexascii_dump : 0,
 			DISPLAY_DEC_DUMP => defined $display_dec_dump ? $display_dec_dump : 0,
 			DISPLAY_ASCII_DUMP => defined $display_ascii_dump ? $display_ascii_dump :  1 ,
 			DISPLAY_USER_INFORMATION => defined $display_user_information ? $display_user_information :  0 ,

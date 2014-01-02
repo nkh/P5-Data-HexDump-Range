@@ -543,10 +543,22 @@ eval
 
 if($EVAL_ERROR)
 	{
-	chomp $EVAL_ERROR ;
+	my ($error_message, $range_index) = @{ $EVAL_ERROR } ;
+	chomp $error_message ;
 
 	use Data::TreeDumper ;
-	$self->{INTERACTION}{DIE}->(DumpTree \@ranges, $EVAL_ERROR) ;
+	use List::MoreUtils qw(pairwise) ;
+	
+	my @keys = ('name', 'size', 'color (optional)',  'user comment (optional)') ;
+
+	$self->{INTERACTION}{DIE}->
+		(
+		DumpTree 
+			{ pairwise { ( $a, $b) } @keys, @{$ranges[$range_index]} },
+			"Range index $range_index: $error_message",
+			QUOTE_VALUES => 1,
+		        TYPE_FILTERS => {'HASH' => sub {'HASH', undef, @keys }, }
+		) ;
 	}
 
 @ranges = () ;
@@ -592,10 +604,22 @@ eval
 
 if($EVAL_ERROR)
         {
-	chomp $EVAL_ERROR ;
+	my ($error_message, $range_index) = @{ $EVAL_ERROR } ;
+	chomp $error_message ;
 
         use Data::TreeDumper ;
-        $self->{INTERACTION}{DIE}->(DumpTree $range_description, $EVAL_ERROR) ;
+	use List::MoreUtils qw(pairwise) ;
+	
+	my @keys = ('name', 'size', 'color (optional)',  'user comment (optional)') ;
+
+	$self->{INTERACTION}{DIE}->
+		(
+		DumpTree 
+			{ pairwise { ( $a, $b) } @keys, @{$range_description->[$range_index]} },
+			"Range index $range_index: $error_message",
+			QUOTE_VALUES => 1,
+		        TYPE_FILTERS => {'HASH' => sub {'HASH', undef, @keys }, }
+		) ;
         }
 
 my @ranges ;
@@ -632,38 +656,39 @@ I<Exceptions> - Croaks with an error messge if the input data is invalid
 =cut
 
 my $self = shift ;
-my $location = "$self->{FILE}:$self->{LINE}" ;
+#my $location = "$self->{FILE}:$self->{LINE}" ;
+
+my $index = -1 ;
 
 map 
 	{
 	my  $description = $_ ;
-	
+	$index++ ;
+
 	if(ref($description) eq 'ARRAY')
 		{
 		if(@{$description} == 0)
 			{
-			$self->{INTERACTION}{DIE}->("Error: no elements in range description at '$location'.") ;
+			$self->{INTERACTION}{DIE}->(["Error: no elements in range description.", $index]) ;
 			}
 			
 		if(all {'' eq ref($_) || 'CODE' eq ref($_) } @{$description} )
 			{
 			if(@{$description} == 0)
 				{
-				$self->{INTERACTION}{DIE}->
-					(
-					"Error: no elements in range description at '$location'." 
-					) ;
+				$self->{INTERACTION}{DIE}->(["Error: no elements in range description.", $index]) ;
 				}
 			elsif(@{$description} == 1)
 				{
 				if('' eq ref($description->[0]))
 					{
 					$self->{INTERACTION}{DIE}->
-						(
+						([
 						"Error: too few elements in range description [" 
 						. join(', ', map {defined $_ ? $_ : 'undef'} @{$description})  
-						. "] at '$location'." 
-						) ;
+						. "]." ,
+						$index
+						]) ;
 					}
 				else
 					{
@@ -689,11 +714,12 @@ map
 			elsif(@{$description} > $RANGE_DEFINITON_FIELDS)
 				{
 				$self->{INTERACTION}{DIE}->
-					(
+					([
 					"Error: too many elements in range description [" 
 					. join(', ', map {defined $_ ? $_ : 'undef'} @{$description}) 
-					. "] at '$location'." 
-					) ;
+					. "].",
+					$index
+					]) ;
 				}
 				
 			@{$description} ;

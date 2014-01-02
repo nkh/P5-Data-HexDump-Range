@@ -99,10 +99,11 @@ ruler and column name are displayed in a user definable color, today color is fi
 
 decimal and hexadecimal dump can co-exist but offset is in hexadecimal, should the co-existance be forbidden?
 
-previous_field_ color as a valid color name
+!previous_field_ color as a valid color name
 	allows the user to define blocks of data colors, specially useful in bitmaps
+	=> type the color
 
-error displayed when giving, eg, -r 'a,1:b3' is not clear enough
+#error displayed when giving, eg, -r 'a,1:b3' is not clear enough
 	- colorize the fields that are erroneous 
 	- give example of valid definitions
 
@@ -137,6 +138,11 @@ option to show stats on dumped data
 	- data skipped
 	- data hidden
 
+range object creation steps
+	range array and string is first parsed and error are displayed if any, only then the ranges can be dumped. It would be
+	preferable to handle the parsing of the ranges one by one and be able to dump the range information till an error is found
+	this makes it easier for the user to find which range description is wrong
+
 range warnings and errors
 	- if a range detects an error (eg comment about size in examples), the range is displayed in a warning color, a warning is logged, all warning can be displayed after the dump is done
 
@@ -145,7 +151,7 @@ range warnings and errors
 
 hdr provides a LOG that can be used by ranges, as it does INFO, DIE, ...
 
-data gathered in chuks should be reference to the data and an offset
+data gathered in chunks should be reference to the data and an offset
 	- when stream mode is implemented, we may not have the data left
 
 	- DUMP RANGE DESCRIPTION uses DTD and a reference to data could mean a very long dump for every field
@@ -165,7 +171,7 @@ comments can be multi line
 comment range can be implemented with sub which gets context information so it can generate text dynamically
 
 in code, split.pm: 193
-	range_sce is a reference.
+	range_source is a reference.
 
 DUMP RANGE DESCRIPTION only displays relevant fields
 	- or structure can be replaced by different types and have their own dumpers
@@ -176,7 +182,7 @@ spacing column type to add space between column
 
 Column can be repeated, eg, offset at beginin and end of line
 
-mixed hexadecimal and ascii dump
+#mixed hexadecimal and ascii dump
 	63:c 6f:o
 
 ranged defined in file can defined options to hdr
@@ -217,9 +223,10 @@ range error location is not very helpful as the location is the line where the o
 	PBS::Output::GetLineWithContext
 	Carp::source
 
+	# display the error range elements
 
 tests
-	Can we get to Error: too few elements in range description 
+	#Can we get to Error: too few elements in range description 
 	\&parser vs [\&parser]
 
 

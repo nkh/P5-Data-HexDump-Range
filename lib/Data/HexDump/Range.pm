@@ -579,7 +579,8 @@ Create a Data::HexDump::Range object.
 		DISPLAY_RANGE_SIZE => 1,
 		DISPLAY_ASCII_DUMP => 1 ,
 		DISPLAY_HEX_DUMP => 1,
-		DISPLAY_DEC_DUMP => 1,
+		DISPLAY_HEXASCII_DUMP => 0,
+		DISPLAY_DEC_DUMP => 0,
 		COLOR_NAMES => {},
 		ORIENTATION => 'horizontal',
 		) ;
@@ -676,6 +677,8 @@ in base 10. Default is 'hex'.
 =item * DISPLAY_ASCII_DUMP - Boolean - If set, the ASCII representation of the binary data is displayed. Default is I<true>
 
 =item * DISPLAY_HEX_DUMP - Boolean - If set, the hexadecimal dump column is displayed. Default is I<true>
+
+=item * DISPLAY_HEXASCII_DUMP - Boolean - If set, the comined hexadecimal and ASCII dump column is displayed. Default is I<false>
 
 =item * DISPLAY_DEC_DUMP - Boolean - If set, the decimall dump column is displayed. Default is I<false>
 

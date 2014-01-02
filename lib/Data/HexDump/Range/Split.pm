@@ -28,6 +28,7 @@ use Readonly ;
 Readonly my $EMPTY_STRING => q{} ;
 
 use Carp qw(carp croak confess) ;
+use Text::Pluralize ;
 
 #-------------------------------------------------------------------------------
 
@@ -430,7 +431,17 @@ while (my $range = shift @collected_data_to_dump)
 			sub 
 				{
 				my @bytes = unpack("(H2)*", pack("N", $data_length));
-				"Skipped @bytes bytes" ;
+				pluralize("Skipped @bytes byte(s)", $data_length) ;
+				},
+			$range->{COLOR},
+			3 * $self->{DATA_WIDTH},
+			],
+			[
+			'HEXASCII_DUMP', 
+			sub 
+				{
+				my @bytes = unpack("(H2)*", pack("N", $data_length));
+				pluralize("Skipped @bytes byte(s)", $data_length) ;
 				},
 			$range->{COLOR},
 			3 * $self->{DATA_WIDTH},
@@ -439,8 +450,7 @@ while (my $range = shift @collected_data_to_dump)
 			'DEC_DUMP', 
 			sub 
 				{
-				my @values = map {sprintf '%03u', $_} unpack("(C3)*", pack("N", $data_length));
-				join(' ',  @values) . " skipped: $data_length bytes"  ;
+				pluralize("Skipped $data_length byte(s)", $data_length)  ;
 				},
 			$range->{COLOR},
 			4 * $self->{DATA_WIDTH}
@@ -580,6 +590,7 @@ for my  $field_type
 	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
 	['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
 	['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @_}, $range->{COLOR}, 1],
+	['HEXASCII_DUMP', sub {sprintf q~%02x/%c ~ x $size_to_dump, map{$_ < 30 ? ($_, ord('.')) : ($_, $_) } @_}, $range->{COLOR}, 5],
 	['RANGE_NAME',sub {sprintf "%.${max_range_name_size}s", $range->{NAME}}, $range->{COLOR}, 0],
 	['RANGE_NAME', sub {', '}, undef, 0],
 	)
@@ -596,7 +607,7 @@ for my  $field_type
 
 		unless($visible)
 			{
-			if($field_name eq 'ASCII_DUMP' || $field_name eq 'HEX_DUMP'  || $field_name eq 'DEC_DUMP' )
+			if($field_name eq 'ASCII_DUMP' || $field_name eq 'HEX_DUMP'  || $field_name eq 'HEXASCII_DUMP'  || $field_name eq 'DEC_DUMP' )
 				{
 				$text = ' ' x length($text)
 				}
@@ -658,6 +669,7 @@ for my  $field_type
 	['CUMULATIVE_OFFSET', sub {$dumped_data ? sprintf($self->{OFFSET_FORMAT}, $dumped_data) : ''}, $self->get_bg_color(), 8],
 	['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
 	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $size_to_dump],
+        ['HEXASCII_DUMP', sub {sprintf q~%02x/%c ~ x $size_to_dump, map{$_ < 30 ? ($_, ord('.')) : ($_, $_) } @{ $_[0]}}, $range->{COLOR}, 5 * $size_to_dump],
 	['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @{ $_[0] }}, $range->{COLOR}, 4 * $size_to_dump],
 	['ASCII_DUMP', sub {sprintf '%c' x $size_to_dump, map{$_ < 30 ? ord('.') : $_ } @{$_[0]}}, $range->{COLOR}, $size_to_dump],
 	['USER_INFORMATION', sub { sprintf "%-${user_information_size}.${user_information_size}s", $range->{USER_INFORMATION} || ''}, $range->{COLOR}, $user_information_size],
@@ -674,7 +686,7 @@ for my  $field_type
 		
 		unless($visible)
 			{
-			if($field_name eq 'ASCII_DUMP' || $field_name eq 'HEX_DUMP'  || $field_name eq 'DEC_DUMP' )
+			if($field_name eq 'ASCII_DUMP' || $field_name eq 'HEX_DUMP'  || $field_name eq 'DEC_DUMP'  || $field_name eq 'HEXASCII_DUMP' )
 				{
 				$text = ' ' x length($text) ;
 				}
@@ -759,6 +771,32 @@ my %always_display_field = map {$_ => 1} qw(RANGE_NAME OFFSET CUMULATIVE_OFFSET 
 my $bitfield_warning_displayed = 0 ;
 
 #~ print DumpTree {length => length($bitfield_description->{DATA}), offset => $offset, size => $size, BF => $bitfield_description} ;
+my $ascii_bitfield_dump_sub =
+	sub 
+	{
+	my ($binary, @binary , @chars) ;
+	
+	if($self->{BIT_ZERO_ON_LEFT})
+		{
+		@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+		splice(@binary, 0, $offset) ;
+		splice(@binary, $size) ;
+		}
+	else
+		{
+		@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+		splice(@binary, -$offset) unless $offset == 0 ;
+		@binary = splice(@binary, - $size) ;
+		}
+		
+	$binary = join('', @binary) ;
+	@chars = map{$_ < 30 ? '.' : chr($_) } unpack("C*", pack("B32", substr("0" x 32 . $binary, -32)));
+	
+	my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
+	splice @chars, 0 , (4 - $number_of_bytes), map {'-'} 1 .. (4 - $number_of_bytes) ;
+	
+	'.bitfield: '.  join('',  @chars) 
+	} ;
 
 for my  $field_type 
 	(
@@ -805,6 +843,50 @@ for my  $field_type
 		},
 		
 		undef, 3 * $self->{DATA_WIDTH}],
+	['HEXASCII_DUMP', 
+		sub 
+		{
+		my $ascii_bitfield_dump = $ascii_bitfield_dump_sub->(@_) ;
+	
+
+		my ($binary, @binary , $binary_dashed) ;
+		
+		if($self->{BIT_ZERO_ON_LEFT})
+			{
+			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+			splice(@binary, 0, $offset) ;
+			splice(@binary, $size) ;
+			
+			$binary = join('', @binary) ;
+			
+			$binary_dashed = '-' x $offset . $binary . '-' x (32 - ($size + $offset)) ;
+			$binary_dashed  = substr($binary_dashed , -32) ;
+			}
+		else
+			{
+			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
+			splice(@binary, -$offset) unless $offset == 0 ;
+			@binary = splice(@binary, - $size) ;
+			
+			$binary = join('',  @binary) ;
+			
+			$binary_dashed = '-' x (32 - ($size + $offset)) . $binary . '-' x $offset  ;
+			$binary_dashed  = substr($binary_dashed , 0, 32) ;
+			}
+		
+		my $bytes = $size > 24 ? 4 : $size > 16 ? 3 : $size > 8 ? 2 : 1 ;
+		
+		my @bytes = unpack("(H2)*", pack("B32", substr("0" x 32 . $binary, -32)));
+		
+		my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
+		splice @bytes, 0 , (4 - $number_of_bytes), map {'--'} 1 .. (4 - $number_of_bytes) ;
+		
+		join(' ', @bytes) . '    ' . $binary_dashed . '   ' . $ascii_bitfield_dump ;
+
+	
+		},
+		
+		undef, 5 * $self->{DATA_WIDTH}],
 	['DEC_DUMP', 
 		sub 
 		{
@@ -838,35 +920,12 @@ for my  $field_type
 		$bitfield_description->{COLOR}, 4 * $self->{DATA_WIDTH}],
 		
 	['ASCII_DUMP',
-		sub 
-		{
-		my ($binary, @binary , @chars) ;
-		
-		if($self->{BIT_ZERO_ON_LEFT})
-			{
-			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
-			splice(@binary, 0, $offset) ;
-			splice(@binary, $size) ;
-			}
-		else
-			{
-			@binary = split '', unpack("B*",  $_[0]->{DATA}) ;
-			splice(@binary, -$offset) unless $offset == 0 ;
-			@binary = splice(@binary, - $size) ;
-			}
-			
-		$binary = join('', @binary) ;
-		@chars = map{$_ < 30 ? '.' : chr($_) } unpack("C*", pack("B32", substr("0" x 32 . $binary, -32)));
-		
-		my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
-		splice @chars, 0 , (4 - $number_of_bytes), map {'-'} 1 .. (4 - $number_of_bytes) ;
-		
-		'.bitfield: '.  join('',  @chars) 
-		},
-
+		$ascii_bitfield_dump_sub,
 		undef, $self->{DATA_WIDTH}],
 		
-		['USER_INFORMATION', sub { sprintf '%-20.20s', $_[0]->{USER_INFORMATION} || ''}, $bitfield_description->{COLOR}, 20],
+	['USER_INFORMATION', 
+		sub { sprintf '%-20.20s', $_[0]->{USER_INFORMATION} || ''}, 
+		$bitfield_description->{COLOR}, 20],
 		
 	)
 	{
@@ -1041,6 +1100,15 @@ if($self->{DISPLAY_RULER})
 							? join '', map {sprintf '%x   ' , $ _ % 16} (0 .. $self->{DATA_WIDTH} - 1)
 							: join '', map {sprintf '%d   ' , $ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
 
+					$information .= ' ' ;
+					last ;
+					} ;
+					
+				/HEXASCII_DUMP/ and do
+					{
+					$information .= $self->{OFFSET_FORMAT} =~ /x$/
+							? join '', map {sprintf '%x    ' , $ _ % 16} (0 .. $self->{DATA_WIDTH} - 1)
+							: join '', map {sprintf '%d    ' , $ _ % 10} (0 .. $self->{DATA_WIDTH} - 1) ;
 					$information .= ' ' ;
 					last ;
 					} ;
