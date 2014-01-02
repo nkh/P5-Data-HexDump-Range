@@ -173,16 +173,15 @@ while (my $range = shift @collected_data_to_dump)
 		
 	$range->{SOURCE} = $range_source  if $range->{IS_BITFIELD} ;
 		
-		{
-		$range->{COLOR} = $self->get_default_color($range->{COLOR}) ;
-		}
 
 	if($range->{IS_BITFIELD}) 
 		{
+		$range->{COLOR} = $range_source->[1] ;
 		push @found_bitfields, $self->get_bitfield_lines($range) ;
-		
 		next ;
 		}
+	
+	$range->{COLOR} = $self->get_default_color($range->{COLOR}) ;
 	
 	if($room_left == $self->{DATA_WIDTH})
 		{
