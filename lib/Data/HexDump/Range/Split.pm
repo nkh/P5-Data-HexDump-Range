@@ -818,6 +818,7 @@ for my  $field_type
 			
 			$binary_dashed = '-' x $offset . $binary . '-' x (32 - ($size + $offset)) ;
 			$binary_dashed  = substr($binary_dashed , -32) ;
+			$binary_dashed = substr($binary_dashed, 0, 8) . ' ' . substr($binary_dashed, 8, 8) . ' ' .substr($binary_dashed, 16, 8) . ' ' .substr($binary_dashed, 24, 8) ;
 			}
 		else
 			{
@@ -829,6 +830,7 @@ for my  $field_type
 			
 			$binary_dashed = '-' x (32 - ($size + $offset)) . $binary . '-' x $offset  ;
 			$binary_dashed  = substr($binary_dashed , 0, 32) ;
+			$binary_dashed = substr($binary_dashed, 0, 8) . ' ' . substr($binary_dashed, 8, 8) . ' ' .substr($binary_dashed, 16, 8) . ' ' .substr($binary_dashed, 24, 8) ;
 			}
 		
 		my $bytes = $size > 24 ? 4 : $size > 16 ? 3 : $size > 8 ? 2 : 1 ;
@@ -838,7 +840,7 @@ for my  $field_type
 		my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
 		splice @bytes, 0 , (4 - $number_of_bytes), map {'--'} 1 .. (4 - $number_of_bytes) ;
 		
-		join(' ', @bytes) . '    ' . $binary_dashed;
+		join(' ', @bytes) . ' ' . $binary_dashed;
 		},
 		
 		undef, 3 * $self->{DATA_WIDTH}],
@@ -860,6 +862,7 @@ for my  $field_type
 			
 			$binary_dashed = '-' x $offset . $binary . '-' x (32 - ($size + $offset)) ;
 			$binary_dashed  = substr($binary_dashed , -32) ;
+			$binary_dashed = substr($binary_dashed, 0, 8) . ' ' . substr($binary_dashed, 8, 8) . ' ' .substr($binary_dashed, 16, 8) . ' ' .substr($binary_dashed, 24, 8) ;
 			}
 		else
 			{
@@ -871,6 +874,7 @@ for my  $field_type
 			
 			$binary_dashed = '-' x (32 - ($size + $offset)) . $binary . '-' x $offset  ;
 			$binary_dashed  = substr($binary_dashed , 0, 32) ;
+			$binary_dashed = substr($binary_dashed, 0, 8) . ' ' . substr($binary_dashed, 8, 8) . ' ' .substr($binary_dashed, 16, 8) . ' ' .substr($binary_dashed, 24, 8) ;
 			}
 		
 		my $bytes = $size > 24 ? 4 : $size > 16 ? 3 : $size > 8 ? 2 : 1 ;
@@ -880,7 +884,7 @@ for my  $field_type
 		my $number_of_bytes = @binary > 24 ? 4 : @binary > 16 ? 3 : @binary > 8 ? 2 : 1 ;
 		splice @bytes, 0 , (4 - $number_of_bytes), map {'--'} 1 .. (4 - $number_of_bytes) ;
 		
-		join(' ', @bytes) . '    ' . $binary_dashed . '   ' . $ascii_bitfield_dump ;
+		join(' ', @bytes) . '    ' . $binary_dashed . '     ' . $ascii_bitfield_dump ;
 
 	
 		},
