@@ -8,7 +8,7 @@
 
 column order can be decided by user as well as if the column is displayed or not
 
-compact vertical mode where the hexdump is always aligned to the left
+! compact vertical mode where the hexdump is always aligned to the left
 
 ! bitfield padding character '-', should be replaced by a character that disturbs the display less and maybe in a different color.
 

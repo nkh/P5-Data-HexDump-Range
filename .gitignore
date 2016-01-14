@@ -1,6 +1,12 @@
+*.directory
+MYMETA.json
+MYMETA.yml
+*.tar.gz
 Build
-Changes
-Debian_CPANTS.txt
 _build/
 blib/
+todo/
+Changes
+Version.pm
 html/
+*.swp

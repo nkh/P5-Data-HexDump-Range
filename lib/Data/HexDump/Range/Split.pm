@@ -455,7 +455,7 @@ while (my $range = shift @collected_data_to_dump)
 			4 * $self->{DATA_WIDTH}
 			],
 			['ASCII_DUMP', sub {$EMPTY_STRING}, $range->{COLOR}, $self->{DATA_WIDTH}],
-							['USER_INFORMATION', sub { sprintf '%-20.20s', $range->{USER_INFORMATION} || ''}, $range->{COLOR}, 20],
+			['USER_INFORMATION', sub { sprintf '%-20.20s', $range->{USER_INFORMATION} || ''}, $range->{COLOR}, 20],
 			)
 			{
 			my ($field_name, $field_data_formater, $color, $field_text_size) = @{$field_type} ;
