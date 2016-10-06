@@ -134,13 +134,35 @@ I<Returns> - A dump in ANSI, ASCII or HTML.
 
 my ($self, $line_data) = @_ ;
 
-my @colors ;
-push @colors, 'COLORS' => $self->{COLOR_NAMES} if defined $self->{COLOR_NAMES} ;
+#load user colors from file
+if(defined $self->{COLOR_NAMES} && 'HASH' ne ref $self->{COLOR_NAMES})
+        {
+        my $colors = do $self->{COLOR_NAMES}
+                or $self->{INTERACTION}{DIE}("Error: Can't load color file '$self->{COLOR_NAMES}'.\n") ;
+
+        'HASH' eq ref $colors
+                or $self->{INTERACTION}{DIE}("Error: Data not a Hash in '$self->{COLOR_NAMES}'.\n") ;
+
+        $self->{COLOR_NAMES} = $colors ;
+        }
+
+for my $definition 
+	(
+	#aliases looked up by colorizer module
+	['ruler', 'lookup:white', 'lookup:white'],
+	['offset', 'lookup:white', 'lookup:white'],
+	['cumulative_offset', 'lookup:bright_black', 'lookup:bright_black'],
+	)
+	{
+	my ($name, $ansi_color, $html_color) = @{$definition} ;
+	$self->{COLOR_NAMES}{ANSI}{$name} //= $ansi_color ;
+	$self->{COLOR_NAMES}{HTML}{$name} //= $html_color ;
+	}
 
 my $colorizer = Text::Colorizer->new
 				(
+				COLORS => $self->{COLOR_NAMES},
 				FORMAT => $self->{FORMAT},
-				@colors,
 				) ;
 
 my @colored_lines ;

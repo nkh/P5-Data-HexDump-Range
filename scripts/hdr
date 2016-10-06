@@ -208,7 +208,7 @@ else
 		}
 	else
 		{
-		croak "Error: You didn't give me anything to generate an hexdump from. Try the --help option.";
+		croak "Error: You didn't give me anything to generate an hexdump from. Try the --help option.\n";
 		}
 	}
 

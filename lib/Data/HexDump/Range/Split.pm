@@ -584,7 +584,7 @@ my $max_range_name_size = $self->{MAXIMUM_RANGE_NAME_SIZE} ;
 		
 for my  $field_type 
 	(
-	['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, $self->get_bg_color(), 0],
+	['OFFSET', sub {exists $line->{OFFSET} ? '' : sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, 'offset', 0],
 	['BITFIELD_SOURCE', sub {exists $line->{BITFIELD_SOURCE} ? '' : ' ' x 8}, $self->get_bg_color(), 0],
 	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @_}, $range->{COLOR}, 3],
 	['DEC_DUMP', sub {sprintf '%03u ' x $size_to_dump, @_}, $range->{COLOR}, 4],
@@ -664,8 +664,8 @@ my $user_information_size = $self->{MAXIMUM_USER_INFORMATION_SIZE} ;
 for my  $field_type 
 	(
 	['RANGE_NAME',  sub {sprintf "%-${max_range_name_size}.${max_range_name_size}s", $range->{NAME} ; }, $range->{COLOR}, $max_range_name_size] ,
-	['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, $self->get_bg_color(), 8],
-	['CUMULATIVE_OFFSET', sub {$dumped_data ? sprintf($self->{OFFSET_FORMAT}, $dumped_data) : ''}, $self->get_bg_color(), 8],
+	['OFFSET', sub {sprintf $self->{OFFSET_FORMAT}, $total_dumped_data}, 'offset', 8],
+	['CUMULATIVE_OFFSET', sub {$dumped_data ? sprintf($self->{OFFSET_FORMAT}, $dumped_data) : ''}, 'cumulative_offset', 8],
 	['BITFIELD_SOURCE', sub {'' x 8}, undef, 8],
 	['HEX_DUMP', sub {sprintf '%02x ' x $size_to_dump, @{$_[0]}}, $range->{COLOR}, 3 * $size_to_dump],
         ['HEXASCII_DUMP', sub {sprintf q~%02x/%c ~ x $size_to_dump, map{$_ < 30 ? ($_, ord('.')) : ($_, $_) } @{ $_[0]}}, $range->{COLOR}, 5 * $size_to_dump],
@@ -1052,7 +1052,7 @@ I<Exceptions> - None
 =cut
 
 my ($self, $split_data, $range_color) = @_ ;
-$range_color ||= '' ,
+$range_color ||= 'ruler' ,
 
 my @information ;
 

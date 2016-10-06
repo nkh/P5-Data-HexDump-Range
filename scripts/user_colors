@@ -1,0 +1,16 @@
+{
+ANSI =>
+	{
+	'ruler', 'lookup:yellow',
+	'offset', 'lookup:red',
+	'cumulative_offset', 'lookup:green',
+	},
+
+HTML =>
+	{
+	'ruler', 'lookup:yellow',
+	'offset', 'lookup:red',
+	'cumulative_offset', 'lookup:green',
+	},
+}
+
