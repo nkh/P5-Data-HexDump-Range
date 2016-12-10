@@ -118,7 +118,8 @@ $self->{FILE} = $file_name ;
 $self->{LINE} = $line ;
 
 $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
-
+use Term::ANSIColor qw(:constants) ;
+ 
 %{$self} = 
 	(
 	%{$self},
@@ -137,7 +138,7 @@ $self->CheckOptionNames($NEW_ARGUMENTS, @setup_data) ;
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => [map {"bright_$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'white', ],
+		ANSI => [map {"$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'white', ],
 		HTML => [map {"bright_$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'white', ],
 		},
 		
