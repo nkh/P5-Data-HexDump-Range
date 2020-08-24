@@ -78,14 +78,14 @@ Options can be given before or after the name of the file to dump.
  maximum_bitfield_source_size     truncate bitfield source name if longer
  
  bit_zero_on_left                 1 == bit index zero is on the left
+
+ -                                read data from stdin
  
  h|help                           display this scripts help page
  generate_completion_script|bash  generates a completion script on STDOUT
  
 
 =head1 EXAMPLES
-
-See L<hdr_examples.pod> in the distribution.
 
 =head1 EXIT STATUS
 
@@ -176,24 +176,26 @@ my @options =
 
 my @ARGV_COPY = @ARGV ; # getopt removes elements
 
+my $use_stdin = grep { /^-$/ } @ARGV_COPY ;
+
 display_help() unless GetOptions(@options) ;
 
 generate_completion_script(@options) if $generatebash_completion ;
 
 print "\n$start_tag\n\n" if defined $start_tag ;
 
+use Text::Colorizer ;
+my $c= Text::Colorizer->new(FORMAT => $format || 'ANSI', JOIN => q{ }) ;
+
 if($display_command_line)
 	{
-	use Text::Colorizer ;
-	my $c= Text::Colorizer->new(FORMAT => $format || 'ANSI', JOIN => q{ }) ;
-	
-	print $c->color_all('bright_white', 'hdr', grep{! /-output_command_line/xsm} @ARGV_COPY) ;
+	print $c->color_all('bright_white', 'hdr', grep{! /-output_command_line/xsm} @ARGV_COPY) . "\n" ;
 	}
 
 my $data ;
 
 my $io_select = IO::Select->new(\*STDIN) ;
-if($io_select->can_read(0))
+if($use_stdin || $io_select->can_read(0))
 	{
 	local $INPUT_RECORD_SEPARATOR = undef ;
 	$data =  <STDIN> ; ## no critic (InputOutput::ProhibitExplicitStdin)
@@ -208,7 +210,7 @@ else
 		}
 	else
 		{
-		croak "Error: You didn't give me anything to generate an hexdump from. Try the --help option.\n";
+		croak $c->color_all('red', 'hdr', "error: nothing to generate an hexdump from; try --help" . "\n") ;
 		}
 	}
 
