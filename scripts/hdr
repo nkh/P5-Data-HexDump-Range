@@ -19,7 +19,7 @@ The integer part can of a range definition and offset values can be hexadecimal 
 =head1 RANGE DEFINITION 
 
                   format                          range example
-		  
+
   normal range => integer                         header, 4, bright_blue
   comment      => #                               data section start, # 
   extra header => @                               header, @, red 
@@ -32,7 +32,10 @@ Options can be given before or after the name of the file to dump.
 
  range_description|r              file name containing a description
                                   or a string description formated as:
-			                   'name,size,color:name,size:name,size:...'
+                                      'name,size,color:name,size:name,size:...'
+
+ -                                read data from stdin
+ 
  dump_original_range_description  dump the un-processed range descriptions
  dump_range_description           dump the processed range descriptions
 
@@ -79,8 +82,6 @@ Options can be given before or after the name of the file to dump.
  
  bit_zero_on_left                 1 == bit index zero is on the left
 
- -                                read data from stdin
- 
  h|help                           display this scripts help page
  generate_completion_script|bash  generates a completion script on STDOUT
  
@@ -199,6 +200,7 @@ if($use_stdin || $io_select->can_read(0))
 	{
 	local $INPUT_RECORD_SEPARATOR = undef ;
 	$data =  <STDIN> ; ## no critic (InputOutput::ProhibitExplicitStdin)
+	exit 0 if 0 == length($data) ;
 	}
 else
 	{
@@ -256,49 +258,49 @@ my @color_file ;
 @color_file = (COLOR_NAMES => $color_file) if(defined $color_file) ;
 
 my $hdr = Data::HexDump::Range->new
-			(
-			INTERACTION => {WARN => sub {warn @_}}, ## no critic (ErrorHandling::RequireCarping)
-			
-			ORIENTATION => $orientation || 'horizontal',
-			DISPLAY_COLUMN_NAMES => defined $display_column_names ? $display_column_names : 0,
-			DISPLAY_RULER => defined $display_ruler ? $display_ruler : 0,
-			
-			FORMAT => $format || 'ANSI',
-			COLOR => defined $color ? $color : 'cycle',
-			START_COLOR => $start_color,
-			
-			OFFSET_FORMAT => $offset_format || 'hex',
-			OFFSET_START => $offset_start || 0,
-			
-			DATA_WIDTH => $data_width || $DEFAULT_SIZE,
-			
-			DISPLAY_RANGE_NAME => defined $display_range_name ? $display_range_name : 1 ,
-			DUMP_RANGE_DESCRIPTION => defined $dump_range_description ? $dump_range_description : 0 ,
-			DUMP_ORIGINAL_RANGE_DESCRIPTION => defined $dump_original_range_description ? $dump_original_range_description : 0 ,
-
-			MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : $DEFAULT_SIZE,
-			DISPLAY_RANGE_SIZE => defined $display_range_size ? $display_range_size : 0,
-			
-			DISPLAY_OFFSET  => defined $display_offset ? $display_offset : 1 ,
-			DISPLAY_CUMULATIVE_OFFSET  => defined $display_cumulative_offset ? $display_cumulative_offset : 1 ,
-			DISPLAY_HEX_DUMP => defined $display_hex_dump ? $display_hex_dump : 1,
-			DISPLAY_HEXASCII_DUMP => defined $display_hexascii_dump ? $display_hexascii_dump : 0,
-			DISPLAY_DEC_DUMP => defined $display_dec_dump ? $display_dec_dump : 0,
-			DISPLAY_ASCII_DUMP => defined $display_ascii_dump ? $display_ascii_dump :  1 ,
-			DISPLAY_USER_INFORMATION => defined $display_user_information ? $display_user_information :  0 ,
-			MAXIMUM_USER_INFORMATION_SIZE => defined $maximum_user_information_size ? $maximum_user_information_size : $DEFAULT_USER_INFORMATION_SIZE,
+		(
+		INTERACTION => {WARN => sub {warn @_}}, ## no critic (ErrorHandling::RequireCarping)
 		
-			DISPLAY_ZERO_SIZE_RANGE => defined $display_zero_size_range ? $display_zero_size_range : 1,
-			DISPLAY_ZERO_SIZE_RANGE_WARNING => defined  $display_zero_size_range_warning ? $display_zero_size_range_warning : 1,
-			DISPLAY_COMMENT_RANGE => defined  $display_comment_range ? $display_comment_range : 1,
-			
-			DISPLAY_BITFIELDS => $display_bitfields,
-			DISPLAY_BITFIELD_SOURCE => defined $display_bitfield_source ? $display_bitfield_source : 1,
-			MAXIMUM_BITFIELD_SOURCE_SIZE => defined $maximum_bitfield_source_size ? $maximum_bitfield_source_size: $DEFAULT_BITFIELD_SOURCE_SIZE,
-			
-			BIT_ZERO_ON_LEFT =>  defined $bit_zero_on_left ? $bit_zero_on_left : 0,
-			@color_file
-			) ;
+		ORIENTATION => $orientation || 'horizontal',
+		DISPLAY_COLUMN_NAMES => defined $display_column_names ? $display_column_names : 0,
+		DISPLAY_RULER => defined $display_ruler ? $display_ruler : 0,
+		
+		FORMAT => $format || 'ANSI',
+		COLOR => defined $color ? $color : 'cycle',
+		START_COLOR => $start_color,
+		
+		OFFSET_FORMAT => $offset_format || 'hex',
+		OFFSET_START => $offset_start || 0,
+		
+		DATA_WIDTH => $data_width || $DEFAULT_SIZE,
+		
+		DISPLAY_RANGE_NAME => defined $display_range_name ? $display_range_name : 1 ,
+		DUMP_RANGE_DESCRIPTION => defined $dump_range_description ? $dump_range_description : 0 ,
+		DUMP_ORIGINAL_RANGE_DESCRIPTION => defined $dump_original_range_description ? $dump_original_range_description : 0 ,
+		
+		MAXIMUM_RANGE_NAME_SIZE => defined $maximum_range_name_size ? $maximum_range_name_size : $DEFAULT_SIZE,
+		DISPLAY_RANGE_SIZE => defined $display_range_size ? $display_range_size : 0,
+		
+		DISPLAY_OFFSET  => defined $display_offset ? $display_offset : 1 ,
+		DISPLAY_CUMULATIVE_OFFSET  => defined $display_cumulative_offset ? $display_cumulative_offset : 1 ,
+		DISPLAY_HEX_DUMP => defined $display_hex_dump ? $display_hex_dump : 1,
+		DISPLAY_HEXASCII_DUMP => defined $display_hexascii_dump ? $display_hexascii_dump : 0,
+		DISPLAY_DEC_DUMP => defined $display_dec_dump ? $display_dec_dump : 0,
+		DISPLAY_ASCII_DUMP => defined $display_ascii_dump ? $display_ascii_dump :  1 ,
+		DISPLAY_USER_INFORMATION => defined $display_user_information ? $display_user_information :  0 ,
+		MAXIMUM_USER_INFORMATION_SIZE => defined $maximum_user_information_size ? $maximum_user_information_size : $DEFAULT_USER_INFORMATION_SIZE,
+		
+		DISPLAY_ZERO_SIZE_RANGE => defined $display_zero_size_range ? $display_zero_size_range : 1,
+		DISPLAY_ZERO_SIZE_RANGE_WARNING => defined  $display_zero_size_range_warning ? $display_zero_size_range_warning : 1,
+		DISPLAY_COMMENT_RANGE => defined  $display_comment_range ? $display_comment_range : 1,
+		
+		DISPLAY_BITFIELDS => $display_bitfields,
+		DISPLAY_BITFIELD_SOURCE => defined $display_bitfield_source ? $display_bitfield_source : 1,
+		MAXIMUM_BITFIELD_SOURCE_SIZE => defined $maximum_bitfield_source_size ? $maximum_bitfield_source_size: $DEFAULT_BITFIELD_SOURCE_SIZE,
+		
+		BIT_ZERO_ON_LEFT =>  defined $bit_zero_on_left ? $bit_zero_on_left : 0,
+		@color_file
+		) ;
 
 print $hdr->dump( $range, $data, $offset, $maximum_size) ;
 
