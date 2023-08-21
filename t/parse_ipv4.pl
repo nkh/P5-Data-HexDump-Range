@@ -3,9 +3,9 @@ use warnings ;
 
 my $IPV4_header =
 	[
-	['IPV4_header', '#', 'bright_white on_red'],
+	['IPV4_header', '#', 'black on_magenta'],
 		[
-			['Version, Header length,  Differentiated Services, Total Length', '#', 'blue on_cyan'],
+			['Version, Header length,  Differentiated Services, Total Length', '#', 'blue'],
 			['First 32 bits', 4], 
 			['Version', 'b4'],
 			['Header length', 'x4b4'],
@@ -21,7 +21,7 @@ my $IPV4_header =
 		],
 
 		[
-			['Identification, Flags, Fragment Offset', '#', 'blue on_cyan'],
+			['Identification, Flags, Fragment Offset', '#', 'blue'],
 			['Second 32 bits', 4], 
 			['Identification', 'b16'],
 			
@@ -36,14 +36,14 @@ my $IPV4_header =
 		],
 
 		[
-			['Time to Live, Protocol, Header Checksum', '#', 'blue on_cyan'],
+			['Time to Live, Protocol, Header Checksum', '#', 'blue'],
 			['Third 32 bits', 4], 
 			['Time to Live', 'b8'],
 			['Protocol', 'x8b8'],
 			['Header Checksum', 'x16b16'],
 		],
 		
-		['Addresses and options', '#', 'blue on_cyan'],
+		['Addresses and options', '#', 'blue'],
 		['Source Address', 4],
 		['Destination Address', 4], 
 		[
@@ -67,7 +67,7 @@ my $IPV4_header =
 				}
 			}
 		],
-		['Data', '#', 'blue on_cyan'],
+		['Data', '#', 'blue'],
 		['Data', 128] # display some of the data
 	] ;
 	

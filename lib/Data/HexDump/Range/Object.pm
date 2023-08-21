@@ -138,8 +138,8 @@ use Term::ANSIColor qw(:constants) ;
 	COLORS =>
 		{
 		ASCII => [],
-		ANSI => [map {"$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'white', ],
-		HTML => [map {"bright_$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'red', 'white', ],
+		ANSI => [map {"$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'white', ],
+		HTML => [map {"bright_$_"} 'green', 'yellow', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'cyan', 'magenta', 'blue', 'white', ],
 		},
 		
 	OFFSET_FORMAT => 'hex',
